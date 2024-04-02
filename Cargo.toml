@@ -1,0 +1,18 @@
+[package]
+name = "tbtools"
+version = "0.2.0"
+edition = "2021"
+
+[dependencies]
+ansi_term = "0.12"
+clap = { version = "4.0", features = ["derive"] }
+cursive = { version = "0.20.0", default-features = false, features = ["crossterm-backend"] }
+is-terminal = "0.4.6"
+lazy_static = "1.4.0"
+nix = "0.26.2"
+num-traits = "0.2.15"
+rand = "0.8.5"
+regex = "1"
+serde_json = "1.0.108"
+udev = "0.7.0"
+uuid = "1.7.0"

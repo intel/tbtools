@@ -1,0 +1,899 @@
+{
+  "path": [
+    {"offset": 0, "adapter_type": ["HostInterface"], "name": "PATH_CS_0", "bitfields": [
+      {"start_bit": 17, "end_bit": 23, "name": "Path Credits Allocated"}
+    ]},
+    {"offset": 1, "adapter_type": ["HostInterface"], "name": "PATH_CS_1", "bitfields": [
+      {"start_bit": 12, "end_bit": 22, "name": "Counter ID"},
+      {"start_bit": 23, "end_bit": 23, "name": "Counter Enable", "shot_name": "CE"}
+    ]},
+    {"offset": 0, "adapter_type": ["Lane"], "name": "PATH_CS_0", "bitfields": [
+      {"start_bit": 0, "end_bit": 6, "name": "Output HopID"},
+      {"start_bit": 11, "end_bit": 16, "name": "Output Adapter"},
+      {"start_bit": 17, "end_bit": 23, "name": "Path Credits Allocated"},
+      {"start_bit": 24, "end_bit": 24, "name": "PM Packet Support", "short_name": "PMPS"},
+      {"start_bit": 31, "end_bit": 31, "name": "Valid"}
+    ]},
+    {"offset": 1, "adapter_type": ["Lane"], "name": "PATH_CS_1", "bitfields": [
+      {"start_bit": 0, "end_bit": 3, "name": "Weight"},
+      {"start_bit": 8, "end_bit": 10, "name": "Priority"},
+      {"start_bit": 12, "end_bit": 22, "name": "Counter ID"},
+      {"start_bit": 23, "end_bit": 23, "name": "Counter Enable", "short_name": "CE"},
+      {"start_bit": 24, "end_bit": 24, "name": "Ingress Flow Control Flag", "short_name": "IFC"},
+      {"start_bit": 25, "end_bit": 25, "name": "Egress Flow Control Flag", "short_name": "EFC"},
+      {"start_bit": 26, "end_bit": 26, "name": "Ingress Shared Buffering Enable Flag", "short_name": "ISE"},
+      {"start_bit": 27, "end_bit": 27, "name": "Egress Shared Buffering Enable Flag", "short_name": "ESE"},
+      {"start_bit": 28, "end_bit": 28, "name": "Pending Packets", "short_name": "PP"}
+    ]},
+    {"offset": 0, "adapter_type": ["USB 3 Down", "USB 3 Up", "PCIe Down", "PCIe Up", "DisplayPort IN", "DisplayPort OUT"], "name": "PATH_CS_0", "bitfields": [
+      {"start_bit": 0, "end_bit": 6, "name": "Output HopID"},
+      {"start_bit": 11, "end_bit": 16, "name": "Output Adapter"},
+      {"start_bit": 17, "end_bit": 23, "name": "Path Credits Allocated"},
+      {"start_bit": 31, "end_bit": 31, "name": "Valid"}
+    ]},
+    {"offset": 1, "adapter_type": ["USB 3 Down", "USB 3 Up", "PCIe Down", "PCIe Up", "DisplayPort IN", "DisplayPort OUT"], "name": "PATH_CS_1", "bitfields": [
+      {"start_bit": 0, "end_bit": 3, "name": "Weight"},
+      {"start_bit": 8, "end_bit": 10, "name": "Priority"},
+      {"start_bit": 12, "end_bit": 22, "name": "Counter ID"},
+      {"start_bit": 23, "end_bit": 23, "name": "Counter Enable", "short_name": "CE"},
+      {"start_bit": 24, "end_bit": 24, "name": "Ingress Flow Control Flag", "short_name": "IFC"},
+      {"start_bit": 25, "end_bit": 25, "name": "Egress Flow Control Flag", "short_name": "EFC"},
+      {"start_bit": 26, "end_bit": 26, "name": "Ingress Shared Buffering Enable Flag", "short_name": "ISE"},
+      {"start_bit": 27, "end_bit": 27, "name": "Egress Shared Buffering Enable Flag", "short_name": "ESE"},
+      {"start_bit": 28, "end_bit": 28, "name": "Pending Packets", "short_name": "PP"}
+    ]}
+  ],
+  "router": [
+    {"offset": 0, "name": "ROUTER_CS_0", "bitfields": [
+      {"start_bit": 0, "end_bit": 15, "name": "Vendor ID"},
+      {"start_bit": 16, "end_bit": 31, "name": "Product ID"}
+    ]},
+    {"offset": 1, "name": "ROUTER_CS_1", "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Next Capability Pointer"},
+      {"start_bit": 8, "end_bit": 13, "name": "Upstream Adapter"},
+      {"start_bit": 14, "end_bit": 19, "name": "Max Adapter"},
+      {"start_bit": 20, "end_bit": 22, "name": "Depth"},
+      {"start_bit": 24, "end_bit": 31, "name": "Revision Number"}
+    ]},
+    {"offset": 2, "name": "ROUTER_CS_2", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "TopologyID Low"}
+    ]},
+    {"offset": 3, "name": "ROUTER_CS_3", "bitfields": [
+      {"start_bit": 0, "end_bit": 23, "name": "TopologyID High"},
+      {"start_bit": 31, "end_bit": 31, "name": "TopologyID Valid", "short_name": "V"}
+    ]},
+    {"offset": 4, "name": "ROUTER_CS_4", "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Notification Timeout"},
+      {"start_bit": 8, "end_bit": 15, "name": "Connection Manager USB4 Version", "short_name": "CMUV"},
+      {"start_bit": 24, "end_bit": 31, "name": "USB4 Version"}
+    ]},
+    {"offset": 5, "name": "ROUTER_CS_5", "bitfields": [
+      {"start_bit": 0, "end_bit": 0, "name": "Enter Sleep", "short_name": "SLP"},
+      {"start_bit": 1, "end_bit": 1, "name": "Enable Wake on PCIe", "short_name": "WoP"},
+      {"start_bit": 2, "end_bit": 2, "name": "Enable Wake on USB3", "short_name": "WoU"},
+      {"start_bit": 3, "end_bit": 3, "name": "Enable Wake on DP", "short_name": "WoD"},
+      {"start_bit": 4, "end_bit": 4, "name": "Enumerated State PCIe Wake", "short_name": "WP2"},
+      {"start_bit": 23, "end_bit": 23, "name": "CM TBT3 Not Supported", "short_name": "CNS"},
+      {"start_bit": 24, "end_bit": 24, "name": "PCIe Tunneling On", "short_name": "PTO"},
+      {"start_bit": 25, "end_bit": 25, "name": "USB3 Tunneling On", "short_name": "UTO"},
+      {"start_bit": 26, "end_bit": 26, "name": "Internal Host Controller On", "short_name": "HCO"},
+      {"start_bit": 27, "end_bit": 27, "name": "SW Mapping", "short_name": "SWM"},
+      {"start_bit": 28, "end_bit": 28, "name": "Host Supports USB3 Gen T", "short_name": "HSGT"},
+      {"start_bit": 31, "end_bit": 31, "name": "Configuration Valid", "short_name": "CV"}
+    ]},
+    {"offset": 6, "name": "ROUTER_CS_6", "bitfields": [
+      {"start_bit": 0, "end_bit": 0, "name": "Sleep Ready", "short_name": "SLPR"},
+      {"start_bit": 1, "end_bit": 1, "name": "TBT3 Not Supported", "short_name": "TNS"},
+      {"start_bit": 2, "end_bit": 2, "name": "Wake on PCIe Status"},
+      {"start_bit": 3, "end_bit": 3, "name": "Wake on USB3 Status"},
+      {"start_bit": 4, "end_bit": 4, "name": "Wake on DP Status"},
+      {"start_bit": 18, "end_bit": 18, "name": "Internal Host Controller Implemented", "short_name": "HCI"},
+      {"start_bit": 19, "end_bit": 19, "name": "Partial DP Connectivity Implementation", "short_name": "PI"},
+      {"start_bit": 20, "end_bit": 20, "name": "DPTX Discovery Support", "short_name": "DDS"},
+      {"start_bit": 22, "end_bit": 22, "name": "Gen T Bundle Weight Mode", "short_name": "GTBW"},
+      {"start_bit": 24, "end_bit": 24, "name": "Router Ready", "short_name": "RR"},
+      {"start_bit": 25, "end_bit": 25, "name": "Configuration Ready", "short_name": "CR"}
+    ]},
+    {"offset": 7, "name": "ROUTER_CS_7", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "UUID", "short_name": "High"}
+
+    ]},
+    {"offset": 8, "name": "ROUTER_CS_8", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "UUID", "short_name": "Low"}
+    ]},
+    {"offset": 9, "name": "ROUTER_CS_9", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[0]"}
+    ]},
+    {"offset": 10, "name": "ROUTER_CS_10", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[1]"}
+    ]},
+    {"offset": 11, "name": "ROUTER_CS_11", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[2]"}
+    ]},
+    {"offset": 12, "name": "ROUTER_CS_12", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[3]"}
+    ]},
+    {"offset": 13, "name": "ROUTER_CS_13", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[4]"}
+    ]},
+    {"offset": 14, "name": "ROUTER_CS_14", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[5]"}
+    ]},
+    {"offset": 15, "name": "ROUTER_CS_15", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[6]"}
+    ]},
+    {"offset": 16, "name": "ROUTER_CS_16", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[7]"}
+    ]},
+    {"offset": 17, "name": "ROUTER_CS_17", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[8]"}
+    ]},
+    {"offset": 18, "name": "ROUTER_CS_18", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[9]"}
+    ]},
+    {"offset": 19, "name": "ROUTER_CS_19", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[10]"}
+    ]},
+    {"offset": 20, "name": "ROUTER_CS_20", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[11]"}
+    ]},
+    {"offset": 21, "name": "ROUTER_CS_21", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[12]"}
+    ]},
+    {"offset": 22, "name": "ROUTER_CS_22", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[13]"}
+    ]},
+    {"offset": 23, "name": "ROUTER_CS_23", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[14]"}
+    ]},
+    {"offset": 24, "name": "ROUTER_CS_24", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[15]"}
+    ]},
+    {"offset": 25, "name": "ROUTER_CS_25", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Metadata"}
+    ]},
+    {"offset": 26, "name": "ROUTER_CS_26", "bitfields": [
+      {"start_bit": 0, "end_bit": 15, "name": "Opcode"},
+      {"start_bit": 24, "end_bit": 29, "name": "Status"},
+      {"start_bit": 30, "end_bit": 30, "name": "Operation Not Supported", "short_name": "ONS"},
+      {"start_bit": 31, "end_bit": 31, "name": "Operation Valid", "short_name": "OV"}
+    ]},
+    {"offset": 0, "cap_id": 3, "name": "TMU_RTR_CS_0", "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Next Capability Pointer"},
+      {"start_bit": 8, "end_bit": 15, "name": "Capability ID"},
+      {"start_bit": 16, "end_bit": 26, "name": "Freq Measurement Window"},
+      {"start_bit": 27, "end_bit": 27, "name": "Time Disruption", "short_name": "TD"},
+      {"start_bit": 29, "end_bit": 29, "name": "Time Synchronization Protocol Not Supported", "short_name": "TSNS"},
+      {"start_bit": 30, "end_bit": 30, "name": "Uni-Directional Capability", "short_name": "UCAP"},
+      {"start_bit": 31, "end_bit": 31, "name": "Inter-Domain Enable", "short_name": "IDE"}
+    ]},
+    {"offset": 1, "cap_id": 3, "name": "TMU_RTR_CS_1", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "LocalTime Low"}
+    ]},
+    {"offset": 2, "cap_id": 3, "name": "TMU_RTR_CS_2", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "LocalTime Middle"}
+    ]},
+    {"offset": 3, "cap_id": 3, "name": "TMU_RTR_CS_3", "bitfields": [
+      {"start_bit": 0, "end_bit": 15, "name": "LocalTime High"},
+      {"start_bit": 16, "end_bit": 31, "name": "TSPacketInterval"}
+    ]},
+    {"offset": 4, "cap_id": 3, "name": "TMU_RTR_CS_4", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "TimeOffsetFromHR Low"}
+    ]},
+    {"offset": 5, "cap_id": 3, "name": "TMU_RTR_CS_5", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "TimeOffsetFromHR High"}
+    ]},
+    {"offset": 6, "cap_id": 3, "name": "TMU_RTR_CS_6", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "TimeOffsetFromDFP Low"}
+    ]},
+    {"offset": 7, "cap_id": 3, "name": "TMU_RTR_CS_7", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "TimeOffsetFromDFP High"}
+    ]},
+    {"offset": 8, "cap_id": 3, "name": "TMU_RTR_CS_8", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "FreqOffsetFromHR"}
+    ]},
+    {"offset": 9, "cap_id": 3, "name": "TMU_RTR_CS_9", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "FreqOffsetFromDFP"}
+    ]},
+    {"offset": 10, "cap_id": 3, "name": "TMU_RTR_CS_10", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Propagation Delay Low"}
+    ]},
+    {"offset": 11, "cap_id": 3, "name": "TMU_RTR_CS_11", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Propagation Delay High"}
+    ]},
+    {"offset": 12, "cap_id": 3, "name": "TMU_RTR_CS_12", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Computation Time Stamp Low"}
+    ]},
+    {"offset": 13, "cap_id": 3, "name": "TMU_RTR_CS_13", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Computation Time Stamp Middle"}
+    ]},
+    {"offset": 14, "cap_id": 3, "name": "TMU_RTR_CS_14", "bitfields": [
+      {"start_bit": 0, "end_bit": 15, "name": "Computation Time Stamp High"}
+    ]},
+    {"offset": 15, "cap_id": 3, "name": "TMU_RTR_CS_15", "bitfields": [
+      {"start_bit": 0, "end_bit": 5, "name": "FreqAvgConst"},
+      {"start_bit": 6, "end_bit": 11, "name": "DelayAvgConst"},
+      {"start_bit": 12, "end_bit": 17, "name": "OffsetAvgConst"},
+      {"start_bit": 18, "end_bit": 23, "name": "ErrorAvgConst"},
+      {"start_bit": 24, "end_bit": 31, "name": "TSInterDomainInterval"}
+    ]},
+    {"offset": 16, "cap_id": 3, "name": "TMU_RTR_CS_16", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Inter-Domain Time Stamp Low"}
+    ]},
+    {"offset": 17, "cap_id": 3, "name": "TMU_RTR_CS_17", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Inter-Domain Time Stamp Middle"}
+    ]},
+    {"offset": 18, "cap_id": 3, "name": "TMU_RTR_CS_18", "bitfields": [
+      {"start_bit": 0, "end_bit": 15, "name": "Inter-Domain Time Stamp High"},
+      {"start_bit": 16, "end_bit": 23, "name": "DeltaAvgConst"},
+      {"start_bit": 31, "end_bit": 31, "name": "Inter-Domain Not Supported", "short_name": "IDNS"}
+    ]},
+    {"offset": 19, "cap_id": 3, "name": "TMU_RTR_CS_19", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "TimeOffsetFromInterDomainHR Low"}
+    ]},
+    {"offset": 20, "cap_id": 3, "name": "TMU_RTR_CS_20", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "TimeOffsetFromInterDomainHR High"}
+    ]},
+    {"offset": 21, "cap_id": 3, "name": "TMU_RTR_CS_21", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "FreqOffsetFromInterDomainHR"}
+    ]},
+    {"offset": 22, "cap_id": 3, "name": "TMU_RTR_CS_22", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Post Local Time Low"}
+    ]},
+    {"offset": 23, "cap_id": 3, "name": "TMU_RTR_CS_23", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Post Local Time High"}
+    ]},
+    {"offset": 24, "cap_id": 3, "name": "TMU_RTR_CS_24", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Post Time Low"}
+    ]},
+    {"offset": 25, "cap_id": 3, "name": "TMU_RTR_CS_25", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Post Time High"}
+    ]},
+    {"offset": 0, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_0", "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Next Capability Pointer"},
+      {"start_bit": 8, "end_bit": 15, "name": "Capability ID"},
+      {"start_bit": 16, "end_bit": 23, "name": "VSC ID"},
+      {"start_bit": 24, "end_bit": 31, "name": "VSC Length"}
+    ]},
+    {"offset": 1, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_1", "bitfields": [
+      {"start_bit": 3, "end_bit": 6, "name": "Plug Event Disable"}
+    ]},
+    {"offset": 2, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_2"},
+    {"offset": 3, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_3", "bitfields": [
+      {"start_bit": 0, "end_bit": 0, "name": "Link Errors – Adapter A"},
+      {"start_bit": 1, "end_bit": 1, "name": "HEC Error – Adapter A"},
+      {"start_bit": 2, "end_bit": 2, "name": "Flow Control Error – Adapter A"},
+      {"start_bit": 4, "end_bit": 4, "name": "Link Errors – Adapter B"},
+      {"start_bit": 5, "end_bit": 5, "name": "HEC Error – Adapter B"},
+      {"start_bit": 6, "end_bit": 6, "name": "Flow Control Error – Adapter B"},
+      {"start_bit": 8, "end_bit": 8, "name": "Link Errors – Adapter C"},
+      {"start_bit": 9, "end_bit": 9, "name": "HEC Error – Adapter C"},
+      {"start_bit": 10, "end_bit": 10, "name": "Flow Control Error – Adapter C"},
+      {"start_bit": 12, "end_bit": 12, "name": "Link Errors – Adapter D"},
+      {"start_bit": 13, "end_bit": 13, "name": "HEC Error – Adapter D"},
+      {"start_bit": 14, "end_bit": 14, "name": "Flow Control Error – Adapter D"},
+      {"start_bit": 16, "end_bit": 16, "name": "Link Errors Enable – Adapter A"},
+      {"start_bit": 17, "end_bit": 17, "name": "HEC Error Enable – Adapter A"},
+      {"start_bit": 18, "end_bit": 18, "name": "Flow Control Error Enable – Adapter A"},
+      {"start_bit": 20, "end_bit": 20, "name": "Link Errors Enable – Adapter B"},
+      {"start_bit": 21, "end_bit": 21, "name": "HEC Error Enable – Adapter B"},
+      {"start_bit": 22, "end_bit": 22, "name": "Flow Control Error Enable – Adapter B"},
+      {"start_bit": 24, "end_bit": 24, "name": "Link Errors Enable – Adapter C"},
+      {"start_bit": 25, "end_bit": 25, "name": "HEC Error Enable – Adapter C"},
+      {"start_bit": 26, "end_bit": 26, "name": "Flow Control Error Enable – Adapter C"},
+      {"start_bit": 28, "end_bit": 28, "name": "Link Errors Enable – Adapter D"},
+      {"start_bit": 29, "end_bit": 29, "name": "HEC Error Enable – Adapter D"},
+      {"start_bit": 30, "end_bit": 30, "name": "Flow Control Error Enable – Adapter D"}
+    ]},
+    {"offset": 4, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_4", "bitfields": [
+      {"start_bit": 0, "end_bit": 0, "name": "FL_SK"},
+      {"start_bit": 1, "end_bit": 1, "name": "FL_CS"},
+      {"start_bit": 2, "end_bit": 2, "name": "FL_DI"},
+      {"start_bit": 3, "end_bit": 3, "name": "FL_DO"},
+      {"start_bit": 4, "end_bit": 4, "name": "Bit Banging Enable"},
+      {"start_bit": 5, "end_bit": 5, "name": "Invalid Flash Memory"}
+    ]},
+    {"offset": 5, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_5"},
+    {"offset": 6, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_6"},
+    {"offset": 7, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_7"},
+    {"offset": 8, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_8"},
+    {"offset": 9, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_9"},
+    {"offset": 10, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_10"},
+    {"offset": 11, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_11"},
+    {"offset": 12, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_12", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "DROM Base Address"}
+    ]},
+    {"offset": 13, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_13"},
+    {"offset": 14, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_14"},
+    {"offset": 15, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_15"},
+    {"offset": 16, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_16"},
+    {"offset": 17, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_17"},
+    {"offset": 18, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_18"},
+    {"offset": 19, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_19"},
+    {"offset": 20, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_20"},
+    {"offset": 21, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_21"},
+    {"offset": 22, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_22"},
+    {"offset": 23, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_23"},
+    {"offset": 24, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_24"},
+    {"offset": 25, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_25"},
+    {"offset": 26, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_26"},
+    {"offset": 27, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_27"},
+    {"offset": 28, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_28"},
+    {"offset": 29, "cap_id": 5, "vs_cap_id": 1, "name": "VSC_1_CS_29"},
+    {"offset": 0, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_0", "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Next Capability Pointer"},
+      {"start_bit": 8, "end_bit": 15, "name": "Capability ID"},
+      {"start_bit": 16, "end_bit": 23, "name": "VSC ID"},
+      {"start_bit": 24, "end_bit": 31, "name": "VSC Length"}
+    ]},
+    {"offset": 1, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_1"},
+    {"offset": 2, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_2"},
+    {"offset": 3, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_3"},
+    {"offset": 4, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_4", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Post Local Time Low"}
+    ]},
+    {"offset": 5, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_5", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Post Local Time High"}
+    ]},
+    {"offset": 6, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_6", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Post Time Low"}
+    ]},
+    {"offset": 7, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_7", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Post Time High"}
+    ]},
+    {"offset": 8, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_8"},
+    {"offset": 9, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_9"},
+    {"offset": 10, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_10"},
+    {"offset": 11, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_11"},
+    {"offset": 12, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_12"},
+    {"offset": 13, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_13"},
+    {"offset": 14, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_14"},
+    {"offset": 15, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_15"},
+    {"offset": 16, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_16"},
+    {"offset": 17, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_17"},
+    {"offset": 18, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_18"},
+    {"offset": 19, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_19"},
+    {"offset": 20, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_20"},
+    {"offset": 21, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_21"},
+    {"offset": 22, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_22"},
+    {"offset": 23, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_23"},
+    {"offset": 24, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_24"},
+    {"offset": 25, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_25"},
+    {"offset": 26, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_26", "bitfields": [
+      {"start_bit": 22, "end_bit": 22, "name": "Time Disruption", "short_name": "TD"}
+    ]},
+    {"offset": 27, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_27"},
+    {"offset": 28, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_28"},
+    {"offset": 29, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_29"},
+    {"offset": 30, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_30"},
+    {"offset": 31, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_31"},
+    {"offset": 32, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_32"},
+    {"offset": 33, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_33"},
+    {"offset": 34, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_34"},
+    {"offset": 35, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_35"},
+    {"offset": 36, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_36"},
+    {"offset": 37, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_37"},
+    {"offset": 38, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_38"},
+    {"offset": 39, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_39"},
+    {"offset": 40, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_40"},
+    {"offset": 41, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_41"},
+    {"offset": 42, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_42"},
+    {"offset": 43, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_43"},
+    {"offset": 44, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_44"},
+    {"offset": 45, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_45"},
+    {"offset": 46, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_46"},
+    {"offset": 47, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_47"},
+    {"offset": 48, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_48"},
+    {"offset": 49, "cap_id": 5, "vs_cap_id": 3, "name": "VSC_3_CS_49"},
+    {"offset": 0, "cap_id": 5, "vs_cap_id": 4, "name": "VSC_4_CS_0", "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Next Capability Pointer"},
+      {"start_bit": 8, "end_bit": 15, "name": "Capability ID"},
+      {"start_bit": 16, "end_bit": 23, "name": "VSC ID"},
+      {"start_bit": 24, "end_bit": 31, "name": "VSC Length"}
+    ]},
+    {"offset": 1, "cap_id": 5, "vs_cap_id": 4, "name": "VSC_4_CS_1"},
+    {"offset": 2, "cap_id": 5, "vs_cap_id": 4, "name": "VSC_4_CS_2"},
+    {"offset": 3, "cap_id": 5, "vs_cap_id": 4, "name": "VSC_4_CS_3"},
+    {"offset": 4, "cap_id": 5, "vs_cap_id": 4, "name": "VSC_4_CS_4"},
+    {"offset": 5, "cap_id": 5, "vs_cap_id": 4, "name": "VSC_4_CS_5"},
+    {"offset": 6, "cap_id": 5, "vs_cap_id": 4, "name": "VSC_4_CS_6"},
+    {"offset": 7, "cap_id": 5, "vs_cap_id": 4, "name": "VSC_4_CS_7"},
+    {"offset": 8, "cap_id": 5, "vs_cap_id": 4, "name": "VSC_4_CS_8"},
+    {"offset": 9, "cap_id": 5, "vs_cap_id": 4, "name": "VSC_4_CS_9"},
+    {"offset": 10, "cap_id": 5, "vs_cap_id": 4, "name": "VSC_4_CS_10"},
+    {"offset": 0, "cap_id": 5, "vs_cap_id": 6, "name": "VSEC_6_CS_0", "bitfields": [
+      {"start_bit": 8, "end_bit": 15, "name": "Capability ID"},
+      {"start_bit": 16, "end_bit": 23, "name": "VSEC ID"},
+      {"start_bit": 24, "end_bit": 31, "name": "VSEC Header"}
+    ]},
+    {"offset": 1, "cap_id": 5, "vs_cap_id": 6, "name": "VSEC_6_CS_1", "bitfields": [
+      {"start_bit": 0, "end_bit": 15, "name": "Next Capability Pointer"},
+      {"start_bit": 16, "end_bit": 31, "name": "VSEC Length"}
+    ]},
+    {"offset": 2, "cap_id": 5, "vs_cap_id": 6, "name": "CAP_STRUCT", "bitfields": [
+      {"start_bit": 0, "end_bit": 3, "name": "USB4 Ports"},
+      {"start_bit": 8, "end_bit": 15, "name": "Common Region Length"},
+      {"start_bit": 16, "end_bit": 27, "name": "USB4 Port Region Length"}
+    ]},
+    {"offset": 3, "cap_id": 5, "vs_cap_id": 6, "name": "VSEC_6_CS_3"},
+    {"offset": 4, "cap_id": 5, "vs_cap_id": 6, "name": "VSEC_6_CS_4"},
+    {"offset": 5, "cap_id": 5, "vs_cap_id": 6, "name": "VSEC_6_CS_5"},
+    {"offset": 6, "cap_id": 5, "vs_cap_id": 6, "name": "VSEC_6_CS_6"},
+    {"offset": 7, "cap_id": 5, "vs_cap_id": 6, "name": "VSEC_6_CS_7"},
+    {"offset": 8, "cap_id": 5, "vs_cap_id": 6, "name": "VSEC_6_CS_8"},
+    {"offset": 9, "cap_id": 5, "vs_cap_id": 6, "name": "VSEC_6_CS_9"},
+    {"offset": 10, "cap_id": 5, "vs_cap_id": 6, "name": "VSEC_6_CS_10"},
+    {"offset": 11, "cap_id": 5, "vs_cap_id": 6, "name": "VSEC_6_CS_11"},
+    {"offset": 12, "cap_id": 5, "vs_cap_id": 6, "name": "VSEC_6_CS_12"},
+    {"offset": 13, "cap_id": 5, "vs_cap_id": 6, "name": "VSEC_6_CS_13"},
+    {"offset": 14, "cap_id": 5, "vs_cap_id": 6, "name": "VSEC_6_CS_14"},
+    {"offset": 15, "cap_id": 5, "vs_cap_id": 6, "name": "VSEC_6_CS_15"},
+    {"offset": 16, "cap_id": 5, "vs_cap_id": 6, "name": "VSEC_6_CS_16"},
+    {"offset": 17, "cap_id": 5, "vs_cap_id": 6, "name": "VSEC_6_CS_17"},
+    {"offset": 18, "cap_id": 5, "vs_cap_id": 6, "name": "VSEC_6_CS_18"},
+    {"offset": 19, "cap_id": 5, "vs_cap_id": 6, "name": "VSEC_6_CS_19"}
+  ],
+  "adapter": [
+    {"offset": 0, "name": "ADP_CS_0"},
+    {"offset": 1, "name": "ADP_CS_1", "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Next Capability Pointer"},
+      {"start_bit": 8, "end_bit": 18, "name": "Max Counter Sets"},
+      {"start_bit": 19, "end_bit": 19, "name": "Counters Configuration Space Flag", "short_name": "CCS"},
+      {"start_bit": 20, "end_bit": 20, "name": "Bytes Counter Supported", "short_name": "BCS"},
+      {"start_bit": 21, "end_bit": 21, "name": "Received Bytes Counter Enable", "short_name": "RBE"},
+      {"start_bit": 22, "end_bit": 22, "name": "Lock Bytes Counter with TimeOffsetFromHR Low Supported", "short_name": "LBS"},
+      {"start_bit": 23, "end_bit": 23, "name": "Lock Bytes Counter with TimeOffsetFromHR Low Enable", "short_name": "LBE"}
+    ]},
+    {"offset": 2, "name": "ADP_CS_2", "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Adapter Type Sub-type"},
+      {"start_bit": 8, "end_bit": 15, "name": "Adapter Type Version"},
+      {"start_bit": 16, "end_bit": 23, "name": "Adapter Type Protocol"}
+    ]},
+    {"offset": 3, "name": "ADP_CS_3", "bitfields": [
+      {"start_bit": 20, "end_bit": 25, "name": "Adapter Number"},
+      {"start_bit": 29, "end_bit": 29, "name": "HEC Error", "short_name": "HE"},
+      {"start_bit": 30, "end_bit": 30, "name": "Flow Control Error", "short_name": "FCE"},
+      {"start_bit": 31, "end_bit": 31, "name": "Shared Buffering Capable", "short_name": "SBC"}
+    ]},
+    {"offset": 4, "name": "ADP_CS_4", "bitfields": [
+      {"start_bit": 0, "end_bit": 9, "name": "Non-Flow Controlled Buffers"},
+      {"start_bit": 20, "end_bit": 29, "name": "Total Buffers"},
+      {"start_bit": 30, "end_bit": 30, "name": "Plugged"},
+      {"start_bit": 31, "end_bit": 31, "name": "Lock", "short_name": "LCK"}
+    ]},
+    {"offset": 5, "name": "ADP_CS_5", "bitfields": [
+      {"start_bit": 0, "end_bit": 6, "name": "Max Input HopID"},
+      {"start_bit": 11, "end_bit": 17, "name": "Max Output HopID"},
+      {"start_bit": 22, "end_bit": 28, "name": "Link Credits Allocated"},
+      {"start_bit": 29, "end_bit": 29, "name": "HEC Error Enable", "short_name": "HEE"},
+      {"start_bit": 30, "end_bit": 30, "name": "Flow Control Error Enable", "short_name": "FCEE"},
+      {"start_bit": 31, "end_bit": 31, "name": "Disable Hot Plug Events", "short_name": "DHP"}
+    ]},
+    {"offset": 6, "name": "ADP_CS_6", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "HEC Errors"}
+    ]},
+    {"offset": 7, "name": "ADP_CS_7", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Invalid HopID Errors"}
+    ]},
+    {"offset": 8, "name": "ADP_CS_8", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "ECC Errors"}
+    ]},
+    {"offset": 0, "cap_id": 1, "adapter_type": ["Lane"], "name": "LANE_ADP_CS_0", "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Next Capability Pointer"},
+      {"start_bit": 8, "end_bit": 15, "name": "Capability ID"},
+      {"start_bit": 16, "end_bit": 19, "name": "Supported Link Speeds"},
+      {"start_bit": 20, "end_bit": 21, "name": "Supported Link Widths", "short_name": "SLW"},
+      {"start_bit": 22, "end_bit": 23, "name": "Gen 4 Asymmetric Support", "short_name": "G4AS"},
+      {"start_bit": 26, "end_bit": 26, "name": "CL0s Support"},
+      {"start_bit": 27, "end_bit": 27, "name": "CL1 Support"},
+      {"start_bit": 28, "end_bit": 28, "name": "CL2 Support"}
+    ]},
+    {"offset": 1, "cap_id": 1, "adapter_type": ["Lane"], "name": "LANE_ADP_CS_1", "bitfields": [
+      {"start_bit": 0, "end_bit": 3, "name": "Target Link Speed"},
+      {"start_bit": 4, "end_bit": 5, "name": "Target Link Width", "values": [
+        {"name": "Establish two Single-Lane Links", "value": 1},
+        {"name": "Establish a Symmetric Link", "value": 3}
+      ]},
+      {"start_bit": 6, "end_bit": 7, "name": "Target Asymmetric Link", "values": [
+        {"name": "Establish Symmetric Link", "value": 0},
+        {"name": "Establish Asymmetric Link with 3 transmitters", "value": 1},
+        {"name": "Establish Asymmetric Link with 3 receivers", "value": 2}
+      ]},
+      {"start_bit": 10, "end_bit": 10, "name": "CL0s Enable"},
+      {"start_bit": 11, "end_bit": 11, "name": "CL1 Enable"},
+      {"start_bit": 12, "end_bit": 12, "name": "CL2 Enable"},
+      {"start_bit": 14, "end_bit": 14, "name": "Lane Disable", "short_name": "LD"},
+      {"start_bit": 15, "end_bit": 15, "name": "Lane Bonding", "short_name": "LB"},
+      {"start_bit": 16, "end_bit": 19, "name": "Current Link Speed", "values": [
+        {"name": "Gen 2", "value": 8},
+        {"name": "Gen 3", "value": 4},
+        {"name": "Gen 2", "value": 2}
+      ]},
+      {"start_bit": 20, "end_bit": 25, "name": "Negotiated Link Width", "values": [
+        {"name": "Single-Lane Link (x1)", "value": 1},
+        {"name": "Symmetric Link (x2)", "value": 2},
+        {"name": "Asymmetric Link with 3 transmitters", "value": 4},
+        {"name": "Asymmetric Link with 3 receivers", "value": 8}
+      ]},
+      {"start_bit": 26, "end_bit": 29, "name": "Adapter State", "values": [
+        {"name": "Disabled", "value": 0},
+        {"name": "Training or Lane Bonding", "value": 1},
+        {"name": "CL0", "value": 2},
+        {"name": "Transmitter in CL0s", "value": 3},
+        {"name": "Receiver in CL0s", "value": 4},
+        {"name": "CL1", "value": 5},
+        {"name": "CL2", "value": 6},
+        {"name": "CLd", "value": 7}
+      ]},
+      {"start_bit": 30, "end_bit": 30, "name": "PM Secondary", "short_name": "PMS"}
+    ]},
+    {"offset": 2, "cap_id": 1, "adapter_type": ["Lane"], "name": "LANE_ADP_CS_2", "bitfields": [
+      {"start_bit": 0, "end_bit": 6, "name": "Logical Layer Errors"},
+      {"start_bit": 16, "end_bit": 22, "name": "Logical Layer Errors Enable"}
+    ]},
+    {"offset": 0, "cap_id": 3, "adapter_type": ["Lane"], "name": "TMU_ADP_CS_0", "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Next Capability Pointer"},
+      {"start_bit": 8, "end_bit": 15, "name": "Capability ID"}
+    ]},
+    {"offset": 1, "cap_id": 3, "adapter_type": ["Lane"], "name": "TMU_ADP_CS_1", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "TxTimeToWire"}
+    ]},
+    {"offset": 2, "cap_id": 3, "adapter_type": ["Lane"], "name": "TMU_ADP_CS_2", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "RxTimeToWire"}
+    ]},
+    {"offset": 3, "cap_id": 3, "adapter_type": ["Lane"], "name": "TMU_ADP_CS_3", "bitfields": [
+      {"start_bit": 29, "end_bit": 29, "name": "EnableUniDirectionalMode", "short_name": "UDM"},
+      {"start_bit": 30, "end_bit": 30, "name": "Inter-Domain Time Responder", "short_name": "IDTR"},
+      {"start_bit": 31, "end_bit": 31, "name": "Inter-Domain Time Initiator", "short_name": "IDTI"}
+    ]},
+    {"offset": 4, "cap_id": 3, "adapter_type": ["Lane"], "name": "TMU_ADP_CS_4", "bitfields": [
+      {"start_bit": 0, "end_bit": 15, "name": "RX TSNOS Counter"},
+      {"start_bit": 16, "end_bit": 31, "name": "TX TSNOS Counter"}
+    ]},
+    {"offset": 5, "cap_id": 3, "adapter_type": ["Lane"], "name": "TMU_ADP_CS_5", "bitfields": [
+      {"start_bit": 0, "end_bit": 15, "name": "RX Packet Counter"},
+      {"start_bit": 16, "end_bit": 31, "name": "TX Packet Counter"}
+    ]},
+    {"offset": 6, "cap_id": 3, "adapter_type": ["Lane"], "name": "TMU_ADP_CS_6", "bitfields": [
+      {"start_bit": 1, "end_bit": 1, "name": "Disable Time Sync", "short_name": "DTS"}
+    ]},
+    {"offset": 7, "cap_id": 3, "adapter_type": ["Lane"], "name": "TMU_ADP_CS_7", "bitfields": [
+      {"start_bit": 0, "end_bit": 9, "name": "Lost TSNOS Counter"},
+      {"start_bit": 10, "end_bit": 19, "name": "Lost Packet Counter"},
+      {"start_bit": 20, "end_bit": 29, "name": "Bad Packet Counter"}
+    ]},
+    {"offset": 8, "cap_id": 3, "adapter_type": ["Lane"], "name": "TMU_ADP_CS_8", "bitfields": [
+      {"start_bit": 0, "end_bit": 14, "name": "Replenish Timeout"},
+      {"start_bit": 15, "end_bit": 15, "name": "Enable Enhanced Uni-Directional Mode", "short_name": "EUDM"},
+      {"start_bit": 16, "end_bit": 25, "name": "Replenish Threshold"}
+    ]},
+    {"offset": 9, "cap_id": 3, "adapter_type": ["Lane"], "name": "TMU_ADP_CS_9", "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "ReplenishN"},
+      {"start_bit": 8, "end_bit": 15, "name": "DirSwitchN"},
+      {"start_bit": 16, "end_bit": 31, "name": "AdapterTimeSyncInterval"}
+    ]},
+    {"offset": 0, "cap_id": 4, "adapter_type": ["DisplayPort IN"], "name": "ADP_DP_CS_0", "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Next Capability Pointer"},
+      {"start_bit": 8, "end_bit": 15, "name": "Capability ID"},
+      {"start_bit": 16, "end_bit": 22, "name": "Video HopID"},
+      {"start_bit": 30, "end_bit": 30, "name": "AUX Enable", "short_name": "AE"},
+      {"start_bit": 31, "end_bit": 31, "name": "Video Enable", "short_name": "VE"}
+    ]},
+    {"offset": 1, "cap_id": 4, "adapter_type": ["DisplayPort IN"], "name": "ADP_DP_CS_1", "bitfields": [
+      {"start_bit": 0, "end_bit": 6, "name": "AUX Tx HopID"},
+      {"start_bit": 11, "end_bit": 17, "name": "AUX Rx HopID"}
+    ]},
+    {"offset": 2, "cap_id": 4, "adapter_type": ["DisplayPort IN"], "name": "ADP_DP_CS_2", "bitfields": [
+      {"start_bit": 0, "end_bit": 2, "name": "NRD Max Lane Count", "short_name": "NRD MLC"},
+      {"start_bit": 3, "end_bit": 3, "name": "SW Link Init", "short_name": "SWLI"},
+      {"start_bit": 6, "end_bit": 6, "name": "HPD Status"},
+      {"start_bit": 7, "end_bit": 9, "name": "NRD Max Link Rate", "short_name": "NRD MLR"},
+      {"start_bit": 10, "end_bit": 10, "name": "CM Ack", "short_name": "CA"},
+      {"start_bit": 11, "end_bit": 12, "name": "Granularity", "short_name": "GR"},
+      {"start_bit": 13, "end_bit": 15, "name": "Group_ID"},
+      {"start_bit": 16, "end_bit": 19, "name": "CM_ID"},
+      {"start_bit": 20, "end_bit": 20, "name": "CM BW Allocation Mode Support", "short_name": "CMMS"},
+      {"start_bit": 24, "end_bit": 31, "name": "Estimated BW"}
+    ]},
+    {"offset": 3, "cap_id": 4, "adapter_type": ["DisplayPort IN"], "name": "ADP_DP_CS_3", "bitfields": [
+      {"start_bit": 9, "end_bit": 9, "name": "HPD Output Clear", "short_name": "HPDC"},
+      {"start_bit": 10, "end_bit": 10, "name": "HPD Output Set", "short_name": "HPDS"}
+    ]},
+    {"offset": 4, "cap_id": 4, "adapter_type": ["DisplayPort IN"], "name": "DP_LOCAL_CAP", "bitfields": [
+      {"start_bit": 0, "end_bit": 3, "name": "Protocol Adapter Version"},
+      {"start_bit": 4, "end_bit": 7, "name": "Maximal DPCD Rev"},
+      {"start_bit": 8, "end_bit": 11, "name": "8b10b Maximal Link Rate"},
+      {"start_bit": 12, "end_bit": 14, "name": "Maximal Lane Count"},
+      {"start_bit": 15, "end_bit": 15, "name": "8b10b MST Capability"},
+      {"start_bit": 16, "end_bit": 16, "name": "Panel Replay Tunneling Optimization Support"},
+      {"start_bit": 17, "end_bit": 17, "name": "128b/132b Link Layer & 10Gbps/Lane Support"},
+      {"start_bit": 18, "end_bit": 18, "name": "20Gbps/Lane Support"},
+      {"start_bit": 19, "end_bit": 19, "name": "13.5Gbps/Lane Support"},
+      {"start_bit": 20, "end_bit": 20, "name": "ALPM Support"},
+      {"start_bit": 22, "end_bit": 22, "name": "8b10b TPS3 Capability"},
+      {"start_bit": 24, "end_bit": 24, "name": "8b10b TPS4 Capability"},
+      {"start_bit": 25, "end_bit": 25, "name": "8b10b FEC Not Supported"},
+      {"start_bit": 26, "end_bit": 26, "name": "Secondary Split Capability"},
+      {"start_bit": 27, "end_bit": 27, "name": "LTTPR Not Supported"},
+      {"start_bit": 28, "end_bit": 28, "name": "DP IN BW Allocation Mode Support"},
+      {"start_bit": 29, "end_bit": 29, "name": "DSC Not Supported"}
+    ]},
+    {"offset": 5, "cap_id": 4, "adapter_type": ["DisplayPort IN"], "name": "DP_REMOTE_CAP", "bitfields": [
+      {"start_bit": 0, "end_bit": 3, "name": "Protocol Adapter Version"},
+      {"start_bit": 4, "end_bit": 7, "name": "Maximal DPCD Rev"},
+      {"start_bit": 8, "end_bit": 11, "name": "8b10b Maximal Link Rate"},
+      {"start_bit": 12, "end_bit": 14, "name": "Maximal Lane Count"},
+      {"start_bit": 15, "end_bit": 15, "name": "8b10b MST Capability"},
+      {"start_bit": 16, "end_bit": 16, "name": "Panel Replay Tunneling Optimization Support"},
+      {"start_bit": 17, "end_bit": 17, "name": "128b/132b Link Layer & 10Gbps/Lane Support"},
+      {"start_bit": 18, "end_bit": 18, "name": "20Gbps/Lane Support"},
+      {"start_bit": 19, "end_bit": 19, "name": "13.5Gbps/Lane Support"},
+      {"start_bit": 20, "end_bit": 20, "name": "ALPM Support"},
+      {"start_bit": 22, "end_bit": 22, "name": "8b10b TPS3 Capability"},
+      {"start_bit": 24, "end_bit": 24, "name": "8b10b TPS4 Capability"},
+      {"start_bit": 25, "end_bit": 25, "name": "8b10b FEC Not Supported"},
+      {"start_bit": 26, "end_bit": 26, "name": "Secondary Split Capability"},
+      {"start_bit": 27, "end_bit": 27, "name": "LTTPR Not Supported"},
+      {"start_bit": 29, "end_bit": 29, "name": "DSC Not Supported"}
+    ]},
+    {"offset": 6, "cap_id": 4, "adapter_type": ["DisplayPort IN"], "name": "DP_STATUS", "bitfields": [
+      {"start_bit": 0, "end_bit": 2, "name": "Lane Count"},
+      {"start_bit": 8, "end_bit": 11, "name": "Link Rate"},
+      {"start_bit": 24, "end_bit": 31, "name": "Allocated BW"}
+    ]},
+    {"offset": 7, "cap_id": 4, "adapter_type": ["DisplayPort IN"], "name": "DP_COMMON_CAP", "bitfields": [
+      {"start_bit": 0, "end_bit": 3, "name": "Protocol Adapter Version"},
+      {"start_bit": 4, "end_bit": 7, "name": "Maximal DPCD Rev"},
+      {"start_bit": 8, "end_bit": 11, "name": "8b10b Maximal Link Rate"},
+      {"start_bit": 12, "end_bit": 14, "name": "Maximal Lane Count"},
+      {"start_bit": 15, "end_bit": 15, "name": "8b10b MST Capability"},
+      {"start_bit": 16, "end_bit": 16, "name": "Panel Replay Tunneling Optimization Support"},
+      {"start_bit": 17, "end_bit": 17, "name": "128b/132b Link Layer & 10Gbps/Lane Support"},
+      {"start_bit": 18, "end_bit": 18, "name": "20Gbps/Lane Support"},
+      {"start_bit": 19, "end_bit": 19, "name": "13.5Gbps/Lane Support"},
+      {"start_bit": 20, "end_bit": 20, "name": "ALPM Support"},
+      {"start_bit": 22, "end_bit": 22, "name": "8b10b TPS3 Capability"},
+      {"start_bit": 24, "end_bit": 24, "name": "8b10b TPS4 Capability"},
+      {"start_bit": 25, "end_bit": 25, "name": "8b10b FEC Not Supported"},
+      {"start_bit": 26, "end_bit": 26, "name": "Secondary Split Capability"},
+      {"start_bit": 27, "end_bit": 27, "name": "LTTPR Not Supported"},
+      {"start_bit": 29, "end_bit": 29, "name": "DSC Not Supported"},
+      {"start_bit": 31, "end_bit": 31, "name": "DPRX Capabilities Read Done"}
+    ]},
+    {"offset": 8, "cap_id": 4, "adapter_type": ["DisplayPort IN"], "name": "ADP_DP_CS_8", "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Requested BW"},
+      {"start_bit": 30, "end_bit": 30, "name": "DPTX BW Allocation Mode Enable", "short_name": "DPME"},
+      {"start_bit": 31, "end_bit": 31, "name": "DPTX Req", "short_name": "DR"}
+    ]},
+    {"offset": 9, "cap_id": 4, "adapter_type": ["DisplayPort IN"], "name": "ADP_DP_CS_9", "bitfields": [
+      {"start_bit": 0, "end_bit": 0, "name": "Discovery Success", "short_name": "DS"},
+      {"start_bit": 1, "end_bit": 1, "name": "Discovery Failure", "short_name": "DF"},
+      {"start_bit": 2, "end_bit": 2, "name": "Grant Extended Delay", "short_name": "GED"}
+    ]},
+    {"offset": 10, "cap_id": 4, "adapter_type": ["DisplayPort IN"], "name": "ADP_DP_CS_10", "bitfields": [
+      {"start_bit": 0, "end_bit": 23, "name": "DPTX IEEE_OUI"},
+      {"start_bit": 24, "end_bit": 27, "name": "DPTX Port Number"},
+      {"start_bit": 28, "end_bit": 30, "name": "DPTX_Unique_ID"}
+    ]},
+    {"offset": 11, "cap_id": 4, "adapter_type": ["DisplayPort IN"], "name": "ADP_DP_CS_11", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "DPTX Device Identification String LSB"}
+    ]},
+    {"offset": 12, "cap_id": 4, "adapter_type": ["DisplayPort IN"], "name": "ADP_DP_CS_12", "bitfields": [
+      {"start_bit": 0, "end_bit": 15, "name": "DPTX Device Identification String MSB"}
+    ]},
+    {"offset": 13, "cap_id": 4, "adapter_type": ["DisplayPort IN"], "name": "ADP_DP_CS_13", "bitfields": [
+      {"start_bit": 0, "end_bit": 0, "name": "DPTX Discovery Mode", "short_name": "DDM"},
+      {"start_bit": 1, "end_bit": 6, "name": "CL1 Exit Time"}
+    ]},
+    {"offset": 0, "cap_id": 4, "adapter_type": ["DisplayPort OUT"], "name": "ADP_DP_CS_0", "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Next Capability Pointer"},
+      {"start_bit": 8, "end_bit": 15, "name": "Capability ID"},
+      {"start_bit": 16, "end_bit": 22, "name": "Video HopID"},
+      {"start_bit": 30, "end_bit": 30, "name": "AUX Enable", "short_name": "AE"},
+      {"start_bit": 31, "end_bit": 31, "name": "Video Enable", "short_name": "VE"}
+    ]},
+    {"offset": 1, "cap_id": 4, "adapter_type": ["DisplayPort OUT"], "name": "ADP_DP_CS_1", "bitfields": [
+      {"start_bit": 0, "end_bit": 6, "name": "AUX Tx HopID"},
+      {"start_bit": 11, "end_bit": 17, "name": "AUX Rx HopID"}
+    ]},
+    {"offset": 2, "cap_id": 4, "adapter_type": ["DisplayPort OUT"], "name": "ADP_DP_CS_2", "bitfields": [
+      {"start_bit": 3, "end_bit": 3, "name": "SW Link Init", "short_name": "SWLI"},
+      {"start_bit": 6, "end_bit": 6, "name": "HPD Status"},
+      {"start_bit": 8, "end_bit": 23, "name": "Maximum Accumulation Cycles"}
+    ]},
+    {"offset": 3, "cap_id": 4, "adapter_type": ["DisplayPort OUT"], "name": "ADP_DP_CS_3"},
+    {"offset": 4, "cap_id": 4, "adapter_type": ["DisplayPort OUT"], "name": "DP_LOCAL_CAP", "bitfields": [
+      {"start_bit": 0, "end_bit": 3, "name": "Protocol Adapter Version"},
+      {"start_bit": 4, "end_bit": 7, "name": "Maximal DPCD Rev"},
+      {"start_bit": 8, "end_bit": 11, "name": "8b10b Maximal Link Rate"},
+      {"start_bit": 12, "end_bit": 14, "name": "Maximal Lane Count"},
+      {"start_bit": 15, "end_bit": 15, "name": "8b10b MST Capability"},
+      {"start_bit": 16, "end_bit": 16, "name": "Panel Replay Tunneling Optimization Support"},
+      {"start_bit": 17, "end_bit": 17, "name": "128b/132b Link Layer & 10Gbps/Lane Support"},
+      {"start_bit": 18, "end_bit": 18, "name": "20Gbps/Lane Support"},
+      {"start_bit": 19, "end_bit": 19, "name": "13.5Gbps/Lane Support"},
+      {"start_bit": 20, "end_bit": 20, "name": "ALPM Support"},
+      {"start_bit": 22, "end_bit": 22, "name": "8b10b TPS3 Capability"},
+      {"start_bit": 24, "end_bit": 24, "name": "8b10b TPS4 Capability"},
+      {"start_bit": 25, "end_bit": 25, "name": "8b10b FEC Not Supported"},
+      {"start_bit": 26, "end_bit": 26, "name": "Secondary Split Capability"},
+      {"start_bit": 27, "end_bit": 27, "name": "LTTPR Not Supported"},
+      {"start_bit": 29, "end_bit": 29, "name": "DSC Not Supported"}
+    ]},
+    {"offset": 5, "cap_id": 4, "adapter_type": ["DisplayPort OUT"], "name": "DP_REMOTE_CAP", "bitfields": [
+      {"start_bit": 0, "end_bit": 3, "name": "Protocol Adapter Version"},
+      {"start_bit": 4, "end_bit": 7, "name": "Maximal DPCD Rev"},
+      {"start_bit": 8, "end_bit": 11, "name": "8b10b Maximal Link Rate"},
+      {"start_bit": 12, "end_bit": 14, "name": "Maximal Lane Count"},
+      {"start_bit": 15, "end_bit": 15, "name": "8b10b MST Capability"},
+      {"start_bit": 16, "end_bit": 16, "name": "Panel Replay Tunneling Optimization Support"},
+      {"start_bit": 17, "end_bit": 17, "name": "128b/132b Link Layer & 10Gbps/Lane Support"},
+      {"start_bit": 18, "end_bit": 18, "name": "20Gbps/Lane Support"},
+      {"start_bit": 19, "end_bit": 19, "name": "13.5Gbps/Lane Support"},
+      {"start_bit": 20, "end_bit": 20, "name": "ALPM Support"},
+      {"start_bit": 22, "end_bit": 22, "name": "8b10b TPS3 Capability"},
+      {"start_bit": 24, "end_bit": 24, "name": "8b10b TPS4 Capability"},
+      {"start_bit": 25, "end_bit": 25, "name": "8b10b FEC Not Supported"},
+      {"start_bit": 26, "end_bit": 26, "name": "Secondary Split Capability"},
+      {"start_bit": 27, "end_bit": 27, "name": "LTTPR Not Supported"},
+      {"start_bit": 29, "end_bit": 29, "name": "DSC Not Supported"}
+    ]},
+    {"offset": 6, "cap_id": 4, "adapter_type": ["DisplayPort OUT"], "name": "DP_STATUS_CTRL", "bitfields": [
+      {"start_bit": 0, "end_bit": 2, "name": "Lane Count"},
+      {"start_bit": 8, "end_bit": 11, "name": "Link Rate"},
+      {"start_bit": 25, "end_bit": 25, "name": "CM Handshake", "short_name": "CMHS"},
+      {"start_bit": 26, "end_bit": 26, "name": "DP IN Adapter USB4 Flag", "short_name": "UF"}
+    ]},
+    {"offset": 7, "cap_id": 4, "adapter_type": ["DisplayPort OUT"], "name": "DP_COMMON_CAP", "bitfields": [
+      {"start_bit": 0, "end_bit": 3, "name": "Protocol Adapter Version"},
+      {"start_bit": 4, "end_bit": 7, "name": "Maximal DPCD Rev"},
+      {"start_bit": 8, "end_bit": 11, "name": "8b10b Maximal Link Rate"},
+      {"start_bit": 12, "end_bit": 14, "name": "Maximal Lane Count"},
+      {"start_bit": 15, "end_bit": 15, "name": "8b10b MST Capability"},
+      {"start_bit": 16, "end_bit": 16, "name": "Panel Replay Tunneling Optimization Support"},
+      {"start_bit": 17, "end_bit": 17, "name": "128b/132b Link Layer & 10Gbps/Lane Support"},
+      {"start_bit": 18, "end_bit": 18, "name": "20Gbps/Lane Support"},
+      {"start_bit": 19, "end_bit": 19, "name": "13.5Gbps/Lane Support"},
+      {"start_bit": 20, "end_bit": 20, "name": "ALPM Support"},
+      {"start_bit": 22, "end_bit": 22, "name": "8b10b TPS3 Capability"},
+      {"start_bit": 24, "end_bit": 24, "name": "8b10b TPS4 Capability"},
+      {"start_bit": 25, "end_bit": 25, "name": "8b10b FEC Not Supported"},
+      {"start_bit": 26, "end_bit": 26, "name": "Secondary Split Capability"},
+      {"start_bit": 27, "end_bit": 27, "name": "LTTPR Not Supported"},
+      {"start_bit": 29, "end_bit": 29, "name": "DSC Not Supported"}
+    ]},
+    {"offset": 8, "cap_id": 4, "adapter_type": ["DisplayPort OUT"], "name": "ADP_DP_CS_8"},
+    {"offset": 0, "cap_id": 4, "adapter_type": ["PCIe Down", "PCIe Up"], "name": "ADP_PCIE_CS_0", "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Next Capability Pointer"},
+      {"start_bit": 8, "end_bit": 15, "name": "Capability ID"},
+      {"start_bit": 16, "end_bit": 16, "name": "Link"},
+      {"start_bit": 17, "end_bit": 17, "name": "TX EI"},
+      {"start_bit": 18, "end_bit": 18, "name": "RX EI"},
+      {"start_bit": 19, "end_bit": 19, "name": "RST"},
+      {"start_bit": 25, "end_bit": 28, "name": "LTSSM"},
+      {"start_bit": 31, "end_bit": 31, "name": "Path Enable", "short_name": "PE"}
+    ]},
+    {"offset": 1, "cap_id": 4, "adapter_type": ["PCIe Down", "PCIe Up"], "name": "ADP_PCIE_CS_1", "bitfields": [
+      {"start_bit": 0, "end_bit": 0, "name": "Extended Encapsulation", "short_name": "EE"}
+    ]},
+    {"offset": 0, "cap_id": 4, "adapter_type": ["USB 3 Down", "USB 3 Up"], "name": "ADP_USB3_GX_CS_0", "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Next Capability Pointer"},
+      {"start_bit": 8, "end_bit": 15, "name": "Capability ID"},
+      {"start_bit": 30, "end_bit": 30, "name": "Valid", "short_name": "V"},
+      {"start_bit": 31, "end_bit": 31, "name": "Path Enable", "short_name": "PE"}
+    ]},
+    {"offset": 1, "cap_id": 4, "adapter_type": ["USB 3 Down", "USB 3 Up"], "name": "ADP_USB3_GX_CS_1", "bitfields": [
+      {"start_bit": 0, "end_bit": 11, "name": "Consumed Upstream Bandwidth"},
+      {"start_bit": 12, "end_bit": 23, "name": "Consumed Downstream Bandwidth"},
+      {"start_bit": 31, "end_bit": 31, "name": "Host Controller Ack", "short_name": "HCA"}
+    ]},
+    {"offset": 2, "cap_id": 4, "adapter_type": ["USB 3 Down", "USB 3 Up"], "name": "ADP_USB3_GX_CS_2", "bitfields": [
+      {"start_bit": 0, "end_bit": 11, "name": "Allocated Upstream Bandwidth"},
+      {"start_bit": 12, "end_bit": 23, "name": "Allocated Downstream Bandwidth"},
+      {"start_bit": 31, "end_bit": 31, "name": "Connection Manager Request", "short_name": "CMR"}
+    ]},
+    {"offset": 3, "cap_id": 4, "adapter_type": ["USB 3 Down", "USB 3 Up"], "name": "ADP_USB3_GX_CS_3", "bitfields": [
+      {"start_bit": 0, "end_bit": 5, "name": "Scale"}
+    ]},
+    {"offset": 4, "cap_id": 4, "adapter_type": ["USB 3 Down", "USB 3 Up"], "name": "ADP_USB3_GX_CS_4", "bitfields": [
+      {"start_bit": 0, "end_bit": 6, "name": "Actual Link Rate"},
+      {"start_bit": 7, "end_bit": 7, "name": "USB3 Link Valid", "short_name": "ULV"},
+      {"start_bit": 8, "end_bit": 11, "name": "Port Link State", "short_name": "PLS"},
+      {"start_bit": 12, "end_bit": 18, "name": "Maximum Supported Link Rate"}
+    ]},
+    {"offset": 0, "cap_id": 6, "adapter_type": ["Lane"], "name": "PORT_CS_0", "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Next Capability Pointer"},
+      {"start_bit": 8, "end_bit": 15, "name": "Capability ID"}
+    ]},
+    {"offset": 1, "cap_id": 6, "adapter_type": ["Lane"], "name": "PORT_CS_1", "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Address"},
+      {"start_bit": 8, "end_bit": 15, "name": "Length"},
+      {"start_bit": 16, "end_bit": 18, "name": "Target"},
+      {"start_bit": 20, "end_bit": 23, "name": "Re-timer Index"},
+      {"start_bit": 24, "end_bit": 24, "name": "WnR"},
+      {"start_bit": 25, "end_bit": 25, "name": "No Response", "short_name": "NR"},
+      {"start_bit": 26, "end_bit": 26, "name": "Result Code", "short_name": "RC"},
+      {"start_bit": 31, "end_bit": 31, "name": "Pending", "short_name": "PND"}
+    ]},
+    {"offset": 2, "cap_id": 6, "adapter_type": ["Lane"], "name": "PORT_CS_2", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[0]"}
+    ]},
+    {"offset": 3, "cap_id": 6, "adapter_type": ["Lane"], "name": "PORT_CS_3", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[1]"}
+    ]},
+    {"offset": 4, "cap_id": 6, "adapter_type": ["Lane"], "name": "PORT_CS_4", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[2]"}
+    ]},
+    {"offset": 5, "cap_id": 6, "adapter_type": ["Lane"], "name": "PORT_CS_5", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[3]"}
+    ]},
+    {"offset": 6, "cap_id": 6, "adapter_type": ["Lane"], "name": "PORT_CS_6", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[4]"}
+    ]},
+    {"offset": 7, "cap_id": 6, "adapter_type": ["Lane"], "name": "PORT_CS_7", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[5]"}
+    ]},
+    {"offset": 8, "cap_id": 6, "adapter_type": ["Lane"], "name": "PORT_CS_8", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[6]"}
+    ]},
+    {"offset": 9, "cap_id": 6, "adapter_type": ["Lane"], "name": "PORT_CS_9", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[7]"}
+    ]},
+    {"offset": 10, "cap_id": 6, "adapter_type": ["Lane"], "name": "PORT_CS_10", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[8]"}
+    ]},
+    {"offset": 11, "cap_id": 6, "adapter_type": ["Lane"], "name": "PORT_CS_11", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[9]"}
+    ]},
+    {"offset": 12, "cap_id": 6, "adapter_type": ["Lane"], "name": "PORT_CS_12", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[10]"}
+    ]},
+    {"offset": 13, "cap_id": 6, "adapter_type": ["Lane"], "name": "PORT_CS_13", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[11]"}
+    ]},
+    {"offset": 14, "cap_id": 6, "adapter_type": ["Lane"], "name": "PORT_CS_14", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[12]"}
+    ]},
+    {"offset": 15, "cap_id": 6, "adapter_type": ["Lane"], "name": "PORT_CS_15", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[13]"}
+    ]},
+    {"offset": 16, "cap_id": 6, "adapter_type": ["Lane"], "name": "PORT_CS_16", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[14]"}
+    ]},
+    {"offset": 17, "cap_id": 6, "adapter_type": ["Lane"], "name": "PORT_CS_17", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Data[15]"}
+    ]},
+    {"offset": 18, "cap_id": 6, "adapter_type": ["Lane"], "name": "PORT_CS_18", "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Cable USB4 Version"},
+      {"start_bit": 8, "end_bit": 8, "name": "Bonding Enabled", "short_name": "BE"},
+      {"start_bit": 9, "end_bit": 9, "name": "TBT3-Compatible Mode", "short_name": "TCM"},
+      {"start_bit": 10, "end_bit": 10, "name": "CLx Protocol Support", "short_name": "CPS"},
+      {"start_bit": 11, "end_bit": 11, "name": "RS-FEC Enabled (Gen 2)", "short_name": "RE2"},
+      {"start_bit": 12, "end_bit": 12, "name": "RS-FEC Enabled (Gen 3)", "short_name": "RE3"},
+      {"start_bit": 13, "end_bit": 13, "name": "Router Detected", "short_name": "RD"},
+      {"start_bit": 16, "end_bit": 16, "name": "Wake on Connect Status"},
+      {"start_bit": 17, "end_bit": 17, "name": "Wake on Disconnect Status"},
+      {"start_bit": 18, "end_bit": 18, "name": "Wake on USB4 Wake Status"},
+      {"start_bit": 19, "end_bit": 19, "name": "Wake on Inter-Domain Status"},
+      {"start_bit": 20, "end_bit": 20, "name": "Cable Gen 3 Support", "short_name": "CG3"},
+      {"start_bit": 21, "end_bit": 21, "name": "Cable Gen 4 Support", "short_name": "CG4"},
+      {"start_bit": 22, "end_bit": 22, "name": "Cable Asymmetric Support", "short_name": "CSA"},
+      {"start_bit": 23, "end_bit": 23, "name": "Cable CLx Support", "short_name": "CSC"},
+      {"start_bit": 24, "end_bit": 24, "name": "AsymmetricTransitionInProgress", "short_name": "TIP"}
+    ]},
+    {"offset": 19, "cap_id": 6, "adapter_type": ["Lane"], "name": "PORT_CS_19", "bitfields": [
+      {"start_bit": 0, "end_bit": 0, "name": "Downstream Port Reset", "short_name": "DPR"},
+      {"start_bit": 1, "end_bit": 1, "name": "Request RS-FEC Gen 2", "short_name": "RS2"},
+      {"start_bit": 2, "end_bit": 2, "name": "Request RS-FEC Gen 3", "short_name": "RS3"},
+      {"start_bit": 3, "end_bit": 3, "name": "USB4 Port is Configured", "short_name": "PC"},
+      {"start_bit": 4, "end_bit": 4, "name": "USB4 Port is Inter-Domain", "short_name": "PID"},
+      {"start_bit": 16, "end_bit": 16, "name": "Enable Wake on Connect"},
+      {"start_bit": 17, "end_bit": 17, "name": "Enable Wake on Disconnect"},
+      {"start_bit": 18, "end_bit": 18, "name": "Enable Wake on USB4 Wake"},
+      {"start_bit": 19, "end_bit": 19, "name": "Enable Wake on Inter-Domain"},
+      {"start_bit": 24, "end_bit": 24, "name": "StartAsymmetricFlow"},
+      {"start_bit": 30, "end_bit": 30, "name": "Initiate Gen 4 Link Recovery", "short_name": "ILR"},
+      {"start_bit": 31, "end_bit": 31, "name": "Enable Gen 4 Link Recovery", "short_name": "ELR"}
+    ]}
+  ]
+}

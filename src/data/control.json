@@ -1,0 +1,92 @@
+[
+  {"pdf": 1, "fields": [
+    {"offset": 0, "name": "Route String High"},
+    {"offset": 1, "name": "Route String Low"},
+    {"offset": 2, "bitfields": [
+      {"start_bit": 0, "end_bit": 12, "name": "Address"},
+      {"start_bit": 13, "end_bit": 18, "name": "Read Size"},
+      {"start_bit": 19, "end_bit": 24, "name": "Adapter Num"},
+      {"start_bit": 25, "end_bit": 26, "name": "Configuration Space", "short_name": "CS", "values": [
+        {"name": "Path Configuration Space", "value": 0},
+        {"name": "Adapter Configuration Space", "value": 1},
+        {"name": "Router Configuration Space", "value": 2},
+        {"name": "Counters Configuration Space", "value": 3}
+      ]},
+      {"start_bit": 27, "end_bit": 28, "name": "Sequence Number", "short_name": "SN"}
+    ]}
+  ]},
+  {"pdf": 2, "fields": [
+    {"offset": 0, "name": "Route String High"},
+    {"offset": 1, "name": "Route String Low"},
+    {"offset": 2, "bitfields": [
+      {"start_bit": 0, "end_bit": 12, "name": "Address"},
+      {"start_bit": 13, "end_bit": 18, "name": "Write Size"},
+      {"start_bit": 19, "end_bit": 24, "name": "Adapter Num"},
+      {"start_bit": 25, "end_bit": 26, "name": "Configuration Space", "short_name": "CS", "values": [
+        {"name": "Path Configuration Space", "value": 0},
+        {"name": "Adapter Configuration Space", "value": 1},
+        {"name": "Router Configuration Space", "value": 2},
+        {"name": "Counters Configuration Space", "value": 3}
+      ]},
+      {"start_bit": 27, "end_bit": 28, "name": "Sequence Number", "short_name": "SN"}
+    ]}
+  ]},
+  {"pdf": 3, "fields": [
+    {"offset": 0, "name": "Route String High"},
+    {"offset": 1, "name": "Route String Low"},
+    {"offset": 2, "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Event Code", "values": [
+        {"name": "ERR_CONN", "value": 0},
+        {"name": "ERR_LINK", "value": 1},
+        {"name": "ERR_ADDR", "value": 2},
+        {"name": "ERR_ADP", "value": 4},
+        {"name": "HP_ACK", "value": 7},
+        {"name": "ERR_ENUM", "value": 8},
+        {"name": "ERR_NUA", "value": 9},
+        {"name": "ERR_LEN", "value": 11},
+        {"name": "ERR_HEC", "value": 12},
+        {"name": "ERR_FC", "value": 13},
+        {"name": "ERR_PLUG", "value": 14},
+        {"name": "ERR_LOCK", "value": 15},
+        {"name": "DP_BW", "value": 32},
+        {"name": "ROP_CMPLT", "value": 33},
+        {"name": "POP_CMPLT", "value": 34},
+        {"name": "PCIE_WAKE", "value": 35},
+        {"name": "DP_CON_CHANGE", "value": 36},
+        {"name": "DPTX_DISCOVERY", "value": 37},
+        {"name": "LINK_RECOVERY", "value": 38},
+        {"name": "ASYM_LINK", "value": 39}
+      ]},
+      {"start_bit": 8, "end_bit": 13, "name": "Event Info"},
+      {"start_bit": 14, "end_bit": 14, "name": "Sequence"},
+      {"start_bit": 30, "end_bit": 31, "name": "PG"}
+    ]}
+  ]},
+  {"pdf": 4, "fields": [
+    {"offset": 0, "name": "Route String High"},
+    {"offset": 1, "name": "Route String Low"}
+  ]},
+  {"pdf": 5, "fields": [
+    {"offset": 0, "name": "Route String High"},
+    {"offset": 1, "name": "Route String Low"},
+    {"offset": 2, "bitfields": [
+      {"start_bit": 0, "end_bit": 5, "name": "Adapter Num"},
+      {"start_bit": 31, "end_bit": 31, "name": "UPG"}
+    ]}
+  ]},
+  {"pdf": 6, "fields": [
+    {"offset": 0, "name": "Route String High"},
+    {"offset": 1, "name": "Route String Low"}
+  ]},
+  {"pdf": 7, "fields": [
+    {"offset": 0, "name": "Route String High"},
+    {"offset": 1, "name": "Route String Low"}
+  ]},
+  {"pdf": 8, "fields": [
+    {"offset": 0, "name": "Route String High"},
+    {"offset": 1, "name": "Route String Low"},
+    {"offset": 2, "bitfields": [
+      {"start_bit": 0, "end_bit": 0, "name": "Sequence"}
+    ]}
+  ]}
+]

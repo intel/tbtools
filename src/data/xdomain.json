@@ -1,0 +1,119 @@
+{
+  "header": [
+    {"offset": 2, "bitfields": [
+      {"start_bit": 0, "end_bit": 5, "name": "Data Size"},
+      {"start_bit": 27, "end_bit": 28, "name": "SN"}
+    ]},
+    {"offset": 3, "name": "UUID"},
+    {"offset": 4, "name": "UUID"},
+    {"offset": 5, "name": "UUID"},
+    {"offset": 6, "name": "UUID"}
+  ],
+  "b638d70e-42ff-40bb-97c2-90e2c0b2ff07": [
+    {"offset": 7, "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Packet Type", "values": [
+        {"name": "Old UUID Request", "value": 1},
+        {"name": "UUID Response", "value": 2},
+        {"name": "Properties Read Request", "value": 3},
+        {"name": "Properties Read Response", "value": 4},
+        {"name": "Properties Changed Notification", "value": 5},
+        {"name": "Properties Changed Response", "value": 6},
+        {"name": "Error Response", "value": 7},
+        {"name": "UUID Request", "value": 12},
+        {"name": "Link State Status Request", "value": 15},
+        {"name": "Link State Status Response", "value": 16},
+        {"name": "Link State Change Request", "value": 17},
+        {"name": "Link State Change Response", "value": 18},
+        {"name": "Time Sync", "value": 19}
+      ]}
+    ]},
+    {"offset": 8, "packet_type": "UUID Response", "name": "Source UUID"},
+    {"offset": 9, "packet_type": "UUID Response", "name": "Source UUID"},
+    {"offset": 10, "packet_type": "UUID Response", "name": "Source UUID"},
+    {"offset": 11, "packet_type": "UUID Response", "name": "Source UUID"},
+    {"offset": 12, "packet_type": "UUID Response", "name": "Source Route"},
+    {"offset": 13, "packet_type": "UUID Response", "name": "Source Route"},
+    {"offset": 8, "packet_type": "Properties Read Request", "name": "Source UUID"},
+    {"offset": 9, "packet_type": "Properties Read Request", "name": "Source UUID"},
+    {"offset": 10, "packet_type": "Properties Read Request", "name": "Source UUID"},
+    {"offset": 11, "packet_type": "Properties Read Request", "name": "Source UUID"},
+    {"offset": 12, "packet_type": "Properties Read Request", "name": "Destination UUID"},
+    {"offset": 13, "packet_type": "Properties Read Request", "name": "Destination UUID"},
+    {"offset": 14, "packet_type": "Properties Read Request", "name": "Destination UUID"},
+    {"offset": 15, "packet_type": "Properties Read Request", "name": "Destination UUID"},
+    {"offset": 16, "packet_type": "Properties Read Request", "bitfields": [
+      {"start_bit": 0, "end_bit": 15, "name": "Offset"}
+    ]},
+    {"offset": 8, "packet_type": "Properties Read Response", "name": "Source UUID"},
+    {"offset": 9, "packet_type": "Properties Read Response", "name": "Source UUID"},
+    {"offset": 10, "packet_type": "Properties Read Response", "name": "Source UUID"},
+    {"offset": 11, "packet_type": "Properties Read Response", "name": "Source UUID"},
+    {"offset": 12, "packet_type": "Properties Read Response", "name": "Destination UUID"},
+    {"offset": 13, "packet_type": "Properties Read Response", "name": "Destination UUID"},
+    {"offset": 14, "packet_type": "Properties Read Response", "name": "Destination UUID"},
+    {"offset": 15, "packet_type": "Properties Read Response", "name": "Destination UUID"},
+    {"offset": 16, "packet_type": "Properties Read Response", "bitfields": [
+      {"start_bit": 0, "end_bit": 15, "name": "Offset"},
+      {"start_bit": 16, "end_bit": 31, "name": "Properties Block Size"}
+    ]},
+    {"offset": 17, "packet_type": "Properties Read Response", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Properties Block Generation"}
+    ]},
+    {"offset": 8, "packet_type": "Properties Changed Notification", "name": "Source UUID"},
+    {"offset": 9, "packet_type": "Properties Changed Notification", "name": "Source UUID"},
+    {"offset": 10, "packet_type": "Properties Changed Notification", "name": "Source UUID"},
+    {"offset": 11, "packet_type": "Properties Changed Notification", "name": "Source UUID"},
+    {"offset": 8, "packet_type": "Error Response", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Error Response", "values": [
+        {"name": "Unknown Packet Type", "value": 1},
+        {"name": "Not Supported", "value": 3},
+        {"name": "Not Ready", "value": 4}
+      ]}
+    ]},
+    {"offset": 8, "packet_type": "Link State Status Response", "name": "Status"},
+    {"offset": 9, "packet_type": "Link State Status Response", "bitfields": [
+      {"start_bit": 0, "end_bit": 1, "name": "Supported Link Width", "short_name": "SLW"},
+      {"start_bit": 8, "end_bit": 9, "name": "Target Link Width", "short_name": "TLW"}
+    ]},
+    {"offset": 8, "packet_type": "Link State Change Request", "bitfields": [
+      {"start_bit": 0, "end_bit": 1, "name": "Target Link Width", "short_name": "TLW"}
+    ]},
+    {"offset": 8, "packet_type": "Link State Change Response", "name": "Status"}
+  ],
+  "798f589e-3616-8a47-97c6-5664a920c8dd": [
+    {"offset": 7, "name": "Requestor UUID"},
+    {"offset": 8, "name": "Requestor UUID"},
+    {"offset": 9, "name": "Requestor UUID"},
+    {"offset": 10, "name": "Requestor UUID"},
+    {"offset": 11, "name": "Responder UUID"},
+    {"offset": 12, "name": "Responder UUID"},
+    {"offset": 13, "name": "Responder UUID"},
+    {"offset": 14, "name": "Responder UUID"},
+    {"offset": 15, "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Packet Type", "values": [
+        {"name": "Login", "value": 0},
+        {"name": "Login Response", "value": 1},
+        {"name": "Logout", "value": 2},
+        {"name": "Logout Response", "value": 3}
+      ]}
+    ]},
+    {"offset": 16, "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Request ID"}
+    ]},
+    {"offset": 17, "packet_type": "Login", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "USB4NET Service Revision"}
+    ]},
+    {"offset": 18, "packet_type": "Login", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Service Hop ID"}
+    ]},
+    {"offset": 17, "packet_type": "Login Response", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Status"}
+    ]},
+    {"offset": 18, "packet_type": "Login Response", "name": "Responder MAC Address Hi"},
+    {"offset": 19, "packet_type": "Login Response", "name": "Responder MAC Address Lo"},
+    {"offset": 20, "packet_type": "Login Response", "name": "Responder MAC Address Length"},
+    {"offset": 17, "packet_type": "Logout Response", "bitfields": [
+      {"start_bit": 0, "end_bit": 31, "name": "Status"}
+    ]}
+  ]
+}
