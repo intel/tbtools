@@ -810,7 +810,18 @@
     {"offset": 4, "cap_id": 4, "adapter_type": ["USB 3 Down", "USB 3 Up"], "name": "ADP_USB3_GX_CS_4", "bitfields": [
       {"start_bit": 0, "end_bit": 6, "name": "Actual Link Rate"},
       {"start_bit": 7, "end_bit": 7, "name": "USB3 Link Valid", "short_name": "ULV"},
-      {"start_bit": 8, "end_bit": 11, "name": "Port Link State", "short_name": "PLS"},
+      {"start_bit": 8, "end_bit": 11, "name": "Port Link State", "short_name": "PLS", "values": [
+        {"name": "U0 state", "value": 0},
+        {"name": "U2 state", "value": 2},
+        {"name": "U3 state", "value": 3},
+        {"name": "Disabled state", "value": 4},
+        {"name": "RxDetect state", "value": 5},
+        {"name": "Inactive state", "value": 6},
+        {"name": "Polling state", "value": 7},
+        {"name": "Recovery state", "value": 8},
+        {"name": "Hot Reset state", "value": 9},
+        {"name": "Resume state", "value": 15}
+      ]},
       {"start_bit": 12, "end_bit": 18, "name": "Maximum Supported Link Rate"}
     ]},
     {"offset": 0, "cap_id": 6, "adapter_type": ["Lane"], "name": "PORT_CS_0", "bitfields": [
