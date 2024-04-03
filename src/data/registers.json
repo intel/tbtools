@@ -770,7 +770,19 @@
       {"start_bit": 17, "end_bit": 17, "name": "TX EI"},
       {"start_bit": 18, "end_bit": 18, "name": "RX EI"},
       {"start_bit": 19, "end_bit": 19, "name": "RST"},
-      {"start_bit": 25, "end_bit": 28, "name": "LTSSM"},
+      {"start_bit": 25, "end_bit": 28, "name": "LTSSM", "values": [
+        {"name": "Detect state", "value": 0},
+        {"name": "Polling state", "value": 1},
+        {"name": "Configuration state", "value": 2},
+        {"name": "Configuration.Idle state", "value": 3},
+        {"name": "Recovery state", "value": 4},
+        {"name": "Recovery.idle state", "value": 5},
+        {"name": "L0 state", "value": 6},
+        {"name": "L1 state", "value": 7},
+        {"name": "L2 state", "value": 8},
+        {"name": "Disabled state", "value": 9},
+        {"name": "Hot Reset state", "value": 10}
+      ]},
       {"start_bit": 31, "end_bit": 31, "name": "Path Enable", "short_name": "PE"}
     ]},
     {"offset": 1, "cap_id": 4, "adapter_type": ["PCIe Down", "PCIe Up"], "name": "ADP_PCIE_CS_1", "bitfields": [
