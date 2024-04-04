@@ -589,7 +589,11 @@
       {"start_bit": 6, "end_bit": 6, "name": "HPD Status"},
       {"start_bit": 7, "end_bit": 9, "name": "NRD Max Link Rate", "short_name": "NRD MLR"},
       {"start_bit": 10, "end_bit": 10, "name": "CM Ack", "short_name": "CA"},
-      {"start_bit": 11, "end_bit": 12, "name": "Granularity", "short_name": "GR"},
+      {"start_bit": 11, "end_bit": 12, "name": "Granularity", "short_name": "GR", "values": [
+        {"name": "0.25", "value": 0},
+        {"name": "0.5", "value": 1},
+        {"name": "1.0", "value": 2}
+      ]},
       {"start_bit": 13, "end_bit": 15, "name": "Group_ID"},
       {"start_bit": 16, "end_bit": 19, "name": "CM_ID"},
       {"start_bit": 20, "end_bit": 20, "name": "CM BW Allocation Mode Support", "short_name": "CMMS"},
@@ -638,7 +642,15 @@
     ]},
     {"offset": 6, "cap_id": 4, "adapter_type": ["DisplayPort IN"], "name": "DP_STATUS", "bitfields": [
       {"start_bit": 0, "end_bit": 2, "name": "Lane Count"},
-      {"start_bit": 8, "end_bit": 11, "name": "Link Rate"},
+      {"start_bit": 8, "end_bit": 11, "name": "Link Rate", "values": [
+        {"name": "1.62 Gbps/lane", "value": 0},
+        {"name": "2.7 Gbps/lane", "value": 1},
+        {"name": "5.4 Gbps/lane", "value": 2},
+        {"name": "8.1 Gbps/lane", "value": 3},
+        {"name": "10.0 Gbps/lane", "value": 4},
+        {"name": "20.0 Gbps/lane", "value": 5},
+        {"name": "13.5 Gbps/lane", "value": 6}
+      ]},
       {"start_bit": 24, "end_bit": 31, "name": "Allocated BW"}
     ]},
     {"offset": 7, "cap_id": 4, "adapter_type": ["DisplayPort IN"], "name": "DP_COMMON_CAP", "bitfields": [
@@ -740,7 +752,15 @@
     ]},
     {"offset": 6, "cap_id": 4, "adapter_type": ["DisplayPort OUT"], "name": "DP_STATUS_CTRL", "bitfields": [
       {"start_bit": 0, "end_bit": 2, "name": "Lane Count"},
-      {"start_bit": 8, "end_bit": 11, "name": "Link Rate"},
+      {"start_bit": 8, "end_bit": 11, "name": "Link Rate", "values": [
+        {"name": "1.62 Gbps/lane", "value": 0},
+        {"name": "2.7 Gbps/lane", "value": 1},
+        {"name": "5.4 Gbps/lane", "value": 2},
+        {"name": "8.1 Gbps/lane", "value": 3},
+        {"name": "10.0 Gbps/lane", "value": 4},
+        {"name": "20.0 Gbps/lane", "value": 5},
+        {"name": "13.5 Gbps/lane", "value": 6}
+      ]},
       {"start_bit": 25, "end_bit": 25, "name": "CM Handshake", "short_name": "CMHS"},
       {"start_bit": 26, "end_bit": 26, "name": "DP IN Adapter USB4 Flag", "short_name": "UF"}
     ]},
