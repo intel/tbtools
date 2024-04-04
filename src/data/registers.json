@@ -153,7 +153,26 @@
       {"start_bit": 0, "end_bit": 31, "name": "Metadata"}
     ]},
     {"offset": 26, "name": "ROUTER_CS_26", "bitfields": [
-      {"start_bit": 0, "end_bit": 15, "name": "Opcode"},
+      {"start_bit": 0, "end_bit": 15, "name": "Opcode", "values": [
+        {"name": "Query DP Resource Availability", "value": 16},
+        {"name": "Allocate DP Resource", "value": 17},
+        {"name": "De-allocate DP Resource", "value": 18},
+        {"name": "Connect DP OUT Adapter", "value": 19},
+        {"name": "NVM Write", "value": 32},
+        {"name": "NVM Authenticate Write", "value": 33},
+        {"name": "NVM Read", "value": 34},
+        {"name": "NVM Set Offset", "value": 35},
+        {"name": "DROM Read", "value": 36},
+        {"name": "Get NVM Sector Size", "value": 37},
+        {"name": "Get PCIe Downstream Entry Mapping", "value": 48},
+        {"name": "Get Capabilities", "value": 49},
+        {"name": "Set Capabilities", "value": 50},
+        {"name": "Buffer Allocation Request", "value": 51},
+        {"name": "Block Sideband Port Operations", "value": 52},
+        {"name": "Unblock Sideband Port Operations", "value": 53},
+        {"name": "Get Container-ID", "value": 54},
+        {"name": "Get Connectors Information", "value": 55}
+      ]},
       {"start_bit": 24, "end_bit": 29, "name": "Status"},
       {"start_bit": 30, "end_bit": 30, "name": "Operation Not Supported", "short_name": "ONS"},
       {"start_bit": 31, "end_bit": 31, "name": "Operation Valid", "short_name": "OV"}
