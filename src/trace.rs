@@ -700,7 +700,11 @@ impl Entry {
 
     /// Adapter number if the packet was targeted to an adapter.
     pub fn adapter_num(&self) -> Option<u16> {
-        self.adapter_num
+        match self.event() {
+            // These two carry other than adapter number in "Event Info" field.
+            Some(Event::RopCmplt) | Some(Event::DpConChange) => None,
+            _ => self.adapter_num,
+        }
     }
 
     /// Configuration space.
