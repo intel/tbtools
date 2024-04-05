@@ -66,6 +66,7 @@ use uuid::Uuid;
 const TRACEFS_ROOT: &str = "/sys/kernel/debug/tracing";
 const TRACEFS_TRACE: &str = "trace";
 const TRACEFS_CURRENT_TRACER: &str = "current_tracer";
+const TRACEFS_TRACE_CLOCK: &str = "trace_clock";
 const TRACEFS_EVENTS: &str = "events";
 const TRACEFS_EVENTS_THUNDERBOLT: &str = "thunderbolt";
 const TRACEFS_EVENTS_ENABLE: &str = "enable";
@@ -948,16 +949,24 @@ pub fn enabled() -> bool {
     false
 }
 
-fn set_current_tracer(tracer: &str) -> Result<()> {
+fn set_trace_attribute(attribute: &str, value: &str) -> Result<()> {
     let mut path_buf = path_buf()?;
-    path_buf.push(TRACEFS_CURRENT_TRACER);
+    path_buf.push(attribute);
 
     let file = OpenOptions::new().write(true).open(path_buf)?;
     let mut writer = BufWriter::new(file);
 
-    writeln!(&mut writer, "{}", tracer)?;
+    writeln!(&mut writer, "{}", value)?;
 
     writer.flush()
+}
+
+fn set_current_tracer(tracer: &str) -> Result<()> {
+    set_trace_attribute(TRACEFS_CURRENT_TRACER, tracer)
+}
+
+fn set_trace_clock(clock: &str) -> Result<()> {
+    set_trace_attribute(TRACEFS_TRACE_CLOCK, clock)
 }
 
 fn do_enable(enable: bool) -> Result<()> {
@@ -973,6 +982,9 @@ fn do_enable(enable: bool) -> Result<()> {
 /// Enables tracing.
 pub fn enable() -> Result<()> {
     set_current_tracer("nop")?;
+    // Use global clock to make sure timestamps between CPUs are synchronized. This makes it easier
+    // to correlate the kernel message buffer with the trace buffer.
+    set_trace_clock("global")?;
     do_enable(true)
 }
 
