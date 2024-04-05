@@ -118,7 +118,7 @@ fn color_tracing(enabled: bool) -> String {
 
 fn dump_header(entry: &trace::Entry, packet: &trace::ControlPacket, device: Option<&Device>) {
     print!(
-        "[{:6}.{:06}] ",
+        "[{:5}.{:06}] ",
         entry.timestamp().tv_sec(),
         entry.timestamp().tv_usec()
     );
@@ -169,7 +169,7 @@ fn dump_fields(verbose: u8, bitfields: &dyn BitFields<u32>) {
                 String::from("")
             };
             println!(
-                "{:16}  [{:>02}:{:>02}] {} {}{}{}",
+                "{:15}  [{:>02}:{:>02}] {} {}{}{}",
                 "",
                 field.range().start(),
                 field.range().end(),
@@ -242,7 +242,7 @@ fn dump_packet(
         .enumerate()
         .map(|(i, f)| (i as u16, f))
     {
-        print!("{:16}", "");
+        print!("{:15}", "");
 
         print!("0x{:02x}", i);
         if verbose > 1 {
