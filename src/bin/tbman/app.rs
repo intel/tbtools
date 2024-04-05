@@ -1521,7 +1521,7 @@ fn view_packet(siv: &mut Cursive, entry: &Entry) {
             if packet.data().is_some() && i >= data_start {
                 if let Some(ref device) = device {
                     if let Some(reg) = fetch_device_register(entry, device, data_address, d) {
-                        if let Some(name) = f.name() {
+                        if let Some(name) = reg.name() {
                             line.append(name);
                         }
 
