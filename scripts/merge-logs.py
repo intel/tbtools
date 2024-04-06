@@ -10,6 +10,8 @@ def merge_logs(*logs):
     heap = []
     count = 0
 
+    pattern = re.compile(r"^\[\s*(\d+\.\d+)\]")
+
     for file in files:
         entry = ()
         while True:
@@ -21,7 +23,7 @@ def merge_logs(*logs):
                 file.close()
                 break;
             line = line.rstrip('\n')
-            match = re.match(r"^\[\s*(\d+\.\d+)\]", line)
+            match = pattern.match(line)
             if match:
                 if entry:
                     heapq.heappush(heap, entry)
