@@ -5,9 +5,8 @@
 
 use ansi_term::Colour::{Green, Red, White, Yellow};
 use clap::Parser;
-use is_terminal::IsTerminal;
 use nix::unistd::Uid;
-use std::io::{self, ErrorKind};
+use std::io::{self, ErrorKind, IsTerminal};
 use std::process;
 
 use tbtools::{

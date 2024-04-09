@@ -3,12 +3,11 @@
 // Copyright (C) 2023, Intel Corporation
 // Author: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-use std::io::{self, Result};
+use std::io::{self, IsTerminal, Result};
 use std::process;
 
 use ansi_term::Colour::{Green, Red};
 use clap::{self, Parser};
-use is_terminal::IsTerminal;
 use nix::unistd::Uid;
 
 use tbtools::{

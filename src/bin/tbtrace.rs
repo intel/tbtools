@@ -5,9 +5,12 @@
 
 use ansi_term::Colour::{Cyan, Green, Purple, Red, White, Yellow};
 use clap::{self, Parser, Subcommand};
-use is_terminal::IsTerminal;
 use nix::unistd::Uid;
-use std::{io, path::Path, process};
+use std::{
+    io::{self, IsTerminal},
+    path::Path,
+    process,
+};
 use tbtools::{
     debugfs::{self, BitFields, Name},
     trace, util, Address, ConfigSpace, Device, Kind, Pdf,

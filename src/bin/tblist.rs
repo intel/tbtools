@@ -3,12 +3,11 @@
 // Copyright (C) 2023, Intel Corporation
 // Author: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-use std::io;
+use std::io::{self, IsTerminal};
 
 use ansi_term::Colour::{Cyan, Green, Yellow};
 use ansi_term::Style;
 use clap::Parser;
-use is_terminal::IsTerminal;
 
 use tbtools::{self, Device, Kind, SecurityLevel};
 

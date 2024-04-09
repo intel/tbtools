@@ -749,7 +749,6 @@ dependencies = [
  "ansi_term",
  "clap",
  "cursive",
- "is-terminal",
  "lazy_static",
  "nix",
  "num-traits",

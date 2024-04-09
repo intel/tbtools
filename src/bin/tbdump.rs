@@ -5,10 +5,9 @@
 
 use ansi_term::Colour::{Cyan, Yellow};
 use clap::Parser;
-use is_terminal::IsTerminal;
 use nix::unistd::Uid;
 use std::{
-    io::{self, ErrorKind},
+    io::{self, ErrorKind, IsTerminal},
     process,
 };
 
