@@ -508,7 +508,11 @@
       {"start_bit": 28, "end_bit": 28, "name": "CL2 Support"}
     ]},
     {"offset": 1, "cap_id": 1, "adapter_type": ["Lane"], "name": "LANE_ADP_CS_1", "bitfields": [
-      {"start_bit": 0, "end_bit": 3, "name": "Target Link Speed"},
+      {"start_bit": 0, "end_bit": 3, "name": "Target Link Speed", "values": [
+        {"name": "Router shall attempt Gen 2 speed", "value": 8},
+        {"name": "Router shall attempt Gen 3 speed", "value": 12},
+        {"name": "Router shall attempt Gen 4 speed", "value": 14}
+      ]},
       {"start_bit": 4, "end_bit": 5, "name": "Target Link Width", "values": [
         {"name": "Establish two Single-Lane Links", "value": 1},
         {"name": "Establish a Symmetric Link", "value": 3}
