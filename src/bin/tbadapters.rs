@@ -3,7 +3,10 @@
 // Copyright (C) 2023, Intel Corporation
 // Author: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-use ansi_term::Colour::{Green, Red, White, Yellow};
+use ansi_term::{
+    Colour::{Green, Red, White, Yellow},
+    Style,
+};
 use clap::Parser;
 use nix::unistd::Uid;
 use std::io::{self, ErrorKind, IsTerminal};
@@ -11,7 +14,7 @@ use std::process;
 
 use tbtools::{
     self,
-    debugfs::{self, Adapter, State},
+    debugfs::{self, Adapter, BitFields, State, Type},
     util, Address, Device,
 };
 
@@ -63,10 +66,56 @@ fn dump_adapter_type(adapter: &Adapter, args: &Args) {
     }
 }
 
-fn dump_adapter_state(adapter_state: &State, args: &Args) {
-    let (name, style) = match adapter_state {
+fn protocol_state(adapter: &Adapter) -> (&str, Style) {
+    match adapter.kind() {
+        Type::PcieDown | Type::PcieUp => {
+            if let Some(reg) = adapter.register_by_name("ADP_PCIE_CS_0") {
+                if let Some(field) = reg.field_by_name("LTSSM") {
+                    let v = reg.field_value(field);
+                    match field.value_name(v) {
+                        Some("L0 state") => return ("L0", Green.normal()),
+                        Some("L1 state") => return ("L1", Green.bold()),
+                        Some("L2 state") => return ("L2", Green.bold()),
+                        Some("Disabled state") => return ("Disabled", Red.normal()),
+                        Some("Hot Reset state") => return ("Hot Reset", Red.normal()),
+                        Some(state) => {
+                            return (state.trim_end_matches(" state"), Yellow.normal())
+                        }
+                        None => (),
+                    }
+                }
+            }
+        }
+
+        Type::Usb3Down | Type::Usb3Up => {
+            if let Some(reg) = adapter.register_by_name("ADP_USB3_GX_CS_4") {
+                if let Some(field) = reg.field_by_name("PLS") {
+                    let v = reg.field_value(field);
+                    match field.value_name(v) {
+                        Some("U0 state") => return ("U0", Green.normal()),
+                        Some("U2 state") => return ("U2", Green.bold()),
+                        Some("U3 state") => return ("U3", Green.bold()),
+                        Some("Disabled state") => return ("Disabled", Red.normal()),
+                        Some("Hot Reset state") => return ("Hot Reset", Red.normal()),
+                        Some(state) => {
+                            return (state.trim_end_matches(" state"), Yellow.normal())
+                        }
+                        None => (),
+                    }
+                }
+            }
+        }
+
+        _ => (),
+    }
+
+    ("Enabled", Green.normal())
+}
+
+fn dump_adapter_state(adapter: &Adapter, args: &Args) {
+    let (name, style) = match adapter.state() {
         State::Disabled => ("Disabled", Red.normal()),
-        State::Enabled => ("Enabled", Green.normal()),
+        State::Enabled => protocol_state(adapter),
         State::Training => ("Training/Bonding", Yellow.normal()),
         State::Cl0 => ("CL0", Green.normal()),
         State::Cl0sTx => ("CL0s Tx", Green.bold()),
@@ -99,7 +148,7 @@ fn dump_adapter(adapter: &Adapter, args: &Args) {
 
     if adapter.is_lane() || adapter.is_protocol() {
         dump_adapter_type(adapter, args);
-        dump_adapter_state(&adapter.state(), args);
+        dump_adapter_state(adapter, args);
     } else {
         dump_other(args);
     }
