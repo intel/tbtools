@@ -15,8 +15,8 @@ use cursive::{
     utils::span::SpannedString,
     view::{Nameable, Resizable},
     views::{
-        Dialog, DummyView, EditView, HideableView, Layer, LinearLayout, ListView, NamedView,
-        OnEventView, ScrollView, SelectView, TextView, ThemedView,
+        Dialog, DialogFocus, DummyView, EditView, HideableView, Layer, LinearLayout, ListView,
+        NamedView, OnEventView, Panel, ScrollView, SelectView, TextView, ThemedView,
     },
     Cursive, View,
 };
@@ -51,6 +51,9 @@ const DIALOG_TRACE: &str = "dialog.trace";
 const VIEW_ADAPTERS: &str = "view.adapters";
 const VIEW_PATHS: &str = "view.paths";
 const VIEW_REGISTERS: &str = "view.registers";
+const VIEW_REGISTERS_EDIT: &str = "view.registers.edit";
+const VIEW_REGISTERS_FIELDS: &str = "view.registers.fields";
+const VIEW_REGISTERS_DIALOG: &str = "view.registers.dialog";
 const VIEW_TMU: &str = "view.tmu";
 const VIEW_TRACE: &str = "view.trace";
 const VIEW_ENTRIES: &str = "view.entries";
@@ -639,87 +642,6 @@ fn search_registers(siv: &mut Cursive) {
     ));
 }
 
-fn edit_register(siv: &mut Cursive) {
-    let registers: &mut SelectView<Register> = &mut siv.find_name(VIEW_REGISTERS).unwrap();
-    if let Some(reg) = registers.selection() {
-        siv.add_layer(ThemedView::new(
-            theme::dialog(),
-            Layer::new(
-                OnEventView::new(
-                    Dialog::new()
-                        .title("Edit")
-                        .content(
-                            EditView::new()
-                                .content(format!("{:08x}", reg.value()))
-                                .max_content_width(8)
-                                .with_name("register_value")
-                                .fixed_width(20),
-                        )
-                        .button("Update", move |s| {
-                            let registers: &mut SelectView<Register> =
-                                &mut s.find_name(VIEW_REGISTERS).unwrap();
-                            if registers.selected_id().is_none() {
-                                return;
-                            }
-                            let index = registers.selected_id().unwrap();
-                            let space = selected_space(s);
-
-                            if let Some(value) = s
-                                .call_on_name("register_value", |ev: &mut EditView| {
-                                    util::parse_hex::<u32>(&ev.get_content())
-                                })
-                                .unwrap()
-                            {
-                                if let Some((entry, reg)) = registers.get_item_mut(index) {
-                                    let devices: &mut SelectView<Device> =
-                                        &mut s.find_name(DEVICES).unwrap();
-                                    let index = devices.selected_id().unwrap();
-                                    let device = devices.get_item_mut(index).unwrap().1;
-                                    let offset = reg.offset() as u16;
-
-                                    let hw_reg = match space {
-                                        ConfigSpace::Unknown => panic!(),
-                                        ConfigSpace::Router => {
-                                            device.register_by_offset_mut(offset)
-                                        }
-                                        ConfigSpace::Adapter => {
-                                            let adapter = selected_adapter(s, device);
-                                            adapter.register_by_offset_mut(offset)
-                                        }
-
-                                        ConfigSpace::Path => {
-                                            let adapter = selected_adapter(s, device);
-                                            adapter.path_register_by_offset_mut(offset)
-                                        }
-
-                                        ConfigSpace::Counters => {
-                                            let adapter = selected_adapter(s, device);
-                                            adapter.counter_register_by_offset_mut(offset)
-                                        }
-                                    };
-
-                                    if let Some(hw_reg) = hw_reg {
-                                        hw_reg.set_value(value);
-                                        reg.set_value(value);
-                                        *entry = list_entry(&space, reg);
-                                    }
-                                }
-                            }
-
-                            s.pop_layer();
-                        })
-                        .button("Cancel", |s| {
-                            s.pop_layer();
-                        }),
-                )
-                .on_event(Key::Esc, |s| {
-                    s.pop_layer();
-                }),
-            ),
-        ));
-    }
-}
-
 fn write_changed(siv: &mut Cursive) -> bool {
     let devices: &mut SelectView<Device> = &mut siv.find_name(DEVICES).unwrap();
     let index = devices.selected_id().unwrap();
@@ -795,7 +717,124 @@ fn build_field_detail(bitfields: &dyn BitFields<u32>, field: &BitField) -> impl 
     TextView::new(line)
 }
 
-fn view_register(siv: &mut Cursive, reg: &Register) {
+fn populate_fields(siv: &mut Cursive, reg: &Register) {
+    siv.call_on_name(VIEW_REGISTERS_FIELDS, |l: &mut LinearLayout| {
+        l.clear();
+
+        let value = reg.value();
+
+        let values: [u8; 4] = [
+            (value & 0xff) as u8,
+            ((value >> 8) & 0xff) as u8,
+            ((value >> 16) & 0xff) as u8,
+            ((value >> 24) & 0xff) as u8,
+        ];
+
+        let mut binary = String::new();
+        binary.push_str(&format!("0b{:08b}", values[3]));
+        binary.push_str(&format!(" {:08b}", values[2]));
+        binary.push_str(&format!(" {:08b}", values[1]));
+        binary.push_str(&format!(" {:08b}", values[0]));
+        l.add_child(build_register_detail("Binary:", &binary));
+
+        l.add_child(build_register_detail(
+            "Char:",
+            &util::bytes_to_ascii(&value.to_be_bytes()),
+        ));
+
+        if let Some(fields) = reg.fields() {
+            //l.add_child(build_register_detail("Fields:", ""));
+            let mut v = LinearLayout::vertical();
+
+            for field in fields {
+                v.add_child(build_field_detail(reg, field));
+            }
+
+            let p = Panel::new(v).title("Fields").title_position(HAlign::Left);
+            l.add_child(DummyView);
+            l.add_child(p);
+        }
+    });
+}
+
+fn enable_update_button(d: &mut Dialog, enable: bool) {
+    for b in d.buttons_mut() {
+        if b.label() == "<Update>" {
+            b.set_enabled(enable);
+            break;
+        }
+    }
+}
+
+fn edit_register(siv: &mut Cursive, text: &str, _cursor: usize) {
+    let registers: &mut SelectView<Register> = &mut siv.find_name(VIEW_REGISTERS).unwrap();
+    if let Some(index) = registers.selected_id() {
+        if let Some((_, reg)) = registers.get_item_mut(index) {
+            let mut r = reg.clone();
+
+            if let Some(value) = util::parse_hex::<u32>(text) {
+                r.set_value(value);
+
+                siv.call_on_name(VIEW_REGISTERS_DIALOG, |d: &mut Dialog| {
+                    enable_update_button(d, true);
+                });
+            } else {
+                // Disable the "Update" button if the content is not valid.
+                siv.call_on_name(VIEW_REGISTERS_DIALOG, |d: &mut Dialog| {
+                    enable_update_button(d, false);
+                });
+            }
+
+            populate_fields(siv, &r);
+        }
+    }
+}
+
+fn update_register(siv: &mut Cursive) {
+    let registers: &mut SelectView<Register> = &mut siv.find_name(VIEW_REGISTERS).unwrap();
+    if let Some(index) = registers.selected_id() {
+        if let Some((entry, reg)) = registers.get_item_mut(index) {
+            // Since VIEW_REGISTERS contains a copy of the actual registers we need to find out the
+            // matching hardware register again here and update it along with the copy.
+            let devices: &mut SelectView<Device> = &mut siv.find_name(DEVICES).unwrap();
+            let index = devices.selected_id().unwrap();
+            let device = devices.get_item_mut(index).unwrap().1;
+            let offset = reg.offset() as u16;
+            let space = selected_space(siv);
+
+            let hw_reg = match space {
+                ConfigSpace::Unknown => panic!(),
+                ConfigSpace::Router => device.register_by_offset_mut(offset),
+                ConfigSpace::Adapter => {
+                    let adapter = selected_adapter(siv, device);
+                    adapter.register_by_offset_mut(offset)
+                }
+
+                ConfigSpace::Path => {
+                    let adapter = selected_adapter(siv, device);
+                    adapter.path_register_by_offset_mut(offset)
+                }
+
+                ConfigSpace::Counters => {
+                    let adapter = selected_adapter(siv, device);
+                    adapter.counter_register_by_offset_mut(offset)
+                }
+            };
+
+            siv.call_on_name(VIEW_REGISTERS_EDIT, |e: &mut EditView| {
+                if let Some(value) = util::parse_hex::<u32>(&e.get_content()) {
+                    if let Some(hw_reg) = hw_reg {
+                        hw_reg.set_value(value);
+                        reg.set_value(value);
+                        *entry = list_entry(&space, reg);
+                    }
+                }
+            });
+        }
+    }
+}
+
+fn view_register(siv: &mut Cursive, reg: &Register, writable: bool) {
     let mut l = LinearLayout::vertical();
 
     l.add_child(build_register_detail(
@@ -807,61 +846,74 @@ fn view_register(siv: &mut Cursive, reg: &Register) {
         &format!("{}", reg.relative_offset()),
     ));
     let value = reg.value();
-    l.add_child(build_register_detail("Hex:", &format!("0x{:08x}", value)));
 
-    let values: [u8; 4] = [
-        (value & 0xff) as u8,
-        ((value >> 8) & 0xff) as u8,
-        ((value >> 16) & 0xff) as u8,
-        ((value >> 24) & 0xff) as u8,
-    ];
+    let mut h = LinearLayout::horizontal();
 
-    let mut binary = String::new();
-    binary.push_str(&format!("0b{:08b}", values[3]));
-    binary.push_str(&format!(" {:08b}", values[2]));
-    binary.push_str(&format!(" {:08b}", values[1]));
-    binary.push_str(&format!(" {:08b}", values[0]));
-    l.add_child(build_register_detail("Binary:", &binary));
+    let mut label = SpannedString::new();
+    label.append_styled(format!("{:>16} ", "Hex:"), theme::dialog_label());
+    h.add_child(TextView::new(label));
 
-    l.add_child(build_register_detail(
-        "Char:",
-        &util::bytes_to_ascii(&value.to_be_bytes()),
-    ));
+    // Only if registers can be written to, add the EditView.
+    if writable {
+        h.add_child(TextView::new("0x"));
 
-    let mut title = String::from("Register details");
+        let edit = EditView::new()
+            .content(format!("{:08x}", value))
+            .style(theme::dialog_edit())
+            .on_edit(edit_register)
+            .max_content_width(8)
+            .with_name(VIEW_REGISTERS_EDIT)
+            .fixed_width(8);
+        h.add_child(edit);
+    } else {
+        h.add_child(TextView::new(format!("0x{:08x}", value)));
+    }
 
+    l.add_child(h);
+
+    let mut title = String::from("Register");
     if let Some(name) = reg.name() {
         title.push_str(&format!(": {}", name));
+    }
 
-        if let Some(fields) = reg.fields() {
-            l.add_child(build_register_detail("Fields:", ""));
-            l.add_child(DummyView);
+    l.add_child(LinearLayout::vertical().with_name(VIEW_REGISTERS_FIELDS));
 
-            for field in fields {
-                l.add_child(build_field_detail(reg, field));
-            }
-        }
+    let mut d = Dialog::around(l).title(title).title_position(HAlign::Left);
+
+    // Add either one or two buttons so that the focus is on the "Close" button to allow the user
+    // to dismiss the dialog by simply pressing enter.
+    if writable {
+        d.add_button("Update", |s| {
+            update_register(s);
+            s.pop_layer();
+        });
+        enable_update_button(&mut d, false);
+
+        d.add_button("Close", |s| {
+            s.pop_layer();
+        });
+        d.set_focus(DialogFocus::Button(1));
+    } else {
+        d.add_button("Close", |s| {
+            s.pop_layer();
+        });
+        d.set_focus(DialogFocus::Button(0));
     }
 
     siv.add_layer(ThemedView::new(
         theme::dialog(),
         Layer::new(
-            OnEventView::new(
-                Dialog::around(l)
-                    .button("Close", |s| {
-                        s.pop_layer();
-                    })
-                    .title(title)
-                    .title_position(HAlign::Left),
-            )
-            .on_event('q', |s| {
-                s.pop_layer();
-            })
-            .on_event(Key::Esc, |s| {
-                s.pop_layer();
-            }),
+            OnEventView::new(d.with_name(VIEW_REGISTERS_DIALOG))
+                .on_event('q', |s| {
+                    s.pop_layer();
+                })
+                .on_event(Key::Esc, |s| {
+                    s.pop_layer();
+                }),
         ),
     ));
+
+    populate_fields(siv, reg);
 }
 
 fn build_registers(siv: &mut Cursive) {
@@ -924,15 +976,11 @@ fn build_registers(siv: &mut Cursive) {
     ];
 
     // Only allow writing if `CONFIG_USB4_DEBUGFS_WRITE=y` is set in the kernel configuration.
-    if device.registers_writable() {
+    let writable = device.registers_writable();
+
+    if writable {
         commands.push(Command {
             key: "F7",
-            desc: "Edit",
-            help: "Edit selected register",
-            menu: true,
-        });
-        commands.push(Command {
-            key: "F8",
             desc: "Write",
             help: "Write changed registers back to the hardware",
             menu: true,
@@ -995,7 +1043,9 @@ fn build_registers(siv: &mut Cursive) {
 
     let registers = OnEventView::new(
         SelectView::<Register>::new()
-            .on_submit(view_register)
+            .on_submit(move |s, r| {
+                view_register(s, r, writable);
+            })
             .with_name(VIEW_REGISTERS),
     )
     .on_pre_event_inner('k', |o, _| {
@@ -1047,8 +1097,7 @@ fn build_registers(siv: &mut Cursive) {
             .on_event(Key::F5, read_registers)
             .on_event(Key::F6, search_registers)
             .on_event('f', search_registers)
-            .on_event(Key::F7, edit_register)
-            .on_event(Key::F8, write_registers)
+            .on_event(Key::F7, write_registers)
             .on_event('q', |s| {
                 close_dialog(s, DIALOG_REGISTERS);
             })
