@@ -78,9 +78,7 @@ fn protocol_state(adapter: &Adapter) -> (&str, Style) {
                         Some("L2 state") => return ("L2", Green.bold()),
                         Some("Disabled state") => return ("Disabled", Red.normal()),
                         Some("Hot Reset state") => return ("Hot Reset", Red.normal()),
-                        Some(state) => {
-                            return (state.trim_end_matches(" state"), Yellow.normal())
-                        }
+                        Some(state) => return (state.trim_end_matches(" state"), Yellow.normal()),
                         None => (),
                     }
                 }
@@ -97,9 +95,7 @@ fn protocol_state(adapter: &Adapter) -> (&str, Style) {
                         Some("U3 state") => return ("U3", Green.bold()),
                         Some("Disabled state") => return ("Disabled", Red.normal()),
                         Some("Hot Reset state") => return ("Hot Reset", Red.normal()),
-                        Some(state) => {
-                            return (state.trim_end_matches(" state"), Yellow.normal())
-                        }
+                        Some(state) => return (state.trim_end_matches(" state"), Yellow.normal()),
                         None => (),
                     }
                 }
