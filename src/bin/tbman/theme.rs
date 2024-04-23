@@ -85,8 +85,18 @@ pub fn dialog_label() -> Style {
     Style::from(ColorStyle::new(BaseColor::Black, BaseColor::White)).combine(Effect::Bold)
 }
 
-pub fn dialog_edit() -> Style {
-    Style::from(ColorStyle::new(BaseColor::Black, BaseColor::Cyan))
+pub fn edit_active() -> (Style, Style) {
+    (
+        Style::from(ColorStyle::new(BaseColor::Black, BaseColor::Cyan)),
+        Style::from(ColorStyle::new(BaseColor::Cyan, BaseColor::Black)),
+    )
+}
+
+pub fn edit_inactive() -> (Style, Style) {
+    (
+        Style::from(ColorStyle::new(BaseColor::Black.light(), BaseColor::Cyan)),
+        Style::from(ColorStyle::new(BaseColor::Black.light(), BaseColor::Cyan)),
+    )
 }
 
 pub fn adapter_not_implemented() -> Style {

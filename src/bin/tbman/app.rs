@@ -5,7 +5,7 @@
 
 use crate::{
     theme,
-    views::{AdapterView, PathView},
+    views::{AdapterView, NumberEditView, PathView},
 };
 use cursive::{
     align::HAlign,
@@ -51,7 +51,8 @@ const DIALOG_TRACE: &str = "dialog.trace";
 const VIEW_ADAPTERS: &str = "view.adapters";
 const VIEW_PATHS: &str = "view.paths";
 const VIEW_REGISTERS: &str = "view.registers";
-const VIEW_REGISTERS_EDIT: &str = "view.registers.edit";
+const VIEW_REGISTERS_HEX_EDIT: &str = "view.registers.hex_edit";
+const VIEW_REGISTERS_BIN_EDIT: &str = "view.registers.bin_edit";
 const VIEW_REGISTERS_FIELDS: &str = "view.registers.fields";
 const VIEW_REGISTERS_DIALOG: &str = "view.registers.dialog";
 const VIEW_TMU: &str = "view.tmu";
@@ -721,29 +722,12 @@ fn populate_fields(siv: &mut Cursive, reg: &Register) {
     siv.call_on_name(VIEW_REGISTERS_FIELDS, |l: &mut LinearLayout| {
         l.clear();
 
-        let value = reg.value();
-
-        let values: [u8; 4] = [
-            (value & 0xff) as u8,
-            ((value >> 8) & 0xff) as u8,
-            ((value >> 16) & 0xff) as u8,
-            ((value >> 24) & 0xff) as u8,
-        ];
-
-        let mut binary = String::new();
-        binary.push_str(&format!("0b{:08b}", values[3]));
-        binary.push_str(&format!(" {:08b}", values[2]));
-        binary.push_str(&format!(" {:08b}", values[1]));
-        binary.push_str(&format!(" {:08b}", values[0]));
-        l.add_child(build_register_detail("Binary:", &binary));
-
         l.add_child(build_register_detail(
             "Char:",
-            &util::bytes_to_ascii(&value.to_be_bytes()),
+            &util::bytes_to_ascii(&reg.value().to_be_bytes()),
         ));
 
         if let Some(fields) = reg.fields() {
-            //l.add_child(build_register_detail("Fields:", ""));
             let mut v = LinearLayout::vertical();
 
             for field in fields {
@@ -766,18 +750,41 @@ fn enable_update_button(d: &mut Dialog, enable: bool) {
     }
 }
 
-fn edit_register(siv: &mut Cursive, text: &str, _cursor: usize) {
+fn update_dialog_title(d: &mut Dialog, r: &Register) {
+    let mut title = String::from("Register");
+    if let Some(name) = r.name() {
+        title.push_str(&format!(": {}", name));
+    }
+    if r.is_changed() {
+        title.push('*');
+    }
+    d.set_title(title);
+}
+
+fn edit_register(siv: &mut Cursive, text: &str, base: usize) {
     let registers: &mut SelectView<Register> = &mut siv.find_name(VIEW_REGISTERS).unwrap();
     if let Some(index) = registers.selected_id() {
         if let Some((_, reg)) = registers.get_item_mut(index) {
             let mut r = reg.clone();
 
-            if let Some(value) = util::parse_hex::<u32>(text) {
+            if let Ok(value) = u32::from_str_radix(text, base as u32) {
                 r.set_value(value);
 
                 siv.call_on_name(VIEW_REGISTERS_DIALOG, |d: &mut Dialog| {
+                    update_dialog_title(d, &r);
                     enable_update_button(d, true);
                 });
+
+                // Now update the other edit field as well.
+                if base == 2 {
+                    siv.call_on_name(VIEW_REGISTERS_HEX_EDIT, |e: &mut NumberEditView| {
+                        e.set_content(format!("{:08x}", value));
+                    });
+                } else {
+                    siv.call_on_name(VIEW_REGISTERS_BIN_EDIT, |e: &mut NumberEditView| {
+                        e.set_content(format!("{:032b}", value));
+                    });
+                }
             } else {
                 // Disable the "Update" button if the content is not valid.
                 siv.call_on_name(VIEW_REGISTERS_DIALOG, |d: &mut Dialog| {
@@ -821,7 +828,7 @@ fn update_register(siv: &mut Cursive) {
                 }
             };
 
-            siv.call_on_name(VIEW_REGISTERS_EDIT, |e: &mut EditView| {
+            siv.call_on_name(VIEW_REGISTERS_HEX_EDIT, |e: &mut NumberEditView| {
                 if let Some(value) = util::parse_hex::<u32>(&e.get_content()) {
                     if let Some(hw_reg) = hw_reg {
                         hw_reg.set_value(value);
@@ -847,38 +854,58 @@ fn view_register(siv: &mut Cursive, reg: &Register, writable: bool) {
     ));
     let value = reg.value();
 
-    let mut h = LinearLayout::horizontal();
-
-    let mut label = SpannedString::new();
-    label.append_styled(format!("{:>16} ", "Hex:"), theme::dialog_label());
-    h.add_child(TextView::new(label));
-
-    // Only if registers can be written to, add the EditView.
     if writable {
+        // Registers are writable so we allow editing of the register value.
+        let mut h = LinearLayout::horizontal();
+        let mut label = SpannedString::new();
+        label.append_styled(format!("{:>16} ", "Hex:"), theme::dialog_label());
+        h.add_child(TextView::new(label));
+
         h.add_child(TextView::new("0x"));
 
-        let edit = EditView::new()
+        let hex_edit = NumberEditView::hex()
             .content(format!("{:08x}", value))
-            .style(theme::dialog_edit())
             .on_edit(edit_register)
             .max_content_width(8)
-            .with_name(VIEW_REGISTERS_EDIT)
-            .fixed_width(8);
-        h.add_child(edit);
+            .with_name(VIEW_REGISTERS_HEX_EDIT);
+        h.add_child(hex_edit);
+        l.add_child(h);
+
+        let mut h = LinearLayout::horizontal();
+        let mut label = SpannedString::new();
+        label.append_styled(format!("{:>16} ", "Binary:"), theme::dialog_label());
+        h.add_child(TextView::new(label));
+        h.add_child(TextView::new("0b"));
+
+        let bin_edit = NumberEditView::bin()
+            .content(format!("{:032b}", value))
+            .on_edit(edit_register)
+            .max_content_width(8 * 4)
+            .with_name(VIEW_REGISTERS_BIN_EDIT);
+        h.add_child(bin_edit);
+        l.add_child(h);
     } else {
-        h.add_child(TextView::new(format!("0x{:08x}", value)));
-    }
+        l.add_child(build_register_detail("Hex:", &format!("0x{:08x}", value)));
 
-    l.add_child(h);
+        let values: [u8; 4] = [
+            (value & 0xff) as u8,
+            ((value >> 8) & 0xff) as u8,
+            ((value >> 16) & 0xff) as u8,
+            ((value >> 24) & 0xff) as u8,
+        ];
 
-    let mut title = String::from("Register");
-    if let Some(name) = reg.name() {
-        title.push_str(&format!(": {}", name));
+        let mut binary = String::new();
+        binary.push_str(&format!("0b{:08b}", values[3]));
+        binary.push_str(&format!(" {:08b}", values[2]));
+        binary.push_str(&format!(" {:08b}", values[1]));
+        binary.push_str(&format!(" {:08b}", values[0]));
+        l.add_child(build_register_detail("Binary:", &binary));
     }
 
     l.add_child(LinearLayout::vertical().with_name(VIEW_REGISTERS_FIELDS));
 
-    let mut d = Dialog::around(l).title(title).title_position(HAlign::Left);
+    let mut d = Dialog::around(l).title_position(HAlign::Left);
+    update_dialog_title(&mut d, reg);
 
     // Add either one or two buttons so that the focus is on the "Close" button to allow the user
     // to dismiss the dialog by simply pressing enter.
