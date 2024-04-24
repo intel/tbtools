@@ -607,10 +607,19 @@
       {"start_bit": 11, "end_bit": 17, "name": "AUX Rx HopID"}
     ]},
     {"offset": 2, "cap_id": 4, "adapter_type": ["DisplayPort IN"], "name": "ADP_DP_CS_2", "bitfields": [
-      {"start_bit": 0, "end_bit": 2, "name": "NRD Max Lane Count", "short_name": "NRD MLC"},
+      {"start_bit": 0, "end_bit": 2, "name": "NRD Max Lane Count", "short_name": "NRD MLC", "values": [
+        {"name": "1 Lane", "value": 0},
+        {"name": "2 Lanes", "value": 1},
+        {"name": "4 Lanes", "value": 2}
+      ]},
       {"start_bit": 3, "end_bit": 3, "name": "SW Link Init", "short_name": "SWLI"},
       {"start_bit": 6, "end_bit": 6, "name": "HPD Status"},
-      {"start_bit": 7, "end_bit": 9, "name": "NRD Max Link Rate", "short_name": "NRD MLR"},
+      {"start_bit": 7, "end_bit": 9, "name": "NRD Max Link Rate", "short_name": "NRD MLR", "values": [
+        {"name": "1.62 Gbps/lane", "value": 0},
+        {"name": "2.7 Gbps/lane", "value": 1},
+        {"name": "5.4 Gbps/lane", "value": 2},
+        {"name": "8.1 Gbps/lane", "value": 3}
+      ]},
       {"start_bit": 10, "end_bit": 10, "name": "CM Ack", "short_name": "CA"},
       {"start_bit": 11, "end_bit": 12, "name": "Granularity", "short_name": "GR", "values": [
         {"name": "0.25", "value": 0},
@@ -627,10 +636,28 @@
       {"start_bit": 10, "end_bit": 10, "name": "HPD Output Set", "short_name": "HPDS"}
     ]},
     {"offset": 4, "cap_id": 4, "adapter_type": ["DisplayPort IN"], "name": "DP_LOCAL_CAP", "bitfields": [
-      {"start_bit": 0, "end_bit": 3, "name": "Protocol Adapter Version"},
-      {"start_bit": 4, "end_bit": 7, "name": "Maximal DPCD Rev"},
-      {"start_bit": 8, "end_bit": 11, "name": "8b10b Maximal Link Rate"},
-      {"start_bit": 12, "end_bit": 14, "name": "Maximal Lane Count"},
+      {"start_bit": 0, "end_bit": 3, "name": "Protocol Adapter Version", "values": [
+        {"name": "Reserved for TBT3", "value": 3},
+        {"name": "Version 1.0", "value": 4},
+        {"name": "Version 2.0", "value": 5}
+      ]},
+      {"start_bit": 4, "end_bit": 7, "name": "Maximal DPCD Rev", "values": [
+        {"name": "DPCD r1.1", "value": 0},
+        {"name": "DPCD r1.2", "value": 1},
+        {"name": "DPCD r1.3", "value": 2},
+        {"name": "DPCD r1.4a", "value": 3}
+      ]},
+      {"start_bit": 8, "end_bit": 11, "name": "8b10b Maximal Link Rate", "values": [
+        {"name": "1.62 Gbps/lane", "value": 0},
+        {"name": "2.7 Gbps/lane", "value": 1},
+        {"name": "5.4 Gbps/lane", "value": 2},
+        {"name": "8.1 Gbps/lane", "value": 3}
+      ]},
+      {"start_bit": 12, "end_bit": 14, "name": "Maximal Lane Count", "values": [
+        {"name": "1 Lane", "value": 0},
+        {"name": "2 Lanes", "value": 1},
+        {"name": "4 Lanes", "value": 2}
+      ]},
       {"start_bit": 15, "end_bit": 15, "name": "8b10b MST Capability"},
       {"start_bit": 16, "end_bit": 16, "name": "Panel Replay Tunneling Optimization Support"},
       {"start_bit": 17, "end_bit": 17, "name": "128b/132b Link Layer & 10Gbps/Lane Support"},
@@ -646,10 +673,28 @@
       {"start_bit": 29, "end_bit": 29, "name": "DSC Not Supported"}
     ]},
     {"offset": 5, "cap_id": 4, "adapter_type": ["DisplayPort IN"], "name": "DP_REMOTE_CAP", "bitfields": [
-      {"start_bit": 0, "end_bit": 3, "name": "Protocol Adapter Version"},
-      {"start_bit": 4, "end_bit": 7, "name": "Maximal DPCD Rev"},
-      {"start_bit": 8, "end_bit": 11, "name": "8b10b Maximal Link Rate"},
-      {"start_bit": 12, "end_bit": 14, "name": "Maximal Lane Count"},
+      {"start_bit": 0, "end_bit": 3, "name": "Protocol Adapter Version", "values": [
+        {"name": "Reserved for TBT3", "value": 3},
+        {"name": "Version 1.0", "value": 4},
+        {"name": "Version 2.0", "value": 5}
+      ]},
+      {"start_bit": 4, "end_bit": 7, "name": "Maximal DPCD Rev", "values": [
+        {"name": "DPCD r1.1", "value": 0},
+        {"name": "DPCD r1.2", "value": 1},
+        {"name": "DPCD r1.3", "value": 2},
+        {"name": "DPCD r1.4a", "value": 3}
+      ]},
+      {"start_bit": 8, "end_bit": 11, "name": "8b10b Maximal Link Rate", "values": [
+        {"name": "1.62 Gbps/lane", "value": 0},
+        {"name": "2.7 Gbps/lane", "value": 1},
+        {"name": "5.4 Gbps/lane", "value": 2},
+        {"name": "8.1 Gbps/lane", "value": 3}
+      ]},
+      {"start_bit": 12, "end_bit": 14, "name": "Maximal Lane Count", "values": [
+        {"name": "1 Lane", "value": 0},
+        {"name": "2 Lanes", "value": 1},
+        {"name": "4 Lanes", "value": 2}
+      ]},
       {"start_bit": 15, "end_bit": 15, "name": "8b10b MST Capability"},
       {"start_bit": 16, "end_bit": 16, "name": "Panel Replay Tunneling Optimization Support"},
       {"start_bit": 17, "end_bit": 17, "name": "128b/132b Link Layer & 10Gbps/Lane Support"},
@@ -677,10 +722,28 @@
       {"start_bit": 24, "end_bit": 31, "name": "Allocated BW"}
     ]},
     {"offset": 7, "cap_id": 4, "adapter_type": ["DisplayPort IN"], "name": "DP_COMMON_CAP", "bitfields": [
-      {"start_bit": 0, "end_bit": 3, "name": "Protocol Adapter Version"},
-      {"start_bit": 4, "end_bit": 7, "name": "Maximal DPCD Rev"},
-      {"start_bit": 8, "end_bit": 11, "name": "8b10b Maximal Link Rate"},
-      {"start_bit": 12, "end_bit": 14, "name": "Maximal Lane Count"},
+      {"start_bit": 0, "end_bit": 3, "name": "Protocol Adapter Version", "values": [
+        {"name": "Reserved for TBT3", "value": 3},
+        {"name": "Version 1.0", "value": 4},
+        {"name": "Version 2.0", "value": 5}
+      ]},
+      {"start_bit": 4, "end_bit": 7, "name": "Maximal DPCD Rev", "values": [
+        {"name": "DPCD r1.1", "value": 0},
+        {"name": "DPCD r1.2", "value": 1},
+        {"name": "DPCD r1.3", "value": 2},
+        {"name": "DPCD r1.4a", "value": 3}
+      ]},
+      {"start_bit": 8, "end_bit": 11, "name": "8b10b Maximal Link Rate", "values": [
+        {"name": "1.62 Gbps/lane", "value": 0},
+        {"name": "2.7 Gbps/lane", "value": 1},
+        {"name": "5.4 Gbps/lane", "value": 2},
+        {"name": "8.1 Gbps/lane", "value": 3}
+      ]},
+      {"start_bit": 12, "end_bit": 14, "name": "Maximal Lane Count", "values": [
+        {"name": "1 Lane", "value": 0},
+        {"name": "2 Lanes", "value": 1},
+        {"name": "4 Lanes", "value": 2}
+      ]},
       {"start_bit": 15, "end_bit": 15, "name": "8b10b MST Capability"},
       {"start_bit": 16, "end_bit": 16, "name": "Panel Replay Tunneling Optimization Support"},
       {"start_bit": 17, "end_bit": 17, "name": "128b/132b Link Layer & 10Gbps/Lane Support"},
@@ -738,10 +801,28 @@
     ]},
     {"offset": 3, "cap_id": 4, "adapter_type": ["DisplayPort OUT"], "name": "ADP_DP_CS_3"},
     {"offset": 4, "cap_id": 4, "adapter_type": ["DisplayPort OUT"], "name": "DP_LOCAL_CAP", "bitfields": [
-      {"start_bit": 0, "end_bit": 3, "name": "Protocol Adapter Version"},
-      {"start_bit": 4, "end_bit": 7, "name": "Maximal DPCD Rev"},
-      {"start_bit": 8, "end_bit": 11, "name": "8b10b Maximal Link Rate"},
-      {"start_bit": 12, "end_bit": 14, "name": "Maximal Lane Count"},
+      {"start_bit": 0, "end_bit": 3, "name": "Protocol Adapter Version", "values": [
+        {"name": "Reserved for TBT3", "value": 3},
+        {"name": "Version 1.0", "value": 4},
+        {"name": "Version 2.0", "value": 5}
+      ]},
+      {"start_bit": 4, "end_bit": 7, "name": "Maximal DPCD Rev", "values": [
+        {"name": "DPCD r1.1", "value": 0},
+        {"name": "DPCD r1.2", "value": 1},
+        {"name": "DPCD r1.3", "value": 2},
+        {"name": "DPCD r1.4a", "value": 3}
+      ]},
+      {"start_bit": 8, "end_bit": 11, "name": "8b10b Maximal Link Rate", "values": [
+        {"name": "1.62 Gbps/lane", "value": 0},
+        {"name": "2.7 Gbps/lane", "value": 1},
+        {"name": "5.4 Gbps/lane", "value": 2},
+        {"name": "8.1 Gbps/lane", "value": 3}
+      ]},
+      {"start_bit": 12, "end_bit": 14, "name": "Maximal Lane Count", "values": [
+        {"name": "1 Lane", "value": 0},
+        {"name": "2 Lanes", "value": 1},
+        {"name": "4 Lanes", "value": 2}
+      ]},
       {"start_bit": 15, "end_bit": 15, "name": "8b10b MST Capability"},
       {"start_bit": 16, "end_bit": 16, "name": "Panel Replay Tunneling Optimization Support"},
       {"start_bit": 17, "end_bit": 17, "name": "128b/132b Link Layer & 10Gbps/Lane Support"},
@@ -756,10 +837,28 @@
       {"start_bit": 29, "end_bit": 29, "name": "DSC Not Supported"}
     ]},
     {"offset": 5, "cap_id": 4, "adapter_type": ["DisplayPort OUT"], "name": "DP_REMOTE_CAP", "bitfields": [
-      {"start_bit": 0, "end_bit": 3, "name": "Protocol Adapter Version"},
-      {"start_bit": 4, "end_bit": 7, "name": "Maximal DPCD Rev"},
-      {"start_bit": 8, "end_bit": 11, "name": "8b10b Maximal Link Rate"},
-      {"start_bit": 12, "end_bit": 14, "name": "Maximal Lane Count"},
+      {"start_bit": 0, "end_bit": 3, "name": "Protocol Adapter Version", "values": [
+        {"name": "Reserved for TBT3", "value": 3},
+        {"name": "Version 1.0", "value": 4},
+        {"name": "Version 2.0", "value": 5}
+      ]},
+      {"start_bit": 4, "end_bit": 7, "name": "Maximal DPCD Rev", "values": [
+        {"name": "DPCD r1.1", "value": 0},
+        {"name": "DPCD r1.2", "value": 1},
+        {"name": "DPCD r1.3", "value": 2},
+        {"name": "DPCD r1.4a", "value": 3}
+      ]},
+      {"start_bit": 8, "end_bit": 11, "name": "8b10b Maximal Link Rate", "values": [
+        {"name": "1.62 Gbps/lane", "value": 0},
+        {"name": "2.7 Gbps/lane", "value": 1},
+        {"name": "5.4 Gbps/lane", "value": 2},
+        {"name": "8.1 Gbps/lane", "value": 3}
+      ]},
+      {"start_bit": 12, "end_bit": 14, "name": "Maximal Lane Count", "values": [
+        {"name": "1 Lane", "value": 0},
+        {"name": "2 Lanes", "value": 1},
+        {"name": "4 Lanes", "value": 2}
+      ]},
       {"start_bit": 15, "end_bit": 15, "name": "8b10b MST Capability"},
       {"start_bit": 16, "end_bit": 16, "name": "Panel Replay Tunneling Optimization Support"},
       {"start_bit": 17, "end_bit": 17, "name": "128b/132b Link Layer & 10Gbps/Lane Support"},
@@ -788,10 +887,28 @@
       {"start_bit": 26, "end_bit": 26, "name": "DP IN Adapter USB4 Flag", "short_name": "UF"}
     ]},
     {"offset": 7, "cap_id": 4, "adapter_type": ["DisplayPort OUT"], "name": "DP_COMMON_CAP", "bitfields": [
-      {"start_bit": 0, "end_bit": 3, "name": "Protocol Adapter Version"},
-      {"start_bit": 4, "end_bit": 7, "name": "Maximal DPCD Rev"},
-      {"start_bit": 8, "end_bit": 11, "name": "8b10b Maximal Link Rate"},
-      {"start_bit": 12, "end_bit": 14, "name": "Maximal Lane Count"},
+      {"start_bit": 0, "end_bit": 3, "name": "Protocol Adapter Version", "values": [
+        {"name": "Reserved for TBT3", "value": 3},
+        {"name": "Version 1.0", "value": 4},
+        {"name": "Version 2.0", "value": 5}
+      ]},
+      {"start_bit": 4, "end_bit": 7, "name": "Maximal DPCD Rev", "values": [
+        {"name": "DPCD r1.1", "value": 0},
+        {"name": "DPCD r1.2", "value": 1},
+        {"name": "DPCD r1.3", "value": 2},
+        {"name": "DPCD r1.4a", "value": 3}
+      ]},
+      {"start_bit": 8, "end_bit": 11, "name": "8b10b Maximal Link Rate", "values": [
+        {"name": "1.62 Gbps/lane", "value": 0},
+        {"name": "2.7 Gbps/lane", "value": 1},
+        {"name": "5.4 Gbps/lane", "value": 2},
+        {"name": "8.1 Gbps/lane", "value": 3}
+      ]},
+      {"start_bit": 12, "end_bit": 14, "name": "Maximal Lane Count", "values": [
+        {"name": "1 Lane", "value": 0},
+        {"name": "2 Lanes", "value": 1},
+        {"name": "4 Lanes", "value": 2}
+      ]},
       {"start_bit": 15, "end_bit": 15, "name": "8b10b MST Capability"},
       {"start_bit": 16, "end_bit": 16, "name": "Panel Replay Tunneling Optimization Support"},
       {"start_bit": 17, "end_bit": 17, "name": "128b/132b Link Layer & 10Gbps/Lane Support"},
