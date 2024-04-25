@@ -1102,7 +1102,7 @@ fn build_registers(siv: &mut Cursive) {
                             .child(
                                 HideableView::new(ListView::new().child(
                                     "Adapter",
-                                    adapters.with_name("adapters").max_width(15),
+                                    adapters.with_name("adapters").max_width(25),
                                 ))
                                 .hidden()
                                 .with_name("adapters_visible"),
