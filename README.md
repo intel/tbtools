@@ -1,9 +1,10 @@
 # Thunderbolt/USB4 debugging tools
 
-This is collection of tools that for Linux Thunderbolt/USB4 development
-and debugging but may be useful to others as well. This consists of a
-library (`tbtools`) that can be used as standalone for a custom tools,
-and a basic set of debugging tools built on top of this library.
+This is a collection of tools for Linux Thunderbolt/USB4 development,
+debugging and validation but may be useful to others as well. This
+consists of a library (`tbtools`) that can be used as standalone for a
+custom tools, and a basic set of debugging tools built on top of this
+library.
 
 Following tools are currently available:
 
