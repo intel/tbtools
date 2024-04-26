@@ -1525,10 +1525,16 @@ fn view_packet(siv: &mut Cursive, entry: &Entry) {
     left.add_child(build_trace_detail("PID:", &entry.pid().to_string()));
     left.add_child(build_trace_detail("Function:", entry.function()));
     left.add_child(build_trace_detail("Size:", &entry.size().to_string()));
-    left.add_child(build_trace_detail(
-        "Dropped:",
-        if entry.dropped() { "Yes" } else { "No" },
-    ));
+
+    let mut line = SpannedString::new();
+    line.append_styled(format!("{:<14} ", "Dropped:"), theme::dialog_label());
+    if entry.dropped() {
+        line.append_styled("Yes", theme::trace_dropped());
+    } else {
+        line.append("No");
+    }
+    left.add_child(TextView::new(line));
+
     header.add_child(left);
 
     header.add_child(DummyView);

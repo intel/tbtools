@@ -136,7 +136,7 @@ pub fn trace_indicator() -> Style {
 }
 
 pub fn trace_dropped() -> Style {
-    Style::from(ColorStyle::new(BaseColor::Red, BaseColor::White))
+    Style::from(ColorStyle::new(BaseColor::Red, BaseColor::White)).combine(Effect::Bold)
 }
 
 pub fn field_offset() -> Style {
