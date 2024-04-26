@@ -46,7 +46,7 @@ impl Monitor {
         let mut tv: Option<time::TimeVal> = duration.map(|duration| {
             time::TimeVal::new(
                 duration.as_secs().try_into().unwrap(),
-                duration.subsec_millis().into(),
+                duration.subsec_micros().into(),
             )
         });
         let nfds = select::select(None, Some(&mut readfds), None, None, &mut tv)?;
