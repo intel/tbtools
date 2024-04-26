@@ -738,9 +738,9 @@ impl Pdf {
             Self::XdomainRequest => Some(6),
             Self::XdomainResponse => Some(7),
             Self::EnhancedNotificationAck => Some(8),
-            Self::IcmEvent => Some(9),
-            Self::IcmRequest => Some(10),
-            Self::IcmResponse => Some(11),
+            Self::IcmEvent => Some(10),
+            Self::IcmRequest => Some(11),
+            Self::IcmResponse => Some(12),
             _ => None,
         }
     }
