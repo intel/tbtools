@@ -88,5 +88,54 @@
     {"offset": 2, "bitfields": [
       {"start_bit": 0, "end_bit": 0, "name": "Sequence"}
     ]}
+  ]},
+  {"pdf": 10, "fields": [
+    {"offset": 0, "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Notification Code", "values": [
+        {"name": "Device Connected", "value": 3},
+        {"name": "Device Disconnected", "value": 4},
+        {"name": "DP Device Connected not Tunneled", "value": 5},
+        {"name": "Inter-Domain Connected", "value": 6},
+        {"name": "Inter-Domain Disconnected", "value": 7},
+        {"name": "RTD3 Veto", "value": 10}
+      ]},
+      {"start_bit": 8, "end_bit": 15, "name": "Flags"},
+      {"start_bit": 16, "end_bit": 23, "name": "Packet ID"},
+      {"start_bit": 24, "end_bit": 31, "name": "Total Packets"}
+    ]}
+  ]},
+  {"pdf": 11, "fields": [
+    {"offset": 0, "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Request Code", "values": [
+        {"name": "Driver Ready", "value": 3},
+        {"name": "Approve PCI Connection", "value": 4},
+        {"name": "Challenge PCI Connection", "value": 5},
+        {"name": "Add Device and Key", "value": 6},
+        {"name": "Get Device Route String", "value": 10},
+        {"name": "Approve Inter-Domain Connection", "value": 16},
+        {"name": "Disconnect Inter-Domain Connection", "value": 17},
+        {"name": "PreBoot ACL Command", "value": 24},
+        {"name": "USB4 Router Operation", "value": 32}
+      ]}
+    ]}
+  ]},
+  {"pdf": 12, "fields": [
+    {"offset": 0, "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Response Code", "values": [
+        {"name": "Driver Ready Response", "value": 3},
+        {"name": "Approve PCI Connection Response", "value": 4},
+        {"name": "PCI Connection Challenge Response", "value": 5},
+        {"name": "Add Device and Key Response", "value": 6},
+        {"name": "Inter-Domain Packet Sent", "value": 8},
+        {"name": "Get Device Route String Response", "value": 10},
+        {"name": "Approve Inter-Domain Connection Response", "value": 16},
+        {"name": "Disconnect Inter-Domain Connection Response", "value": 17},
+        {"name": "PreBoot ACL Response", "value": 24},
+        {"name": "USB4 Router Operation Response", "value": 32}
+      ]},
+      {"start_bit": 8, "end_bit": 15, "name": "Flags"},
+      {"start_bit": 16, "end_bit": 23, "name": "Packet ID"},
+      {"start_bit": 24, "end_bit": 31, "name": "Total Packets"}
+    ]}
   ]}
 ]
