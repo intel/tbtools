@@ -326,8 +326,8 @@ impl BitFields<u32> for Field<'_> {
 
 /// Transport layer control packet parsed from the trace [`Entry`].
 ///
-/// The contained information except of [`ControlPacket::pdf()`} is completely parsed from the double
-/// word data that is coming from the [`Entry::data()`].
+/// The contained information except of what is returned by [`ControlPacket::pdf()`] is completely
+/// parsed from the double word data that is coming from the [`Entry::data()`].
 pub struct ControlPacket<'a> {
     pdf: Pdf,
     fields: Vec<Field<'a>>,
