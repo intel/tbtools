@@ -291,7 +291,10 @@ fn dump(input: Option<String>, verbose: u8) -> io::Result<()> {
     let trace_buf;
 
     if let Some(input) = input {
-        trace_buf = trace::buffer(Path::new(&input))?;
+        trace_buf = trace::buffer(Path::new(&input)).unwrap_or_else(|e| {
+            eprintln!("Error: failed open trace input file: {}", e);
+            process::exit(1);
+        });
     } else {
         trace_buf = trace::live_buffer()?;
 
