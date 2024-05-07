@@ -13,7 +13,7 @@ use cursive::{
     Cursive, Printer, Vec2, With, XY,
 };
 use std::sync::Arc;
-use tbtools::debugfs::{Adapter, BitFields, Path, State, Type};
+use tbtools::debugfs::{Adapter, BitFields, State, Type};
 
 /// View to show device adapters.
 pub struct AdapterView {
@@ -208,87 +208,6 @@ impl View for AdapterView {
 
     fn required_size(&mut self, _: XY<usize>) -> XY<usize> {
         Vec2::new(50, self.adapters.len() + 1)
-    }
-
-    fn needs_relayout(&self) -> bool {
-        self.changed
-    }
-}
-
-pub struct PathView {
-    paths: Vec<SpannedString<Style>>,
-    changed: bool,
-}
-
-impl PathView {
-    pub fn new() -> Self {
-        Self {
-            paths: Vec::new(),
-            changed: true,
-        }
-    }
-
-    fn format_path(&self, adapters: &[Adapter], path: &Path) -> SpannedString<Style> {
-        let mut line = SpannedString::new();
-
-        let adapter = &adapters[(path.in_adapter() - 1) as usize];
-        let s = format!("{} / {}", path.in_adapter(), adapter.kind());
-        line.append(format!("{:<20} ", s));
-        line.append(format!("{:>10}  ", path.in_hop()));
-
-        let adapter = &adapters[(path.out_adapter() - 1) as usize];
-        let s = format!("{} / {}", path.out_adapter(), adapter.kind());
-        line.append(format!("{:<20} ", s));
-        line.append(format!("{:>10} ", path.out_hop()));
-
-        line.append(format!("{:>2}", if path.pmps() { 1 } else { 0 }));
-
-        line
-    }
-
-    pub fn clear(&mut self) {
-        self.paths.clear();
-        self.changed = true;
-    }
-
-    pub fn add_paths(&mut self, adapters: &[Adapter], paths: &Vec<Path>) {
-        for path in paths {
-            self.paths.push(self.format_path(adapters, path));
-        }
-
-        self.changed = true;
-    }
-
-    fn draw_headers(&self, printer: &Printer) {
-        let mut line = SpannedString::new();
-        line.append_styled(format!("{:<20} ", "In Adapter"), theme::dialog_label());
-        line.append_styled(format!("{:>10}  ", "In HopID"), theme::dialog_label());
-        line.append_styled(format!("{:<20} ", "Out Adapter"), theme::dialog_label());
-        line.append_styled(format!("{:>10} ", "Out HopID"), theme::dialog_label());
-        line.append_styled(format!("{:2}", "PM"), theme::dialog_label());
-        printer.print_styled((0, 0), &line);
-    }
-
-    fn draw_path(&self, i: usize, path: &SpannedString<Style>, printer: &Printer) {
-        printer.print_styled((0, i), path);
-    }
-}
-
-impl View for PathView {
-    fn draw(&self, printer: &Printer) {
-        self.draw_headers(printer);
-
-        for (i, path) in self.paths.iter().enumerate() {
-            self.draw_path(i + 1, path, printer);
-        }
-    }
-
-    fn layout(&mut self, _: Vec2) {
-        self.changed = false;
-    }
-
-    fn required_size(&mut self, _: XY<usize>) -> XY<usize> {
-        Vec2::new(68, self.paths.len() + 1)
     }
 
     fn needs_relayout(&self) -> bool {

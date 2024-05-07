@@ -5,7 +5,7 @@
 
 use crate::{
     theme,
-    views::{AdapterView, NumberEditView, PathView},
+    views::{AdapterView, NumberEditView},
 };
 use cursive::{
     align::HAlign,
@@ -22,7 +22,7 @@ use cursive::{
 };
 use std::{io, thread};
 use tbtools::{
-    debugfs::{Adapter, BitField, BitFields, Name, Register},
+    debugfs::{Adapter, BitField, BitFields, Name, Path, Register, Type},
     monitor,
     trace::{self, Entry},
     util, Device, Kind, Pdf, {self, ConfigSpace},
@@ -332,6 +332,191 @@ fn build_adapters(siv: &mut Cursive) {
     update_adapter_view(siv);
 }
 
+fn build_path_detail(label: &str, width: usize, value: &str) -> impl View {
+    let mut line = SpannedString::new();
+
+    line.append_styled(format!("{:<1$} ", label, width), theme::dialog_label());
+    line.append(value);
+
+    TextView::new(line)
+}
+
+macro_rules! add_field_if_exists {
+    ($l:ident, $r:ident, $n:literal) => {{
+        if let Some(field) = $r.field_by_name($n) {
+            let v = $r.field_value(field);
+            $l.add_child(build_path_detail(&format!("{}:", $n), 25, &v.to_string()));
+        }
+    }};
+    ($l:ident, $r:ident, $n:literal, $p:literal) => {{
+        if let Some(field) = $r.field_by_name($n) {
+            let v = $r.field_value(field);
+            $l.add_child(build_path_detail($p, 25, &v.to_string()));
+        }
+    }};
+}
+
+fn yesno(value: u32) -> &'static str {
+    if value > 0 {
+        "Yes"
+    } else {
+        "No"
+    }
+}
+
+macro_rules! add_flag_if_exists {
+    ($l:ident, $r:ident, $n:literal) => {{
+        if let Some(field) = $r.field_by_name($n) {
+            let v = yesno($r.field_value(field));
+            $l.add_child(build_path_detail(&format!("{}:", $n), 25, v));
+        }
+    }};
+    ($l:ident, $r:ident, $n:literal, $p:literal) => {{
+        if let Some(field) = $r.field_by_name($n) {
+            let v = yesno($r.field_value(field));
+            $l.add_child(build_path_detail($p, 25, v));
+        }
+    }};
+    ($l:ident, $r:ident, $w:expr, $n:literal, $p:literal) => {{
+        if let Some(field) = $r.field_by_name($n) {
+            let v = yesno($r.field_value(field));
+            $l.add_child(build_path_detail($p, $w, v));
+        }
+    }};
+}
+
+fn add_adapter_specific(layout: &mut LinearLayout, width: usize, adapter: &Adapter) {
+    match adapter.kind() {
+        Type::Usb3Up | Type::Usb3Down => {
+            if let Some(reg) = adapter.register_by_name("ADP_USB3_GX_CS_0") {
+                add_flag_if_exists!(layout, reg, width, "V", "Valid:");
+            }
+        }
+        Type::PcieUp | Type::PcieDown => {
+            if let Some(reg) = adapter.register_by_name("ADP_PCIE_CS_1") {
+                add_flag_if_exists!(layout, reg, width, "EE", "Extended Encapsulation:");
+            }
+        }
+        _ => (),
+    }
+}
+
+fn view_path(siv: &mut Cursive, path: &Path) {
+    let devices: &mut SelectView<Device> = &mut siv.find_name(DEVICES).unwrap();
+    let index = devices.selected_id();
+    if index.is_none() {
+        return;
+    }
+    let device = devices.get_item_mut(index.unwrap()).unwrap().1;
+
+    let mut content = LinearLayout::vertical();
+
+    if let Some(adapters) = device.adapters() {
+        let mut header = LinearLayout::horizontal();
+
+        let mut left = LinearLayout::vertical();
+        let in_hop = path.in_hop();
+        let in_adapter = &adapters[(path.in_adapter() - 1) as usize];
+        let s = format!("{} / {}", path.in_adapter(), in_adapter.kind());
+        left.add_child(build_path_detail("Adapter:", 25, &s));
+        left.add_child(build_path_detail("HopID:", 25, &in_hop.to_string()));
+
+        if let Some(reg) = in_adapter.register_by_name("ADP_CS_4") {
+            add_field_if_exists!(left, reg, "Total Buffers");
+            add_field_if_exists!(left, reg, "Non-Flow Controlled Buffers", "NFC Buffers:");
+        }
+
+        if let Some(reg) = in_adapter.register_by_name("ADP_CS_5") {
+            add_field_if_exists!(left, reg, "Link Credits Allocated");
+        }
+
+        add_adapter_specific(&mut left, 25, in_adapter);
+
+        let panel = Panel::new(left).title("In").title_position(HAlign::Left);
+        header.add_child(panel);
+
+        let mut right = LinearLayout::vertical();
+        let out_adapter = &adapters[(path.out_adapter() - 1) as usize];
+        let s = format!("{} / {}", path.out_adapter(), out_adapter.kind());
+        right.add_child(build_path_detail("Adapter:", 15, &s));
+        right.add_child(build_path_detail("HopID:", 15, &path.out_hop().to_string()));
+
+        let panel = Panel::new(right).title("Out").title_position(HAlign::Left);
+        header.add_child(panel);
+
+        content.add_child(header);
+
+        let mut details = LinearLayout::horizontal();
+        let mut left = LinearLayout::vertical();
+        let mut right = LinearLayout::vertical();
+
+        if let Some(reg) = in_adapter.path_register_by_offset(in_hop * 2) {
+            add_field_if_exists!(left, reg, "Path Credits Allocated");
+            add_flag_if_exists!(left, reg, "PM Packet Support");
+            add_flag_if_exists!(left, reg, "Valid");
+        }
+
+        if let Some(reg) = in_adapter.path_register_by_offset(in_hop * 2 + 1) {
+            add_field_if_exists!(left, reg, "Weight");
+            add_field_if_exists!(left, reg, "Priority");
+            add_flag_if_exists!(left, reg, "Pending Packets");
+            add_flag_if_exists!(left, reg, "Counter Enable");
+            add_field_if_exists!(left, reg, "Counter ID");
+            add_flag_if_exists!(right, reg, "IFC", "Ingress Flow Control:");
+            add_flag_if_exists!(right, reg, "ISE", "Ingress Shared Buffering:");
+            add_flag_if_exists!(right, reg, "EFC", "Egress Flow Control:");
+            add_flag_if_exists!(right, reg, "ESE", "Egress Shared Buffering:");
+        }
+
+        details.add_child(left);
+        details.add_child(DummyView);
+        details.add_child(right);
+
+        let panel = Panel::new(details)
+            .title("Details")
+            .title_position(HAlign::Left);
+        content.add_child(panel);
+    }
+
+    siv.add_layer(ThemedView::new(
+        theme::dialog(),
+        Layer::new(
+            OnEventView::new(
+                Dialog::around(content)
+                    .button("Close", |s| {
+                        s.pop_layer();
+                    })
+                    .title("Path")
+                    .title_position(HAlign::Left),
+            )
+            .on_event('q', |s| {
+                s.pop_layer();
+            })
+            .on_event(Key::Esc, |s| {
+                s.pop_layer();
+            }),
+        ),
+    ));
+}
+
+fn path_entry(path: &Path, types: &[String]) -> SpannedString<Style> {
+    let mut line = SpannedString::new();
+
+    let kind = &types[(path.in_adapter() - 1) as usize];
+    let s = format!("{} / {}", path.in_adapter(), kind);
+    line.append(format!("{:<20} ", s));
+    line.append(format!("{:<8}", path.in_hop()));
+
+    line.append("     ");
+
+    let kind = &types[(path.out_adapter() - 1) as usize];
+    let s = format!("{} / {}", path.out_adapter(), kind);
+    line.append(format!("{:<20} ", s));
+    line.append(format!("{:<8}", path.out_hop()));
+
+    line
+}
+
 fn update_path_view(siv: &mut Cursive) {
     let devices: &mut SelectView<Device> = &mut siv.find_name(DEVICES).unwrap();
 
@@ -339,7 +524,7 @@ fn update_path_view(siv: &mut Cursive) {
         let device = devices.get_item_mut(index).unwrap().1;
         let sink = siv.cb_sink().clone();
 
-        siv.call_on_name(VIEW_PATHS, |pv: &mut PathView| {
+        siv.call_on_name(VIEW_PATHS, |paths: &mut SelectView<Path>| {
             if let Err(err) = device.read_adapters() {
                 sink.send(Box::new(move |s: &mut Cursive| {
                     s.add_layer(ThemedView::new(
@@ -352,31 +537,38 @@ fn update_path_view(siv: &mut Cursive) {
                 }))
                 .unwrap();
             } else if let Some(adapters) = device.adapters_mut() {
-                pv.clear();
+                paths.clear();
 
-                let mut paths = Vec::new();
+                let types: Vec<String> = adapters.iter().map(|a| a.kind().to_string()).collect();
+
                 for adapter in adapters.iter_mut() {
                     if adapter.read_paths().is_err() {
                         continue;
                     }
 
                     if let Some(p) = adapter.paths() {
-                        p.iter().for_each(|p| paths.push(*p));
+                        p.iter().for_each(|p| {
+                            paths.add_item(path_entry(p, &types), *p);
+                        });
                     }
                 }
-
-                pv.add_paths(adapters, &paths);
             }
         });
     }
 }
 
 fn build_paths(siv: &mut Cursive) {
-    const COMMANDS: [Command; 3] = [
+    const COMMANDS: [Command; 4] = [
         Command {
             key: "q/ESC",
             desc: "Close",
             help: "Close the dialog",
+            menu: true,
+        },
+        Command {
+            key: "↵/ENTER",
+            desc: "View",
+            help: "View details of a selected path",
             menu: true,
         },
         Command {
@@ -397,12 +589,35 @@ fn build_paths(siv: &mut Cursive) {
         return;
     }
 
+    let mut header = SpannedString::new();
+    header.append_styled(
+        "In Adapter           In HopID  ⇨  Out Adapter          Out HopID",
+        theme::dialog_label(),
+    );
+    let headers = TextView::new(header);
+
+    let paths = OnEventView::new(
+        SelectView::<Path>::new()
+            .on_submit(view_path)
+            .with_name(VIEW_PATHS),
+    )
+    .on_pre_event_inner('k', |e, _| {
+        let cb = e.get_mut().select_up(1);
+        Some(EventResult::Consumed(Some(cb)))
+    })
+    .on_pre_event_inner('j', |o, _| {
+        let cb = o.get_mut().select_down(1);
+        Some(EventResult::Consumed(Some(cb)))
+    });
+
     siv.add_layer(ThemedView::new(
         theme::dialog(),
         Layer::new(
             OnEventView::new(
                 Dialog::around(
-                    ScrollView::new(PathView::new().with_name(VIEW_PATHS)).max_height(20),
+                    LinearLayout::vertical()
+                        .child(headers)
+                        .child(ScrollView::new(paths).max_height(20)),
                 )
                 .button("Close", |s| {
                     close_dialog(s, DIALOG_PATHS);
