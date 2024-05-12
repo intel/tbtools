@@ -90,13 +90,9 @@ $ cargo uninstall
 
 ## Buildroot
 
-For installing to [buildroot](https://github.com/andy-shev/buildroot)
-you need to specify `$BR_HOME` environment variable or use the default
-in `Makefile`. For installing you can then run
-```
-$ export BR_HOME=/path/to/buildroot
-$ make install
-```
+You can enable tbtools in [buildroot](https://github.com/andy-shev/buildroot)
+by setting `BR2_PACKAGE_TBTOOLS=y` (or select Target Packages -> Debugging,
+profiling and benchmark -> tbtools).
 
 ## Addressing
 
