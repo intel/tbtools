@@ -91,8 +91,8 @@ $ cargo uninstall
 ## Buildroot
 
 You can enable tbtools in [buildroot](https://github.com/andy-shev/buildroot)
-by setting `BR2_PACKAGE_TBTOOLS=y` (or select Target Packages -> Debugging,
-profiling and benchmark -> tbtools).
+by setting `BR2_PACKAGE_TBTOOLS=y` (or from nconfig select `Target Packages` →
+`Debugging, profiling and benchmark` → `tbtools`).
 
 ## Addressing
 
