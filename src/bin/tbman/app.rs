@@ -1929,10 +1929,6 @@ fn read_entries(siv: &mut Cursive) {
         for entry in trace_buf {
             entries.add_item(trace_entry(&entry), entry);
         }
-
-        // Force update of the details view.
-        let cb = entries.set_selection(0);
-        cb(siv);
     }
 }
 
