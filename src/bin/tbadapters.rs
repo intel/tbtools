@@ -8,8 +8,9 @@ use ansi_term::{
     Style,
 };
 use clap::Parser;
+use csv::Writer;
 use nix::unistd::Uid;
-use std::io::{self, ErrorKind, IsTerminal};
+use std::io::{self, ErrorKind, IsTerminal, Write};
 use std::process;
 
 use tbtools::{
@@ -36,9 +37,9 @@ struct Args {
     script: bool,
 }
 
-fn dump_adapter_num(adapter_num: u16, args: &Args) {
-    if args.script {
-        print!("{},", adapter_num);
+fn dump_adapter_num(adapter_num: u16, mut record: Option<&mut Vec<String>>) {
+    if let Some(ref mut record) = record {
+        record.push(adapter_num.to_string());
     } else if io::stdout().is_terminal() {
         print!("{}: ", White.bold().paint(format!("{:>2}", adapter_num)));
     } else {
@@ -46,7 +47,7 @@ fn dump_adapter_num(adapter_num: u16, args: &Args) {
     }
 }
 
-fn dump_adapter_type(adapter: &Adapter, args: &Args) {
+fn dump_adapter_type(adapter: &Adapter, mut record: Option<&mut Vec<String>>) {
     let mut kind: String = if adapter.is_lane0() {
         String::from("Lane 0")
     } else if adapter.is_lane1() {
@@ -59,8 +60,8 @@ fn dump_adapter_type(adapter: &Adapter, args: &Args) {
         kind.push_str(" (upstream)");
     }
 
-    if args.script {
-        print!("{},", kind);
+    if let Some(ref mut record) = record {
+        record.push(kind);
     } else {
         print!("{:<30}", kind);
     }
@@ -108,7 +109,7 @@ fn protocol_state(adapter: &Adapter) -> (&str, Style) {
     ("Enabled", Green.normal())
 }
 
-fn dump_adapter_state(adapter: &Adapter, args: &Args) {
+fn dump_adapter_state(adapter: &Adapter, mut record: Option<&mut Vec<String>>) {
     let (name, style) = match adapter.state() {
         State::Disabled => ("Disabled", Red.normal()),
         State::Enabled => protocol_state(adapter),
@@ -122,8 +123,8 @@ fn dump_adapter_state(adapter: &Adapter, args: &Args) {
         _ => ("Unknown", White.dimmed()),
     };
 
-    if args.script {
-        print!("{}", name);
+    if let Some(ref mut record) = record {
+        record.push(name.to_string());
     } else if io::stdout().is_terminal() {
         print!("{}", style.paint(format!("{:<10}", name)));
     } else {
@@ -131,49 +132,62 @@ fn dump_adapter_state(adapter: &Adapter, args: &Args) {
     }
 }
 
-fn dump_other(args: &Args) {
-    print!("Not implemented");
-
-    if args.script {
-        print!(",");
+fn dump_other(mut record: Option<&mut Vec<String>>) {
+    if let Some(ref mut record) = record {
+        record.push(String::from("Not implemented"));
+        record.push(String::new());
+    } else {
+        print!("Not implemented");
     }
 }
 
-fn dump_adapter(adapter: &Adapter, args: &Args) {
-    dump_adapter_num(adapter.adapter(), args);
+fn dump_adapter<W: Write>(adapter: &Adapter, mut writer: Option<&mut Writer<W>>) -> io::Result<()> {
+    let mut record: Option<Vec<String>> = if writer.is_some() {
+        Some(Vec::new())
+    } else {
+        None
+    };
+
+    dump_adapter_num(adapter.adapter(), record.as_mut());
 
     if adapter.is_lane() || adapter.is_protocol() {
-        dump_adapter_type(adapter, args);
-        dump_adapter_state(adapter, args);
+        dump_adapter_type(adapter, record.as_mut());
+        dump_adapter_state(adapter, record.as_mut());
     } else {
-        dump_other(args);
+        dump_other(record.as_mut());
     }
 
-    println!();
-}
-
-fn print_header(args: &Args) {
-    if args.script {
-        println!("adapter,type,state");
+    if let Some(ref mut writer) = writer {
+        writer.write_record(record.unwrap())?;
+    } else {
+        println!();
     }
+
+    Ok(())
 }
 
 fn dump_adapters(device: &mut Device, args: &Args) -> io::Result<()> {
+    let mut writer = if args.script {
+        let mut writer = Writer::from_writer(io::stdout());
+        writer.write_record(["adapter", "type", "state"])?;
+        Some(writer)
+    } else {
+        None
+    };
+
     device.read_adapters()?;
 
     if let Some(adapter_numbers) = &args.adapter {
-        print_header(args);
         for adapter_num in adapter_numbers {
             if let Some(adapter) = device.adapter(*adapter_num) {
-                dump_adapter(adapter, args);
+                dump_adapter(adapter, writer.as_mut())?;
             } else {
                 eprintln!("Warning: non-existing adapter: {}!", *adapter_num);
             }
         }
     } else if let Some(adapters) = device.adapters() {
-        print_header(args);
         for adapter in adapters {
-            dump_adapter(adapter, args);
+            dump_adapter(adapter, writer.as_mut())?;
         }
     }
 
