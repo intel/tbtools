@@ -3,12 +3,11 @@
 // Copyright (C) 2023, Intel Corporation
 // Author: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-use std::io::{self, IsTerminal};
-
 use ansi_term::Colour::{Cyan, Green, Yellow};
 use ansi_term::Style;
 use clap::Parser;
-
+use csv::Writer;
+use std::io::{self, IsTerminal};
 use tbtools::{self, Device, Kind, SecurityLevel};
 
 #[derive(Parser, Debug)]
@@ -124,9 +123,17 @@ fn color_bool(val: bool) -> String {
     .to_string()
 }
 
-fn print_domain(args: &Args, tb: &Device) {
-    if args.script {
-        println!("{},,,,,,,,{}", tb.domain_index(), kind(tb));
+fn print_domain(args: &Args, mut record: Option<&mut Vec<String>>, tb: &Device) {
+    if let Some(ref mut record) = record {
+        record.push(tb.domain_index().to_string());
+        record.push(String::new());
+        record.push(String::new());
+        record.push(String::new());
+        record.push(String::new());
+        record.push(String::new());
+        record.push(String::new());
+        record.push(String::new());
+        record.push(kind(tb));
     } else {
         let mut indent = String::from("");
 
@@ -164,23 +171,25 @@ fn print_domain(args: &Args, tb: &Device) {
     }
 }
 
-fn print_router(args: &Args, sw: &Device) {
-    if args.script {
-        print!(
-            "{},{:x},,,{:04x},{:04x}",
-            sw.domain_index(),
-            sw.route(),
-            sw.vendor(),
-            sw.device()
-        );
+fn print_router(args: &Args, mut record: Option<&mut Vec<String>>, sw: &Device) {
+    if let Some(ref mut record) = record {
+        record.push(sw.domain_index().to_string());
+        record.push(format!("{:x}", sw.route()));
+        record.push(String::new());
+        record.push(String::new());
+        record.push(format!("{:04x}", sw.vendor()));
+        record.push(format!("{:04x}", sw.device()));
         if let Some(vendor_name) = sw.vendor_name() {
-            print!(",{}", vendor_name);
+            record.push(vendor_name);
+        } else {
+            record.push(String::new());
         }
         if let Some(device_name) = sw.device_name() {
-            print!(",{}", device_name);
+            record.push(device_name);
+        } else {
+            record.push(String::new());
         }
-
-        println!(",{}", kind(sw));
+        record.push(kind(sw));
     } else {
         let indent = indent(args, sw);
 
@@ -258,18 +267,17 @@ fn print_router(args: &Args, sw: &Device) {
     }
 }
 
-fn print_retimer(args: &Args, rt: &Device) {
-    if args.script {
-        println!(
-            "{},{:x},{},{},{:04x},{:04x},,,{}",
-            rt.domain_index(),
-            rt.route(),
-            rt.adapter_num(),
-            rt.index(),
-            rt.vendor(),
-            rt.device(),
-            kind(rt),
-        );
+fn print_retimer(args: &Args, mut record: Option<&mut Vec<String>>, rt: &Device) {
+    if let Some(ref mut record) = record {
+        record.push(rt.domain_index().to_string());
+        record.push(format!("{:x}", rt.route()));
+        record.push(rt.adapter_num().to_string());
+        record.push(rt.index().to_string());
+        record.push(format!("{:04x}", rt.vendor()));
+        record.push(format!("{:04x}", rt.device()));
+        record.push(String::new());
+        record.push(String::new());
+        record.push(kind(rt));
     } else {
         let indent = indent(args, rt);
 
@@ -314,21 +322,45 @@ fn main() -> io::Result<()> {
         return Ok(());
     }
 
-    if args.script {
-        println!("domain,route,adapter,index,vendor,device,vendor_name,device_name,type");
-    }
+    let mut writer = if args.script {
+        let mut writer = Writer::from_writer(io::stdout());
+        writer.write_record([
+            "domain",
+            "route",
+            "adapter",
+            "index",
+            "vendor",
+            "device",
+            "vendor_name",
+            "device_name",
+            "type",
+        ])?;
+        Some(writer)
+    } else {
+        None
+    };
 
     for (i, device) in devices.iter().enumerate() {
+        let mut record: Option<Vec<String>> = if writer.is_some() {
+            Some(Vec::new())
+        } else {
+            None
+        };
+
         match device.kind() {
-            Kind::Domain => print_domain(&args, device),
-            Kind::Xdomain => print_router(&args, device),
-            Kind::Router => print_router(&args, device),
-            Kind::Retimer => print_retimer(&args, device),
+            Kind::Domain => print_domain(&args, record.as_mut(), device),
+            Kind::Xdomain => print_router(&args, record.as_mut(), device),
+            Kind::Router => print_router(&args, record.as_mut(), device),
+            Kind::Retimer => print_retimer(&args, record.as_mut(), device),
             _ => (),
         }
 
         if !args.script && args.verbose && i < devices.len() - 1 {
             println!();
+        }
+
+        if let Some(ref mut writer) = writer {
+            writer.write_record(record.unwrap())?;
         }
     }
 

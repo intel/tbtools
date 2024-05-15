@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 ansi_term = "0.12"
 clap = { version = "4.0", features = ["derive"] }
+csv = "1.3.0"
 cursive = { git = "https://github.com/gyscos/cursive", default-features = false, features = ["crossterm-backend"] }
 lazy_static = "1.4.0"
 nix = "0.26.2"
