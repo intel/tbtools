@@ -5,9 +5,14 @@
 
 //!Miscellaneous utility functions.
 
-use std::str::FromStr;
+use std::{
+    fs,
+    io::{self, Error, ErrorKind},
+    str::FromStr,
+};
 
 use lazy_static::lazy_static;
+use nix::sys::time::TimeVal;
 use num_traits::Num;
 use regex::Regex;
 use uuid;
@@ -135,4 +140,24 @@ pub fn bytes_to_ascii(bytes: &[u8]) -> String {
     });
 
     s
+}
+
+/// Returns system boot time in wall clock time.
+pub fn system_boot_time() -> io::Result<TimeVal> {
+    lazy_static! {
+        static ref RE: Regex = Regex::new(r"^btime\s+(\d+)$").unwrap();
+    }
+
+    let stat = fs::read_to_string("/proc/stat")?;
+    let btime: Vec<_> = stat.split('\n').filter(|s| RE.is_match(s)).collect();
+
+    if btime.len() == 1 {
+        if let Some(caps) = RE.captures(btime[0]) {
+            if let Some(seconds) = parse_number::<i64>(&caps[1]) {
+                return Ok(TimeVal::new(seconds, 0));
+            }
+        }
+    }
+
+    Err(Error::from(ErrorKind::Unsupported))
 }

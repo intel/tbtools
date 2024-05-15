@@ -5,9 +5,10 @@
 
 use ansi_term::Colour::{Cyan, Green, Purple, Red, White, Yellow};
 use clap::{self, Parser, Subcommand};
-use nix::unistd::Uid;
+use csv::Writer;
+use nix::{sys::time::TimeVal, unistd::Uid};
 use std::{
-    io::{self, IsTerminal},
+    io::{self, IsTerminal, Write},
     path::Path,
     process,
 };
@@ -41,6 +42,12 @@ enum Commands {
         /// Trace input file if not reading through tracefs
         #[arg(short, long)]
         input: Option<String>,
+        /// Output suitable for scripting
+        #[arg(short = 'S', long, group = "output")]
+        script: bool,
+        /// Timestamp as system wall clock time instead of seconds from boot
+        #[arg(short = 'T', long)]
+        time: bool,
         /// Verbose output
         #[arg(short, long, action = clap::ArgAction::Count)]
         verbose: u8,
@@ -119,35 +126,93 @@ fn color_tracing(enabled: bool) -> String {
     }
 }
 
-fn dump_header(entry: &trace::Entry, packet: &trace::ControlPacket, device: Option<&Device>) {
-    print!(
-        "[{:5}.{:06}] ",
-        entry.timestamp().tv_sec(),
-        entry.timestamp().tv_usec()
-    );
-    print!("{} ", color_function(entry.function()));
-    print!("{}", color_dropped(entry.dropped()));
-    print!("{} ", color_pdf(&entry.pdf()));
-    print!("Domain {} ", entry.domain_index());
-    print!("Route {:x} ", entry.route());
-
-    if let Some(adapter_num) = packet.adapter_num() {
-        print!("Adapter {} ", adapter_num);
-        if let Some(device) = device {
-            if let Some(adapter) = device.adapter(adapter_num) {
-                print!("/ {}", adapter.kind());
-            }
-        }
+fn timestamp(ts: &TimeVal, boot_time: Option<TimeVal>) -> TimeVal {
+    if let Some(boot_time) = boot_time {
+        boot_time + *ts
+    } else {
+        *ts
     }
 }
 
-fn dump_name(verbose: u8, name: &dyn Name) {
+fn dump_header(
+    entry: &trace::Entry,
+    packet: &trace::ControlPacket,
+    record: Option<&mut Vec<String>>,
+    device: Option<&Device>,
+    boot_time: Option<TimeVal>,
+) {
+    let ts = timestamp(entry.timestamp(), boot_time);
+
+    if let Some(record) = record {
+        record.push(format!(
+            "{}.{}",
+            entry.timestamp().tv_sec(),
+            entry.timestamp().tv_usec()
+        ));
+        if ts != *entry.timestamp() {
+            record.push(format!("{}.{}", ts.tv_sec(), ts.tv_usec()));
+        } else {
+            record.push(String::new());
+        }
+        record.push(entry.function().to_string());
+        record.push(entry.dropped().to_string());
+        record.push(entry.pdf().to_string());
+        if let Some(cs) = entry.cs() {
+            record.push(cs.to_string());
+        } else {
+            record.push(String::new());
+        }
+        record.push(format!("{}", entry.domain_index()));
+        record.push(format!("{:x}", entry.route()));
+        if let Some(adapter_num) = packet.adapter_num() {
+            record.push(adapter_num.to_string());
+            if let Some(device) = device {
+                if let Some(adapter) = device.adapter(adapter_num) {
+                    record.push(adapter.kind().to_string());
+                } else {
+                    record.push(String::new());
+                }
+            } else {
+                record.push(String::new());
+            }
+        } else {
+            record.push(String::new());
+            record.push(String::new());
+        }
+    } else {
+        print!("[{:5}.{:06}] ", ts.tv_sec(), ts.tv_usec());
+        print!("{} ", color_function(entry.function()));
+        print!("{}", color_dropped(entry.dropped()));
+        print!("{} ", color_pdf(&entry.pdf()));
+        print!("Domain {} ", entry.domain_index());
+        print!("Route {:x} ", entry.route());
+
+        if let Some(adapter_num) = packet.adapter_num() {
+            print!("Adapter {} ", adapter_num);
+            if let Some(device) = device {
+                if let Some(adapter) = device.adapter(adapter_num) {
+                    print!("/ {}", adapter.kind());
+                }
+            }
+        }
+
+        println!();
+    }
+}
+
+fn dump_name(verbose: u8, record: Option<&mut Vec<String>>, name: &dyn Name) {
     if verbose < 1 {
         println!();
         return;
     }
     if let Some(name) = name.name() {
-        println!("{}", name);
+        if let Some(record) = record {
+            record.push(name.to_string());
+        } else {
+            println!("{}", name);
+        }
+    } else if let Some(record) = record {
+        record.push(String::new());
     } else {
         println!();
     }
@@ -272,13 +337,13 @@ fn dump_packet(
                 data_address += 1;
 
                 if let Some(register) = extract_register_info(entry, device, data_address - 1, d) {
-                    dump_name(verbose, &register);
+                    dump_name(verbose, None, &register);
                     dump_fields(verbose, &register);
                     continue;
                 }
             }
 
-            dump_name(verbose, f);
+            dump_name(verbose, None, f);
             dump_fields(verbose, f);
         } else {
             println!();
@@ -286,7 +351,62 @@ fn dump_packet(
     }
 }
 
-fn dump(input: Option<String>, verbose: u8) -> io::Result<()> {
+fn dump_script_packet<W: Write>(
+    entry: &trace::Entry,
+    packet: &trace::ControlPacket,
+    header: &[String],
+    writer: &mut Writer<W>,
+    verbose: u8,
+    device: Option<&Device>,
+) -> io::Result<()> {
+    let mut data_address = packet.data_address().unwrap_or(0);
+    let data_start = packet.data_start().unwrap_or(0);
+
+    for (i, f) in packet
+        .fields()
+        .iter()
+        .enumerate()
+        .map(|(i, f)| (i as u16, f))
+    {
+        let mut record = header.to_owned();
+
+        record.push(format!("0x{:02x}", i));
+        if verbose > 1 {
+            if packet.data().is_some() && i >= data_start {
+                record.push(format!("0x{:04x}", data_address));
+            } else {
+                record.push(String::new());
+            }
+        } else {
+            record.push(String::new());
+        }
+        record.push(format!("0x{:08x}", f.value()));
+
+        if verbose > 0 {
+            if packet.data().is_some() && i >= data_start {
+                data_address += 1;
+
+                if let Some(register) =
+                    extract_register_info(entry, device, data_address - 1, f.value())
+                {
+                    dump_name(verbose, Some(&mut record), &register);
+                } else {
+                    dump_name(verbose, Some(&mut record), f);
+                }
+            } else {
+                dump_name(verbose, Some(&mut record), f);
+            }
+        } else {
+            record.push(String::new());
+        }
+
+        writer.write_record(record)?;
+    }
+
+    Ok(())
+}
+
+fn dump(input: Option<String>, script: bool, time: bool, verbose: u8) -> io::Result<()> {
     let mut devices: Vec<Device> = Vec::new();
     let trace_buf;
 
@@ -309,6 +429,39 @@ fn dump(input: Option<String>, verbose: u8) -> io::Result<()> {
         }
     };
 
+    let boot_time = if time {
+        Some(util::system_boot_time()?)
+    } else {
+        None
+    };
+
+    let mut writer = if script {
+        let mut writer = Writer::from_writer(io::stdout());
+        // Add header.
+        writer.write_record([
+            "entry",
+            "timestamp",
+            "datetime",
+            "function",
+            "dropped",
+            "pdf",
+            "cs",
+            "domain",
+            "route",
+            "adapter",
+            "adapter_type",
+            "offset",
+            "data_offset",
+            "value",
+            "name",
+        ])?;
+        Some(writer)
+    } else {
+        None
+    };
+
+    let mut line = 0;
+
     for entry in trace_buf {
         let mut device = devices
             .iter_mut()
@@ -329,9 +482,23 @@ fn dump(input: Option<String>, verbose: u8) -> io::Result<()> {
             if packet.is_xdomain() && entry.function() == "tb_event" {
                 continue;
             }
-            dump_header(&entry, &packet, device.as_deref());
-            println!();
-            dump_packet(&entry, &packet, verbose, device.as_deref());
+
+            if let Some(ref mut writer) = writer {
+                let mut header: Vec<String> = vec![line.to_string()];
+                // Header part is always the same.
+                dump_header(
+                    &entry,
+                    &packet,
+                    Some(&mut header),
+                    device.as_deref(),
+                    boot_time,
+                );
+                dump_script_packet(&entry, &packet, &header, writer, verbose, device.as_deref())?;
+                line += 1;
+            } else {
+                dump_header(&entry, &packet, None, device.as_deref(), boot_time);
+                dump_packet(&entry, &packet, verbose, device.as_deref());
+            }
         }
     }
 
@@ -383,7 +550,12 @@ fn main() -> io::Result<()> {
             println!("Thunderbolt/USB4 tracing: {}", color_tracing(false));
         }
 
-        Commands::Dump { input, verbose } => {
+        Commands::Dump {
+            input,
+            script,
+            time,
+            verbose,
+        } => {
             if input.is_none() {
                 check_access();
             }
@@ -399,7 +571,11 @@ fn main() -> io::Result<()> {
                 }
             }
 
-            dump(input, verbose)?;
+            if time && input.is_some() {
+                eprintln!("Note you should run on the same system you took the trace to get accurate times");
+            }
+
+            dump(input, script, time, verbose)?;
         }
 
         Commands::Clear => {
