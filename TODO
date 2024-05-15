@@ -1,6 +1,9 @@
  tbtools
  -------
  - support for vendor specific registers (e.g registers-intel.json)
+ - tbmand - a "web server" version of tbman (REST API or so). Allows
+            more complex graphics for device topology etc through HTML5
+	    but still should work on minimal userspace (for example buildroot)
 
  tbman
  -----
