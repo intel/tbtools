@@ -219,9 +219,9 @@ type OnEdit = dyn Fn(&mut Cursive, &str, usize) + Send + Sync;
 
 /// EditView but only supports numeric input.
 ///
-/// This is similar to Cursive [`EditView`] but instead of being generic this one only allows
-/// numeric input in either binary, decimal or hexadecimal format. All the editing is done in-place
-/// instead of having a separate submit mechanism.
+/// This is similar to Cursive [`EditView`](cursive::views::EditView) but instead of being generic this one
+/// only allows numeric input in either binary, decimal or hexadecimal format. All the editing is
+/// done in-place instead of having a separate submit mechanism.
 pub struct NumberEditView {
     content: Arc<String>,
     base: usize,
