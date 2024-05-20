@@ -1866,7 +1866,11 @@ fn view_packet(siv: &mut Cursive, entry: &Entry) {
                     LinearLayout::vertical()
                         .child(header)
                         .child(DummyView)
-                        .child(ScrollView::new(data).max_height(15)),
+                        .child(
+                            Panel::new(ScrollView::new(data).max_height(15))
+                                .title("Fields")
+                                .title_position(HAlign::Left),
+                        ),
                 )
                 .button("Close", |s| {
                     s.pop_layer();
