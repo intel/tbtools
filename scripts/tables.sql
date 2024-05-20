@@ -35,7 +35,7 @@ CREATE TABLE device (
 	device_name VARCHAR(256),
 	type VARCHAR(32) NOT NULL,
 
-	PRIMARY KEY (domain, route)
+	PRIMARY KEY (domain, route, type)
 );
 
 CREATE TABLE trace_entry (
