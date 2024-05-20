@@ -26,6 +26,8 @@ def process_devices(args):
         devices_writer = csv.DictWriter(output_file, fieldnames=field_names)
         devices_writer.writeheader()
         for row in reader:
+            if row['type'] == 'Domain':
+                continue
             util.convert_int(row, 'route')
             util.convert_int(row, 'vendor')
             util.convert_int(row, 'device')
