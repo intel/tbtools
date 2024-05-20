@@ -1951,20 +1951,22 @@ fn jump_trace(siv: &mut Cursive) {
             OnEventView::new(
                 Dialog::new()
                     .title("Jump to timestamp")
-                    .content(EditView::new().with_name("seconds").fixed_width(20))
+                    .content(EditView::new().with_name("timestamp").fixed_width(20))
                     .button("Jump", |s| {
-                        if let Some(seconds) = s
-                            .call_on_name("seconds", |ev: &mut EditView| {
-                                util::parse_number::<i64>(&ev.get_content())
-                            })
-                            .unwrap()
+                        if let Some(timestamp) =
+                            s.call_on_name("timestamp", |ev: &mut EditView| ev.get_content())
                         {
                             let entries: &mut SelectView<Entry> =
                                 &mut s.find_name(VIEW_ENTRIES).unwrap();
                             let mut index = None;
 
                             for (i, (_, entry)) in entries.iter().enumerate() {
-                                if entry.timestamp().tv_sec() == seconds {
+                                let s = format!(
+                                    "{}.{}",
+                                    entry.timestamp().tv_sec(),
+                                    entry.timestamp().tv_usec()
+                                );
+                                if s.starts_with(&*timestamp) {
                                     index = Some(i);
                                     break;
                                 }
