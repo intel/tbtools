@@ -44,7 +44,7 @@ CREATE TABLE trace_entry (
 	datetime TIMESTAMP,
 	function VARCHAR(16),
 	dropped BOOLEAN,
-	pdf VARCHAR(32),
+	pdf VARCHAR(64),
 	cs VARCHAR(32),
 	domain INTEGER,
 	route BIGINT,
