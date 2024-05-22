@@ -34,6 +34,7 @@ CREATE TABLE device (
 	vendor_name VARCHAR(256),
 	device_name VARCHAR(256),
 	type VARCHAR(32) NOT NULL,
+	generation VARCHAR(32),
 
 	PRIMARY KEY (domain, route, type)
 );

@@ -21,7 +21,8 @@ def process_devices(args):
             'device',
             'vendor_name',
             'device_name',
-            'type'
+            'type',
+            'generation',
         ]
         devices_writer = csv.DictWriter(output_file, fieldnames=field_names)
         devices_writer.writeheader()
