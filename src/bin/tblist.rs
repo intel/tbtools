@@ -134,6 +134,7 @@ fn print_domain(args: &Args, mut record: Option<&mut Vec<String>>, tb: &Device) 
         record.push(String::new());
         record.push(String::new());
         record.push(kind(tb));
+        record.push(String::new());
     } else {
         let mut indent = String::from("");
 
@@ -190,6 +191,15 @@ fn print_router(args: &Args, mut record: Option<&mut Vec<String>>, sw: &Device) 
             record.push(String::new());
         }
         record.push(kind(sw));
+        if args.verbose {
+            match sw.generation() {
+                Some(generation @ 1..=3) => record.push(format!("Thunderbolt {}", generation)),
+                Some(4) => record.push(String::from("USB4")),
+                _ => record.push(String::new()),
+            }
+        } else {
+            record.push(String::new());
+        }
     } else {
         let indent = indent(args, sw);
 
@@ -278,6 +288,7 @@ fn print_retimer(args: &Args, mut record: Option<&mut Vec<String>>, rt: &Device)
         record.push(String::new());
         record.push(String::new());
         record.push(kind(rt));
+        record.push(String::new());
     } else {
         let indent = indent(args, rt);
 
@@ -334,6 +345,7 @@ fn main() -> io::Result<()> {
             "vendor_name",
             "device_name",
             "type",
+            "generation",
         ])?;
         Some(writer)
     } else {
