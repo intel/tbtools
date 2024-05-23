@@ -259,7 +259,7 @@ fn print_router(args: &Args, mut record: Option<&mut Vec<String>>, sw: &Device) 
             }
 
             if let Some(generation) = sw.generation() {
-                print!("{}  generation: ", indent);
+                print!("{}  Generation: ", indent);
                 match generation {
                     1..=3 => println!("Thunderbolt {}", generation),
                     4 => println!("USB4"),
