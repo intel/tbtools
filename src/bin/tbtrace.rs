@@ -145,12 +145,12 @@ fn dump_header(
 
     if let Some(record) = record {
         record.push(format!(
-            "{}.{}",
+            "{}.{:06}",
             entry.timestamp().tv_sec(),
             entry.timestamp().tv_usec()
         ));
         if ts != *entry.timestamp() {
-            record.push(format!("{}.{}", ts.tv_sec(), ts.tv_usec()));
+            record.push(format!("{}.{:06}", ts.tv_sec(), ts.tv_usec()));
         } else {
             record.push(String::new());
         }
