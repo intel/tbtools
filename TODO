@@ -12,9 +12,3 @@
  - log viewer (for example show logs for this device)
  - lane margining
  - filtering to tracing
-
-tbtrace
--------
- - compliance - a command that looks for accesses outside of spec
-   specified register access. For example writing to HopIDs of protocol
-   adapters and lane 1 adapter access of USB4 v2 routers, and so on.
