@@ -13,6 +13,7 @@
 //! written to.
 
 use crate::{device::Device, genmask, usb4, util};
+use include_dir::{include_dir, Dir};
 use lazy_static::lazy_static;
 use nix::{errno::Errno, mount};
 use num_traits::Num;
@@ -26,12 +27,27 @@ use std::{
     path::PathBuf,
 };
 
+pub(crate) static DATA_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/src/data");
+
 lazy_static! {
-    // Pull in the register descriptions
+    // Pull in the register descriptions.
     static ref NAMES: Value = serde_json::from_str(
-        include_str!("data/registers.json")
+        DATA_DIR
+            .get_file("registers.json")
+            .unwrap()
+            .contents_utf8()
+            .unwrap()
     )
     .unwrap();
+
+    // Pull in optional vendor specific registers.
+    static ref VENDOR_REGS: Vec<Value> = DATA_DIR
+        .find("*-registers.json")
+        .unwrap()
+        .filter_map(|e| {
+            e.as_file().and_then(|f| serde_json::from_str(f.contents_utf8()?).ok())
+        })
+        .collect();
 }
 
 const DEBUGFS_ROOT: &str = "/sys/kernel/debug/thunderbolt";
@@ -212,6 +228,8 @@ struct Metadata {
     cap_id: Option<u16>,
     /// Maps to field `vs_cap_id` in `registers.json` or `None` if not present.
     vs_cap_id: Option<u16>,
+    /// Vendor IDs if this is vendor specific capability.
+    vendor_id: Option<Vec<u16>>,
     /// Adapter types that this metadate applies to or `None` if applies to all adapters.
     adapter_types: Option<Vec<Type>>,
     /// USB4 spec name for the register.
@@ -230,11 +248,30 @@ impl Metadata {
         true
     }
 
+    fn match_vendor(&self, vendor_id: u16) -> bool {
+        self.vendor_id
+            .as_ref()
+            .is_some_and(|v| v.iter().any(|v| *v == vendor_id))
+    }
+
     fn parse(value: &Value) -> Option<Self> {
         let name = String::from(value.get("name")?.as_str().unwrap());
 
         let cap_id = value.get("cap_id").map(|c| c.as_u64().unwrap() as u16);
         let vs_cap_id = value.get("vs_cap_id").map(|c| c.as_u64().unwrap() as u16);
+
+        let vendor_id = if vs_cap_id.is_some() {
+            value.get("vendor_id").map(|vendor_id| {
+                vendor_id
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|id| id.as_u64().unwrap() as u16)
+                    .collect()
+            })
+        } else {
+            None
+        };
 
         let adapter_types = if let Some(adapter_type) = value.get("adapter_type") {
             let mut adapter_types: Vec<Type> = Vec::new();
@@ -252,6 +289,7 @@ impl Metadata {
         Some(Self {
             cap_id,
             vs_cap_id,
+            vendor_id,
             adapter_types,
             name,
             fields,
@@ -292,6 +330,27 @@ impl Metadata {
 
     fn from_router_offset(offset: u16) -> Option<Vec<Self>> {
         Self::lookup_from_json(NAMES.get("router").unwrap(), offset, None)
+    }
+
+    fn from_router_vendor_offset(
+        vendor_id: u16,
+        cap_id: u16,
+        vs_cap_id: u16,
+        offset: u16,
+    ) -> Option<Vec<Self>> {
+        for v in VENDOR_REGS.iter() {
+            if let Some(metadata) = Self::lookup_from_json(v.get("router").unwrap(), offset, None) {
+                for md in &metadata {
+                    if md.match_vendor(vendor_id)
+                        && md.cap_id == Some(cap_id)
+                        && md.vs_cap_id == Some(vs_cap_id)
+                    {
+                        return Some(metadata);
+                    }
+                }
+            }
+        }
+        None
     }
 
     fn from_adapter_type_and_offset(
@@ -1284,6 +1343,24 @@ impl Device {
         false
     }
 
+    fn set_vendor_metadata(&mut self, vendor_id: u16, regs: &mut Vec<Register>) {
+        for reg in regs {
+            let cap_id = reg.cap_id();
+            let vs_cap_id = reg.vs_cap_id();
+            let offset = reg.relative_offset();
+
+            if cap_id != 5 {
+                continue;
+            }
+
+            if let Some(metadata) =
+                Metadata::from_router_vendor_offset(vendor_id, cap_id, vs_cap_id, offset)
+            {
+                reg.set_metadata(metadata);
+            }
+        }
+    }
+
     /// Read registers from hardware.
     pub fn read_registers(&mut self) -> Result<()> {
         let mut regs = read(&router_path_buf(self)?, None, None)?;
@@ -1293,6 +1370,13 @@ impl Device {
             if let Some(metadata) = Metadata::from_router_offset(reg.relative_offset) {
                 reg.set_metadata(metadata);
             }
+        }
+
+        let reg = &regs[0];
+
+        if reg.has_field("Vendor ID") {
+            let vendor_id = reg.field("Vendor ID") as u16;
+            self.set_vendor_metadata(vendor_id, &mut regs);
         }
 
         self.regs = Some(regs);

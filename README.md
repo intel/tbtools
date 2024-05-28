@@ -177,6 +177,26 @@ names, for example:
 
 The currently known registers can be seen in [registers.json](src/data/registers.json).
 
+## Vendor defined registers
+
+The USB4 specification supports VSC (Vendor Specific Capability) and
+VSEC (Vendor Specific Extended Capability) registers. Some of these have
+generic placeholder name in the spec and the tool but vendors can extend
+this if needed.
+
+The library supports optional `src/data/VENDOR-registers.json` that can
+be used to amend (if generic spec name exists) or add (if generic name
+does not exist) the register metadata. The format is exactly the same as
+in `registers.json` but there is an additional field `vendor_id` that is
+an array of decimal vendor IDs (this is matched with the
+`ROUTER_CS_0.Vendor ID` field), such as in below example:
+
+```
+  {"offset": 0, "vendor_id": [32902, 32903], "cap_id": 5, "vs_cap_id": 1, "name": "VENDOR_REG_0"},
+  {"offset": 1, "vendor_id": [32902, 32903], "cap_id": 5, "vs_cap_id": 1, "name": "VENDOR_REG_1"},
+  ...
+```
+
 ## Scripting
 
 Some of the tools, such as `tblist` and `tbadapters` accept `-S` option.

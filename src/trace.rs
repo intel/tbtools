@@ -47,7 +47,7 @@
 //! [tracepoints]: https://docs.kernel.org/trace/events.html
 
 use crate::{
-    debugfs::{BitField, BitFields, Name},
+    debugfs::{BitField, BitFields, Name, DATA_DIR},
     genmask, util, Address, ConfigSpace, Pdf,
 };
 use lazy_static::lazy_static;
@@ -263,7 +263,11 @@ fn parse_control_metadata(value: &Value) -> Option<HashMap<u32, Vec<Metadata>>> 
 lazy_static! {
     // Pull in the field descriptions.
     static ref CONTROL_FIELDS: Value = serde_json::from_str(
-        include_str!("data/control.json")
+        DATA_DIR
+            .get_file("control.json")
+            .unwrap()
+            .contents_utf8()
+            .unwrap()
     )
     .unwrap();
 
@@ -271,7 +275,11 @@ lazy_static! {
         parse_control_metadata(&CONTROL_FIELDS).unwrap();
 
     static ref XDOMAIN_FIELDS: Value = serde_json::from_str(
-        include_str!("data/xdomain.json")
+        DATA_DIR
+            .get_file("xdomain.json")
+            .unwrap()
+            .contents_utf8()
+            .unwrap()
     )
     .unwrap();
 
