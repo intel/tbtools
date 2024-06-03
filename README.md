@@ -213,6 +213,18 @@ domain,route,adapter,index,vendor,device,vendor_name,device_name,type
 The field ordering is guaranteed not to change but it is possible that
 more fields will be added in the future at the end.
 
+## Bash command line completion
+
+There is an experimental script that enables Bash command line
+completion for most tools. This will try to complete the device address
+(`domain`, `route`, and `adapter`) and also known register names.  At
+the moment it is not installed with the rest of the tools but if you
+want to try it out and report/fix bugs you can "enable it" by running
+following:
+```
+# source scripts/tbtools-completion.bash
+```
+
 ## Debug logs
 
 In addition to these the kernel driver logs useful information when
