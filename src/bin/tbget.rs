@@ -3,14 +3,17 @@
 // Copyright (C) 2023, Intel Corporation
 // Author: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-use std::io::{self, ErrorKind};
-use std::process;
+use std::{
+    collections::BTreeSet,
+    io::{self, ErrorKind},
+    process,
+};
 
 use clap::Parser;
 use nix::unistd::Uid;
 
 use tbtools::{
-    debugfs::{self, BitFields},
+    debugfs::{self, BitFields, Name, Register},
     util, Address, Device,
 };
 
@@ -39,6 +42,9 @@ struct Args {
     /// Output in decimal instead of hex
     #[arg(short = 'D', long, group = "output")]
     decimal: bool,
+    /// Query all register names starting with name
+    #[arg(short = 'Q', long, group = "output")]
+    query: bool,
     /// One or more registers to read in format offset or name[.field]
     regs: Vec<String>,
 }
@@ -50,6 +56,43 @@ fn dump_value(value: u32, args: &Args) {
         println!("{}", value);
     } else {
         println!("{:#x}", value);
+    }
+}
+
+fn query_register(registers: &[Register], args: &Args) {
+    let mut names = BTreeSet::new();
+
+    for reg in &args.regs {
+        let reg: Vec<_> = reg.split('.').collect();
+
+        registers.iter().for_each(|r| {
+            if let Some(name) = r.name() {
+                if reg.len() > 1 {
+                    if name.to_lowercase().contains(&reg[0].to_lowercase()) || reg[0].is_empty()
+                    {
+                        if let Some(fields) = r.fields() {
+                            fields.iter().for_each(|f| {
+                                if f.name().to_lowercase().contains(&reg[1].to_lowercase()) {
+                                    names.insert(format!("{}.{}", name, f.name()));
+                                }
+                            });
+                        }
+                    }
+                } else if name.to_lowercase().contains(&reg[0].to_lowercase()) {
+                    names.insert(name.to_string());
+                }
+            }
+        });
+    }
+
+    for name in &names {
+        println!("{}", name);
+    }
+}
+
+fn query_router(device: &Device, args: &Args) {
+    if let Some(registers) = device.registers() {
+        query_register(registers, args);
     }
 }
 
@@ -86,55 +129,72 @@ fn read_router(device: &mut Device, args: &Args) -> io::Result<()> {
     Ok(())
 }
 
+fn query_adapter(device: &mut Device, adapter: u16, args: &Args) -> io::Result<()> {
+    device.read_adapters()?;
+
+    if let Some(adapter) = device.adapter_mut(adapter) {
+        if let Some(registers) = if args.path {
+            adapter.read_paths()?;
+            adapter.path_registers()
+        } else if args.counters {
+            adapter.read_counters()?;
+            adapter.counter_registers()
+        } else {
+            adapter.registers()
+        } {
+            query_register(registers, args);
+        }
+    }
+
+    Ok(())
+}
+
 fn read_adapter(device: &mut Device, adapter: u16, args: &Args) -> io::Result<()> {
     device.read_adapters()?;
 
     if let Some(adapter) = device.adapter_mut(adapter) {
-        if args.counters {
-        } else {
-            if args.path {
-                adapter.read_paths()?;
-            } else if args.counters {
-                adapter.read_counters()?;
-            }
+        if args.path {
+            adapter.read_paths()?;
+        } else if args.counters {
+            adapter.read_counters()?;
+        }
 
-            for reg in &args.regs {
-                match util::parse_hex::<u16>(reg) {
-                    Some(offset) => {
-                        let reg = if args.path {
-                            adapter.path_register_by_offset_mut(offset)
-                        } else if args.counters {
-                            adapter.counter_register_by_offset_mut(offset)
-                        } else {
-                            adapter.register_by_offset_mut(offset)
-                        };
+        for reg in &args.regs {
+            match util::parse_hex::<u16>(reg) {
+                Some(offset) => {
+                    let reg = if args.path {
+                        adapter.path_register_by_offset_mut(offset)
+                    } else if args.counters {
+                        adapter.counter_register_by_offset_mut(offset)
+                    } else {
+                        adapter.register_by_offset_mut(offset)
+                    };
 
-                        if let Some(reg) = reg {
-                            dump_value(reg.value(), args);
-                        } else {
-                            eprintln!("Warning: invalid offset {}!", offset);
-                        }
+                    if let Some(reg) = reg {
+                        dump_value(reg.value(), args);
+                    } else {
+                        eprintln!("Warning: invalid offset {}!", offset);
                     }
+                }
 
-                    None => {
-                        if args.path || args.counters {
-                            eprintln!("Warning: path and counters registers do not have names!");
-                        } else {
-                            let name: Vec<_> = reg.split('.').collect();
+                None => {
+                    if args.path || args.counters {
+                        eprintln!("Warning: path and counters registers do not have names!");
+                    } else {
+                        let name: Vec<_> = reg.split('.').collect();
 
-                            if let Some(reg) = adapter.register_by_name_mut(name[0]) {
-                                if name.len() > 1 {
-                                    if reg.has_field(name[1]) {
-                                        dump_value(reg.field(name[1]), args);
-                                    } else {
-                                        eprintln!("Warning: field name {} not found!", &name[1]);
-                                    }
+                        if let Some(reg) = adapter.register_by_name_mut(name[0]) {
+                            if name.len() > 1 {
+                                if reg.has_field(name[1]) {
+                                    dump_value(reg.field(name[1]), args);
                                 } else {
-                                    dump_value(reg.value(), args);
+                                    eprintln!("Warning: field name {} not found!", &name[1]);
                                 }
                             } else {
-                                eprintln!("Warning: register name {} not found!", &name[0]);
+                                dump_value(reg.value(), args);
                             }
+                        } else {
+                            eprintln!("Warning: register name {} not found!", &name[0]);
                         }
                     }
                 }
@@ -165,7 +225,13 @@ fn read(args: &Args) -> io::Result<()> {
         device.read_registers()?;
 
         if let Some(adapter) = args.adapter {
-            read_adapter(&mut device, adapter, args)?
+            if args.query {
+                query_adapter(&mut device, adapter, args)?;
+            } else {
+                read_adapter(&mut device, adapter, args)?
+            }
+        } else if args.query {
+            query_router(&device, args);
         } else {
             read_router(&mut device, args)?;
         }
