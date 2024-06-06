@@ -114,7 +114,9 @@ EOF
 
 printf "[Thunderbolt/USB4 Info]:\n"
 router=0
-num_domains=$(tblist -SA | grep  Domain | wc -l)
+num_domains=$(tblist -SA 2> /dev/null |
+	sed 1d |
+	awk -F, '$9 ~ /^Domain$/ { num +=1 } END { print num }')
 for domain in $(seq 0 $((num_domains-1))); do
 	printf "TBHost$domain:\n"
 	while read -r adapter; do
