@@ -27,7 +27,7 @@ _tbtools_complete_domains()
 
 	domains=$(tblist -SA 2> /dev/null |
 		sed 1d |
-		awk -F, '$9 ~ /Domain/ { print $1 }' |
+		awk -F, '$9 ~ /^Domain$/ { print $1 }' |
 		xargs)
 	COMPREPLY+=($(compgen -W "$domains" -- "$cur"))
 }
@@ -40,7 +40,7 @@ _tbtools_complete_routers()
 	domain=${1:-0}
 	routers=$(tblist -SA 2> /dev/null |
 		sed -e 1d -e 's/"\([^",]\+\),*\([^"]*\)"/\1\2/' |
-		awk -F, -v domain=$domain '$1 ~ domain && $9 ~ /Router/ { print $2 }' |
+		awk -F, -v domain=$domain '$1 ~ domain && $9 ~ /^Router$/ { print $2 }' |
 		xargs)
 	COMPREPLY+=($(compgen -W "$routers" -- "$cur"))
 }
