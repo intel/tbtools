@@ -87,16 +87,21 @@ _tbtools_complete_registers()
 	domain=${domain:-0}
 	[[ ! $route ]] && return
 
+	# Get rid of escaped spaces
+	reg="${cur//\\ / }"
+
 	if [[ $adapter ]]; then
-		registers=$(tbget -d $domain -r $route -a $adapter -Q "$cur" 2> /dev/null |
-			sed 's/\s\+/\\\\ /g')
+		registers=$(tbget -d $domain -r $route -a $adapter -Q "$reg" 2> /dev/null)
 	else
-		registers=$(tbget -d $domain -r $route -Q "$cur" 2> /dev/null |
-			sed 's/\s\+/\\\\ /g')
+		registers=$(tbget -d $domain -r $route -Q "$cur" 2> /dev/null)
 	fi
 
+	# Escape spaces with backslash
+	registers="${registers// /\\\\ }"
+	reg="${cur// /\\\\ }"
+
 	local IFS=$'\n'
-	COMPREPLY+=($(compgen -W "$registers" -- "$cur"))
+	COMPREPLY+=($(compgen -W "$registers" -- "$reg"))
 }
 
 _tbtools_complete()
@@ -149,7 +154,7 @@ _tbtools_complete()
 		tbget | tbset)
 			case ${cur} in
 				# Accepts fields too with '.'
-				[A-Za-z]*([A-Za-z0-9_.]))
+				[A-Za-z]*([A-Za-z0-9_. \\]))
 					_tbtools_complete_registers
 					return
 					;;
