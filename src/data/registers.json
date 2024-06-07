@@ -1,12 +1,5 @@
 {
   "path": [
-    {"offset": 0, "adapter_type": ["HostInterface"], "name": "PATH_CS_0", "bitfields": [
-      {"start_bit": 17, "end_bit": 23, "name": "Path Credits Allocated"}
-    ]},
-    {"offset": 1, "adapter_type": ["HostInterface"], "name": "PATH_CS_1", "bitfields": [
-      {"start_bit": 12, "end_bit": 22, "name": "Counter ID"},
-      {"start_bit": 23, "end_bit": 23, "name": "Counter Enable", "shot_name": "CE"}
-    ]},
     {"offset": 0, "adapter_type": ["Lane"], "name": "PATH_CS_0", "bitfields": [
       {"start_bit": 0, "end_bit": 6, "name": "Output HopID"},
       {"start_bit": 11, "end_bit": 16, "name": "Output Adapter"},
@@ -25,13 +18,13 @@
       {"start_bit": 27, "end_bit": 27, "name": "Egress Shared Buffering Enable Flag", "short_name": "ESE"},
       {"start_bit": 28, "end_bit": 28, "name": "Pending Packets", "short_name": "PP"}
     ]},
-    {"offset": 0, "adapter_type": ["USB 3 Down", "USB 3 Up", "PCIe Down", "PCIe Up", "DisplayPort IN", "DisplayPort OUT"], "name": "PATH_CS_0", "bitfields": [
+    {"offset": 0, "adapter_type": ["Host Interface", "USB 3 Down", "USB 3 Up", "PCIe Down", "PCIe Up", "DisplayPort IN", "DisplayPort OUT"], "name": "PATH_CS_0", "bitfields": [
       {"start_bit": 0, "end_bit": 6, "name": "Output HopID"},
       {"start_bit": 11, "end_bit": 16, "name": "Output Adapter"},
       {"start_bit": 17, "end_bit": 23, "name": "Path Credits Allocated"},
       {"start_bit": 31, "end_bit": 31, "name": "Valid"}
     ]},
-    {"offset": 1, "adapter_type": ["USB 3 Down", "USB 3 Up", "PCIe Down", "PCIe Up", "DisplayPort IN", "DisplayPort OUT"], "name": "PATH_CS_1", "bitfields": [
+    {"offset": 1, "adapter_type": ["Host Interface", "USB 3 Down", "USB 3 Up", "PCIe Down", "PCIe Up", "DisplayPort IN", "DisplayPort OUT"], "name": "PATH_CS_1", "bitfields": [
       {"start_bit": 0, "end_bit": 3, "name": "Weight"},
       {"start_bit": 8, "end_bit": 10, "name": "Priority"},
       {"start_bit": 12, "end_bit": 22, "name": "Counter ID"},
