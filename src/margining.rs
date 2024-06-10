@@ -176,7 +176,8 @@ impl Caps {
 
     /// Independent voltage margins supported.
     pub fn independent_voltage_margins(&self) -> bool {
-        (self.0 & usb4::MARGIN_CAP_0_VOLTAGE_INDP_MASK) >> usb4::MARGIN_CAP_0_VOLTAGE_INDP_SHIFT > 0
+        (self.0 & usb4::MARGIN_CAP_0_VOLTAGE_INDP_MASK) >> usb4::MARGIN_CAP_0_VOLTAGE_INDP_SHIFT
+            == usb4::MARGIN_CAP_0_VOLTAGE_HL
     }
 
     /// Independent time margins supported (only if [`time()`](`Self::time()`) returns `true`).
@@ -184,7 +185,7 @@ impl Caps {
         if self.time() {
             return (self.1 & usb4::MARGIN_CAP_1_TIME_INDP_MASK)
                 >> usb4::MARGIN_CAP_1_TIME_INDP_SHIFT
-                > 0;
+                == usb4::MARGIN_CAP_1_TIME_LR;
         }
         false
     }
