@@ -1,215 +1,406 @@
-# Bash completions for tbtools.
-
-# Enable debugging by uncommenting the below
-#set -x
-
-shopt -s extglob
+#                                                          -*- shell-script -*-
+# Bash completion for tbtools.
+#
+# Depends on bash-completion scripts typically installed with
+# "bash-completion" package:
+#
+# https://github.com/scop/bash-completion/
+#
+# The way to install this is to copy it to /usr/share/bash-completion/completions/
+# and then create symlinks for all the tools you are interested in:
+#
+# cd /usr/share/bash-completion/completions/
+# ln -s tbtools-completion.bash tbadapters
+# ln -s tbtools-completion.bash tbauth
+# ln -s tbtools-completion.bash tbdump
+# ln -s tbtools-completion.bash tbget
+# ln -s tbtools-completion.bash tbmargin
+# ln -s tbtools-completion.bash tbpd
+# ln -s tbtools-completion.bash tbset
+# ln -s tbtools-completion.bash tbtrace
+#
 
 _tbtools_domain_route_adapter()
 {
-	local arg
+    local arg
 
-	for ((i=1; i < ${COMP_CWORD} - 1; i=i+1)); do
-		arg="${COMP_WORDS[i]}"
-		if [[ $arg = "-d" ]]; then
-			domain=${COMP_WORDS[i + 1]}
-		elif [[ $arg = "-r" ]]; then
-			route=${COMP_WORDS[i + 1]}
-		elif [[ $arg = "-a" ]]; then
-			adapter=${COMP_WORDS[i + 1]}
-		fi
-	done
+    domain=
+    route=
+    adapter=
+    path=
+    counters=
+    for ((i=1; i < ${COMP_CWORD}; i=i+1)); do
+        arg="${COMP_WORDS[i]}"
+        if [[ $arg == '-d' || $arg == '--domain' ]]; then
+            domain=${COMP_WORDS[i + 1]}
+        elif [[ $arg == '-r' || $arg == '--route' ]]; then
+            route=${COMP_WORDS[i + 1]}
+        elif [[ $arg == '-a' || $arg == '--adapter' ]]; then
+            adapter=${COMP_WORDS[i + 1]}
+        elif [[ $arg == '-p' || $arg == '--path' ]]; then
+            path=1
+        elif [[ $arg == '-c' || $arg == '--counters' ]]; then
+            counters=1
+        fi
+    done
 }
 
 _tbtools_complete_domains()
 {
-	local domains
+    local domains
 
-	domains=$(tblist -SA 2> /dev/null |
-		sed 1d |
-		awk -F, '$9 ~ /^Domain$/ { print $1 }' |
-		xargs)
-	COMPREPLY+=($(compgen -W "$domains" -- "$cur"))
+    domains=$(tblist -SA 2> /dev/null |
+        sed 1d |
+        awk -F, '$9 ~ /^Domain$/ { print $1 }' |
+        xargs)
+    COMPREPLY+=($(compgen -W "$domains" -- "$cur"))
 }
 
 # 1: domain (or default 0 is used)
 _tbtools_complete_routers()
 {
-	local domain routers
+    local domain routers
 
-	domain=${1:-0}
-	routers=$(tblist -SA 2> /dev/null |
-		sed -e 1d -e 's/"\([^",]\+\),*\([^"]*\)"/\1\2/' |
-		awk -F, -v domain=$domain '$1 ~ domain && $9 ~ /^Router$/ { print $2 }' |
-		xargs)
-	COMPREPLY+=($(compgen -W "$routers" -- "$cur"))
+    domain=${1:-0}
+    routers=$(tblist -SA 2> /dev/null |
+        sed -e 1d -e 's/"\([^",]\+\),*\([^"]*\)"/\1\2/' |
+        awk -F, -v domain=$domain '$1 ~ domain && $9 ~ /^Router$/ { print $2 }' |
+        xargs)
+    COMPREPLY+=($(compgen -W "$routers" -- "$cur"))
 }
 
 # 1: route
 # 2: domain (or default 0 is used)
 _tbtools_complete_all_adapters()
 {
-	local route domain adapters
+    local route domain adapters
 
-	[[ ! $1 ]] && return
-	route=$1
+    [[ ! $1 ]] && return
+    route=$1
 
-	domain=${2:-0}
-	adapters=$(tbadapters -d $domain -r $route -S 2> /dev/null |
-		sed 1d |
-		cut -d, -f1 |
-		xargs)
-	COMPREPLY+=($(compgen -W "$adapters" -- "$cur"))
+    domain=${2:-0}
+    adapters=$(tbadapters -d $domain -r $route -S 2> /dev/null |
+        sed 1d |
+        cut -d, -f1 |
+        xargs)
+    COMPREPLY+=($(compgen -W "$adapters" -- "$cur"))
 }
 
 # 1: route
 # 2: domain (or default 0 is used)
 _tbtools_complete_lane_adapters()
 {
-	local route domain adapters
+    local route domain adapters
 
-	[[ ! $1 ]] && return
-	route=$1
+    [[ ! $1 ]] && return
+    route=$1
 
-	domain=${2:-0}
-	adapters=$(tbadapters -d $domain -r $route -S 2> /dev/null |
-		sed 1d |
-		awk -F, '$2 ~ /Lane/ { print $1 }' |
-		xargs)
-	COMPREPLY+=($(compgen -W "$adapters" -- "$cur"))
+    domain=${2:-0}
+    adapters=$(tbadapters -d $domain -r $route -S 2> /dev/null |
+        sed 1d |
+        awk -F, '$2 ~ /Lane/ { print $1 }' |
+        xargs)
+    COMPREPLY+=($(compgen -W "$adapters" -- "$cur"))
 }
 
 _tbtools_complete_registers()
 {
-	local registers
+    local registers
 
-	_tbtools_domain_route_adapter
-	domain=${domain:-0}
-	[[ ! $route ]] && return
+    _tbtools_domain_route_adapter
+    domain=${domain:-0}
+    [[ ! $route ]] && return
 
-	# Get rid of escaped spaces
-	reg="${cur//\\ / }"
+    # Get rid of escaped spaces
+    reg="${cur//\\ / }"
 
-	if [[ $adapter ]]; then
-		registers=$(tbget -d $domain -r $route -a $adapter -Q "$reg" 2> /dev/null)
-	else
-		registers=$(tbget -d $domain -r $route -Q "$cur" 2> /dev/null)
-	fi
+    if [[ $adapter ]]; then
+        # No completion for path or counter registers
+        if [[ $path || $counters ]]; then
+            return
+        else
+            registers=$(tbget -d $domain -r $route -a $adapter -Q "$reg" 2> /dev/null)
+        fi
+    else
+        registers=$(tbget -d $domain -r $route -Q "$cur" 2> /dev/null)
+    fi
 
-	# Escape spaces with backslash
-	registers="${registers// /\\\\ }"
-	reg="${cur// /\\\\ }"
+    # Escape spaces with backslash
+    registers="${registers// /\\\\ }"
+    reg="${cur// /\\\\ }"
 
-	local IFS=$'\n'
-	COMPREPLY+=($(compgen -W "$registers" -- "$reg"))
+    local IFS=$'\n'
+    COMPREPLY+=($(compgen -W "$registers" -- "$reg"))
 }
 
-_tbtools_complete()
+_tbadapters()
 {
-	local cmd cur prev domain route adapter
+    local cur prev words cword domain route
+    _init_completion || return
 
-	cmd="${COMP_WORDS[0]}"
-	cur="${COMP_WORDS[COMP_CWORD]}"
-	prev="${COMP_WORDS[COMP_CWORD-1]}"
-	COMPREPLY=()
+    if [[ $cur == -* ]]; then
+        COMPREPLY+=($(compgen -W '--domain --route --adapter --script --help
+            --version' -- "$cur"))
+    else
+        case $prev in
+            --domain | -d)
+                _tbtools_complete_domains
+                return
+                ;;
+            --route | -r)
+                _tbtools_domain_route_adapter
+                _tbtools_complete_routers $domain
+                return
+                ;;
+            --adapter | -a)
+                _tbtools_domain_route_adapter
+                _tbtools_complete_all_adapters $route $domain
+                return
+                ;;
+        esac
+    fi
+} &&
+    complete -F _tbadapters tbadapters
 
-	case ${prev} in
-		-d | --domain)
-			_tbtools_complete_domains
-			return
-			;;
-		-r | --route)
-			_tbtools_domain_route_adapter
-			_tbtools_complete_routers $domain
-			return
-			;;
-		-a | --adapter)
-			_tbtools_domain_route_adapter
-			if [[ $cmd == "tbmargin" ]] || [[ $cmd == "tbpd" ]]; then
-				_tbtools_complete_lane_adapters $route $domain
-			else
-				_tbtools_complete_all_adapters $route $domain
-			fi
-			return
-			;;
-		-m | --mode)
-			if [[ $cmd == "tbpd" ]]; then
-				COMPREPLY+=($(compgen -W "safe usb usb4 display-port thunderbolt" -- "$cur"))
-			fi
-			return
-			;;
-	esac
-
-	# Only following commands support register completion
-	case ${cmd} in
-		tbdump)
-			case ${cur} in
-				[A-Za-z]*([A-Za-z0-9_]))
-					_tbtools_complete_registers
-					return
-					;;
-			esac
-			;;
-
-		tbget | tbset)
-			case ${cur} in
-				# Accepts fields too with '.'
-				[A-Za-z]*([A-Za-z0-9_. \\]))
-					_tbtools_complete_registers
-					return
-					;;
-			esac
-			;;
-
-		*)
-			;;
-	esac
-}
-
-complete -F _tbtools_complete tbauth
-complete -F _tbtools_complete tbadapters
-complete -F _tbtools_complete tbget
-complete -F _tbtools_complete tbset
-complete -F _tbtools_complete tbdump
-complete -F _tbtools_complete tbpd
-complete -F _tbtools_complete tbmargin
-
-_tbtrace_complete()
+_tbauth()
 {
-	local cmd cur prev
+    local cur prev words cword domain
+    _init_completion || return
 
-	cmd="${COMP_WORDS[0]}"
-	cur="${COMP_WORDS[COMP_CWORD]}"
-	prev="${COMP_WORDS[COMP_CWORD-1]}"
-	COMPREPLY=()
+    if [[ $cur == -* ]]; then
+        COMPREPLY+=($(compgen -W '--add-key-path --challenge-key-path --help
+            --deauthorize --domain --route --version' -- "$cur"))
+    else
+        case $prev in
+            --add-key-path | --challenge-key-path | -[AC])
+                _filedir
+                return
+                ;;
+            --domain | -d)
+                _tbtools_complete_domains
+                return
+                ;;
+            --route | -r)
+                _tbtools_domain_route_adapter
+                _tbtools_complete_routers $domain
+                return
+                ;;
+        esac
+    fi
+} &&
+    complete -F _tbauth tbauth
 
-	case ${prev} in
-		-d | --domain)
-			if [[ ${COMP_WORDS[1]} == "enable" ]]; then
-				_tbtools_complete_domains
-			fi
-			return
-			;;
-		-i | --input)
-			if [[ ${COMP_WORDS[1]} == "dump" ]]; then
-				COMPREPLY+=($(compgen -f -- "$cur"))
-			fi
-			return
-			;;
-		-*)
-			return
-			;;
-		enable)
-			return
-			;;
-		status | disable | dump | clear | help)
-			return
-			;;
-		*)
-			COMPREPLY+=($(compgen -W "status enable disable dump clear help" -- "$cur"))
-			return
-			;;
-	esac
-}
+_tbdump()
+{
+    local cur prev words cword domain route path counters
+    _init_completion || return
 
-complete -F _tbtrace_complete tbtrace
+    if [[ $cur == -* ]]; then
+        COMPREPLY+=($(compgen -W '--domain --route --adapter --path --counters
+            --verbose --cap-id --vs-cap-id --nregs --help' -- "$cur"))
+    else
+        case $prev in
+            --domain | -d)
+                _tbtools_complete_domains
+                return
+                ;;
+            --route | -r)
+                _tbtools_domain_route_adapter
+                _tbtools_complete_routers $domain
+                return
+                ;;
+            --adapter | -a)
+                _tbtools_domain_route_adapter
+                _tbtools_complete_all_adapters $route $domain
+                return
+                ;;
+            --cap-id | --vs-cap-id | --nregs | -[CVN])
+                return
+                ;;
+        esac
+        if [[ $cur != -* ]]; then
+            _tbtools_complete_registers
+        fi
+    fi
+} &&
+    complete -F _tbdump tbdump
+
+_tbget()
+{
+    local cur prev words cword domain route
+    _init_completion || return
+
+    if [[ $cur == -* ]]; then
+        COMPREPLY+=($(compgen -W '--domain --route --adapter --path --counters
+            --binary --decimal --query --help --version' -- "$cur"))
+    else
+        case $prev in
+            --domain | -d)
+                _tbtools_complete_domains
+                return
+                ;;
+            --route | -r)
+                _tbtools_domain_route_adapter
+                _tbtools_complete_routers $domain
+                return
+                ;;
+            --adapter | -a)
+                _tbtools_domain_route_adapter
+                _tbtools_complete_all_adapters $route $domain
+                return
+                ;;
+        esac
+        if [[ $cur != -* ]]; then
+            _tbtools_complete_registers
+        fi
+    fi
+} &&
+    complete -F _tbget tbget
+
+_tbmargin()
+{
+    local cur prev words cword domain route
+    _init_completion || return
+
+    if [[ $cur == -* ]]; then
+        COMPREPLY+=($(compgen -W '--domain --route --adapter --index --caps
+            --help --version' -- "$cur"))
+    else
+        case $prev in
+            --domain | -d)
+                _tbtools_complete_domains
+                return
+                ;;
+            --route | -r)
+                _tbtools_domain_route_adapter
+                _tbtools_complete_routers $domain
+                return
+                ;;
+            --adapter | -a)
+                _tbtools_domain_route_adapter
+                _tbtools_complete_lane_adapters $route $domain
+                return
+                ;;
+        esac
+    fi
+} &&
+    complete -F _tbmargin tbmargin
+
+_tbpd()
+{
+    local cur prev words cword domain route
+    _init_completion || return
+
+    if [[ $cur == -* ]]; then
+        COMPREPLY+=($(compgen -W '--domain --route --adapter --mode --help
+            --version' -- "$cur"))
+    else
+        case $prev in
+            --domain | -d)
+                _tbtools_complete_domains
+                return
+                ;;
+            --route | -r)
+                _tbtools_domain_route_adapter
+                _tbtools_complete_routers $domain
+                return
+                ;;
+            --adapter | -a)
+                _tbtools_domain_route_adapter
+                _tbtools_complete_lane_adapters $route $domain
+                return
+                ;;
+            --mode | -m)
+                COMPREPLY+=($(compgen -W "safe usb usb4 display-port thunderbolt" -- "$cur"))
+                return
+                ;;
+        esac
+    fi
+} &&
+    complete -F _tbpd tbpd
+
+_tbset()
+{
+    local cur prev words cword domain route adapter
+    _init_completion || return
+
+    if [[ $cur == -* ]]; then
+        COMPREPLY+=($(compgen -W '--domain --route --adapter --path --counters
+            --help --version' -- "$cur"))
+    else
+        case $prev in
+            --domain | -d)
+                _tbtools_complete_domains
+                return
+                ;;
+            --route | -r)
+                _tbtools_domain_route_adapter
+                _tbtools_complete_routers $domain
+                return
+                ;;
+            --adapter | -a)
+                _tbtools_domain_route_adapter
+                _tbtools_complete_all_adapters $route $domain
+                return
+                ;;
+        esac
+        if [[ $cur != -* ]]; then
+            _tbtools_complete_registers
+        fi
+    fi
+} &&
+    complete -F _tbset tbset
+
+_tbtrace()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    local arg
+    _get_first_arg
+
+    if [[ -z $arg ]]; then
+        if [[ $cur == -* ]]; then
+            COMPREPLY+=($(compgen -W '--help --version' -- "$cur"))
+        else
+            COMPREPLY+=($(compgen -W 'status enable disable dump clear help' -- "$cur"))
+        fi
+    else
+        case $arg in
+            dump)
+                if [[ $cur == -* ]]; then
+                    COMPREPLY=($(compgen -W '--help --input --script --time
+                        --verbose' -- "$cur"))
+                else
+                    case $prev in
+                        --input | -i)
+                            _filedir
+                            ;;
+                    esac
+                fi
+                return
+                ;;
+            enable)
+                if [[ $cur == -* ]]; then
+                    COMPREPLY=($(compgen -W '--help --domain' -- "$cur"))
+                else
+                    case $prev in
+                        --domain | -d)
+                            _tbtools_complete_domains
+                            ;;
+                    esac
+                fi
+                return
+                ;;
+            *)
+                if [[ $cur == -* ]]; then
+                    COMPREPLY=($(compgen -W '--help' -- "$cur"))
+                fi
+                return
+                ;;
+        esac
+    fi
+} &&
+    complete -F _tbtrace tbtrace
+
+# ex: ts=4 sw=4 et filetype=sh

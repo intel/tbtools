@@ -215,15 +215,12 @@ more fields will be added in the future at the end.
 
 ## Bash command line completion
 
-There is an experimental script that enables Bash command line
-completion for most tools. This will try to complete the device address
-(`domain`, `route`, and `adapter`) and also known register names.  At
-the moment it is not installed with the rest of the tools but if you
-want to try it out and report/fix bugs you can "enable it" by running
-following:
-```
-# source scripts/tbtools-completion.bash
-```
+Bash command line completion is built on top of
+[bash-completion](https://github.com/scop/bash-completion/) package.
+Once enabled it will try to complete the device address (`domain`,
+`route`, and `adapter`) and also known register names. The
+[Makefile](Makefile) has `install-completion` target that installs the
+completion script and creates symlinks for each tool accordingly.
 
 ## Debug logs
 
