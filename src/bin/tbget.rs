@@ -68,8 +68,7 @@ fn query_register(registers: &[Register], args: &Args) {
         registers.iter().for_each(|r| {
             if let Some(name) = r.name() {
                 if reg.len() > 1 {
-                    if name.to_lowercase().contains(&reg[0].to_lowercase()) || reg[0].is_empty()
-                    {
+                    if name.to_lowercase().contains(&reg[0].to_lowercase()) || reg[0].is_empty() {
                         if let Some(fields) = r.fields() {
                             fields.iter().for_each(|f| {
                                 if f.name().to_lowercase().contains(&reg[1].to_lowercase()) {
