@@ -4,8 +4,8 @@
 // Author: Mika Westerberg <mika.westerberg@linux.intel.com>
 
 use std::{
-    collections::BTreeSet,
     io::{self, ErrorKind},
+    ops::RangeInclusive,
     process,
 };
 
@@ -45,6 +45,9 @@ struct Args {
     /// Query all register names starting with name
     #[arg(short = 'Q', long, group = "output")]
     query: bool,
+    /// Verbose output (only works with --query)
+    #[arg(short, long)]
+    verbose: bool,
     /// One or more registers to read in format offset or name[.field]
     regs: Vec<String>,
 }
@@ -60,32 +63,68 @@ fn dump_value(value: u32, args: &Args) {
 }
 
 fn query_register(registers: &[Register], args: &Args) {
-    let mut names = BTreeSet::new();
+    struct NameInfo {
+        name: String,
+        offset: Option<u32>,
+        range: Option<RangeInclusive<u8>>,
+    }
 
-    for reg in &args.regs {
-        let reg: Vec<_> = reg.split('.').collect();
+    let mut names = Vec::new();
 
+    if args.regs.is_empty() {
         registers.iter().for_each(|r| {
             if let Some(name) = r.name() {
-                if reg.len() > 1 {
-                    if name.to_lowercase().contains(&reg[0].to_lowercase()) || reg[0].is_empty() {
-                        if let Some(fields) = r.fields() {
-                            fields.iter().for_each(|f| {
-                                if f.name().to_lowercase().contains(&reg[1].to_lowercase()) {
-                                    names.insert(format!("{}.{}", name, f.name()));
-                                }
-                            });
-                        }
-                    }
-                } else if name.to_lowercase().contains(&reg[0].to_lowercase()) {
-                    names.insert(name.to_string());
-                }
+                names.push(NameInfo {
+                    name: name.to_string(),
+                    offset: Some(r.offset()),
+                    range: None,
+                });
             }
         });
+    } else {
+        for reg in &args.regs {
+            let reg: Vec<_> = reg.split('.').collect();
+
+            registers.iter().for_each(|r| {
+                if let Some(name) = r.name() {
+                    if reg.len() > 1 {
+                        if name.to_lowercase().contains(&reg[0].to_lowercase()) || reg[0].is_empty()
+                        {
+                            if let Some(fields) = r.fields() {
+                                fields.iter().for_each(|f| {
+                                    if f.name().to_lowercase().contains(&reg[1].to_lowercase()) {
+                                        names.push(NameInfo {
+                                            name: format!("{}.{}", name, f.name()),
+                                            offset: Some(r.offset()),
+                                            range: Some(f.range().clone()),
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                    } else if name.to_lowercase().contains(&reg[0].to_lowercase()) {
+                        names.push(NameInfo {
+                            name: name.to_string(),
+                            offset: Some(r.offset()),
+                            range: None,
+                        });
+                    }
+                }
+            });
+        }
     }
 
     for name in &names {
-        println!("{}", name);
+        print!("{}", name.name);
+        if args.verbose {
+            if let Some(offset) = name.offset {
+                print!(" 0x{:04x}", offset);
+            }
+            if let Some(range) = &name.range {
+                print!(" [{:>02}:{:>02}]", range.start(), range.end());
+            }
+        }
+        println!();
     }
 }
 
@@ -220,20 +259,18 @@ fn read(args: &Args) -> io::Result<()> {
         }
     };
 
-    if !args.regs.is_empty() {
-        device.read_registers()?;
+    device.read_registers()?;
 
-        if let Some(adapter) = args.adapter {
-            if args.query {
-                query_adapter(&mut device, adapter, args)?;
-            } else {
-                read_adapter(&mut device, adapter, args)?
-            }
-        } else if args.query {
-            query_router(&device, args);
+    if let Some(adapter) = args.adapter {
+        if args.query {
+            query_adapter(&mut device, adapter, args)?;
         } else {
-            read_router(&mut device, args)?;
+            read_adapter(&mut device, adapter, args)?
         }
+    } else if args.query {
+        query_router(&device, args);
+    } else {
+        read_router(&mut device, args)?;
     }
 
     Ok(())
@@ -241,11 +278,6 @@ fn read(args: &Args) -> io::Result<()> {
 
 fn main() {
     let args = Args::parse();
-
-    if args.regs.is_empty() {
-        eprintln!("Error: Missing parameters!");
-        process::exit(1);
-    }
 
     if !Uid::current().is_root() {
         eprintln!("Error: debugfs access requires root permissions!");

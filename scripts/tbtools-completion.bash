@@ -233,7 +233,7 @@ _tbget()
 
     if [[ $cur == -* ]]; then
         COMPREPLY+=($(compgen -W '--domain --route --adapter --path --counters
-            --binary --decimal --query --help --version' -- "$cur"))
+            --binary --decimal --query --help --verbose --version' -- "$cur"))
     else
         case $prev in
             --domain | -d)
