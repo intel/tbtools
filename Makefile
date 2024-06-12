@@ -16,8 +16,7 @@ IFLAGS =
 BR_HOME ?= $(HOME)/devel/buildroot
 PREFIX ?= $(BR_HOME)/output/target/usr
 
-# Tools that support completion
-TOOLS = tbadapters tbauth tbdump tbget tbmargin tbset tbtrace
+TOOLS = tbadapters tbauth tbdump tbget tblist tbmargin tbset tbtrace
 
 build:
 	$(CARGO) build $(CFLAGS)

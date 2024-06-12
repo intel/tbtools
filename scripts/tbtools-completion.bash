@@ -14,6 +14,7 @@
 # ln -s tbtools-completion.bash tbauth
 # ln -s tbtools-completion.bash tbdump
 # ln -s tbtools-completion.bash tbget
+# ln -s tbtools-completion.bash tblist
 # ln -s tbtools-completion.bash tbmargin
 # ln -s tbtools-completion.bash tbpd
 # ln -s tbtools-completion.bash tbset
@@ -256,6 +257,18 @@ _tbget()
     fi
 } &&
     complete -F _tbget tbget
+
+_tblist()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    if [[ $cur == -* ]]; then
+        COMPREPLY+=($(compgen -W '--all --script --tree --verbose --help
+            --version' -- "$cur"))
+    fi
+} &&
+    complete -F _tblist tblist
 
 _tbmargin()
 {
