@@ -84,6 +84,10 @@ pub enum Type {
     Usb3Down,
     /// USB 3.x (Gen X) upstream adapter.
     Usb3Up,
+    /// USB 3.x (Gen T) downstream adapter.
+    Usb3GenTDown,
+    /// USB 3.x (Gen T) upstream adapter.
+    Usb3GenTUp,
 }
 
 impl From<&str> for Type {
@@ -98,6 +102,8 @@ impl From<&str> for Type {
             "PCIe Up" => Self::PcieUp,
             "USB 3 Down" => Self::Usb3Down,
             "USB 3 Up" => Self::Usb3Up,
+            "USB 3 Gen T Down" => Self::Usb3GenTDown,
+            "USB 3 Gen T Up" => Self::Usb3GenTUp,
             _ => Self::Unknown,
         }
     }
@@ -115,6 +121,8 @@ impl Display for Type {
             Self::PcieUp => "PCIe Up",
             Self::Usb3Down => "USB 3 Down",
             Self::Usb3Up => "USB 3 Up",
+            Self::Usb3GenTDown => "USB 3 Gen T Down",
+            Self::Usb3GenTUp => "USB 3 Gen T Up",
             _ => "Unknown",
         };
         write!(f, "{}", s)
@@ -861,6 +869,8 @@ impl Adapter {
             usb4::ADP_CS_2_TYPE_PCIE_UP => Type::PcieUp,
             usb4::ADP_CS_2_TYPE_USB3_DOWN => Type::Usb3Down,
             usb4::ADP_CS_2_TYPE_USB3_UP => Type::Usb3Up,
+            usb4::ADP_CS_2_TYPE_USB3_GENT_DOWN => Type::Usb3GenTDown,
+            usb4::ADP_CS_2_TYPE_USB3_GENT_UP => Type::Usb3GenTUp,
             _ => Type::Unknown,
         }
     }
@@ -918,6 +928,27 @@ impl Adapter {
                     } else {
                         State::Disabled
                     }
+                } else {
+                    State::Unknown
+                }
+            }
+
+            Type::Usb3GenTDown | Type::Usb3GenTUp => {
+                if let Some(reg) = self.register_by_name("ADP_USB3_GT_CS_0") {
+                    let cap_offset = reg.offset();
+                    let nports = reg.field("Gen T Port Count");
+
+                    for port in 0..nports {
+                        let offset = (cap_offset + 3 + port * 2) as u16;
+
+                        // If any of the ports have paths enabled we treat this adapter as enabled.
+                        if let Some(pcs1) = self.register_by_offset(offset) {
+                            if pcs1.flag("PE") && pcs1.flag("V") {
+                                return State::Enabled;
+                            }
+                        }
+                    }
+                    State::Disabled
                 } else {
                     State::Unknown
                 }
@@ -1014,6 +1045,8 @@ impl Adapter {
                 | Type::PcieUp
                 | Type::Usb3Down
                 | Type::Usb3Up
+                | Type::Usb3GenTDown
+                | Type::Usb3GenTUp
         )
     }
 
@@ -1033,7 +1066,9 @@ impl Adapter {
             | Type::PcieDown
             | Type::PcieUp
             | Type::Usb3Down
-            | Type::Usb3Up => Some(8),
+            | Type::Usb3Up
+            | Type::Usb3GenTDown
+            | Type::Usb3GenTUp => Some(8),
 
             _ => None,
         }

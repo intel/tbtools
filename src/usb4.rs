@@ -44,6 +44,8 @@ pub const ADP_CS_2_TYPE_PCIE_DOWN: u32 = 0x100101;
 pub const ADP_CS_2_TYPE_PCIE_UP: u32 = 0x100102;
 pub const ADP_CS_2_TYPE_USB3_DOWN: u32 = 0x200101;
 pub const ADP_CS_2_TYPE_USB3_UP: u32 = 0x200102;
+pub const ADP_CS_2_TYPE_USB3_GENT_DOWN: u32 = 0x210101;
+pub const ADP_CS_2_TYPE_USB3_GENT_UP: u32 = 0x210102;
 
 pub const LANE_ADP_CS_1: usize = 0x01;
 pub const LANE_ADP_CS_1_ADAPTER_STATE_SHIFT: u32 = 26;

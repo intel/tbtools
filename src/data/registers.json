@@ -977,6 +977,316 @@
       ]},
       {"start_bit": 12, "end_bit": 18, "name": "Maximum Supported Link Rate"}
     ]},
+    {"offset": 0, "cap_id": 4, "adapter_type": ["USB 3 Gen T Down", "USB 3 Gen T Up"], "name": "ADP_USB3_GT_CS_0", "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Next Capability Pointer"},
+      {"start_bit": 8, "end_bit": 15, "name": "Capability ID"},
+      {"start_bit": 16, "end_bit": 22, "name": "Gen T Port Count"},
+      {"start_bit": 23, "end_bit": 23, "name": "Gen X Adapter Coupled", "short_name": "XAG"}
+    ]},
+    {"offset": 1, "cap_id": 4, "adapter_type": ["USB 3 Gen T Down", "USB 3 Gen T Up"], "name": "ADP_USB3_GT_CS_1", "bitfields": [
+      {"start_bit": 0, "end_bit": 7, "name": "Bundle Weight"}
+    ]},
+    {"offset": 2, "cap_id": 4, "adapter_type": ["USB 3 Gen T Down", "USB 3 Gen T Up"], "name": "ADP_USB3_GT_PORT_CS_0", "bitfields": [
+      {"start_bit": 0, "end_bit": 3, "name": "Port Link State", "short_name": "PLS", "values": [
+        {"name": "U0 state", "value": 0},
+        {"name": "U2 state", "value": 2},
+        {"name": "U3 state", "value": 3},
+        {"name": "Disabled state", "value": 4},
+        {"name": "Disconnect state", "value": 5},
+        {"name": "Error state", "value": 6}
+      ]},
+      {"start_bit": 4, "end_bit": 6, "name": "Maximum Tx Supported Link Rate", "values": [
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 7, "end_bit": 9, "name": "Maximum Rx Supported Link Rate", "values": [
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 10, "end_bit": 13, "name": "USB3 Host Controller Index"},
+      {"start_bit": 14, "end_bit": 21, "name": "Gen T Port Number"}
+    ]},
+    {"offset": 3, "cap_id": 4, "adapter_type": ["USB 3 Gen T Down", "USB 3 Gen T Up"], "name": "ADP_USB3_GT_PORT_CS_1", "bitfields": [
+      {"start_bit": 0, "end_bit": 2, "name": "Active Tx Link Rate", "values": [
+        {"name": "10Gbps", "value": 0},
+        {"name": "20Gbps", "value": 1},
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 3, "end_bit": 4, "name": "Active Rx Link Rate", "values": [
+        {"name": "10Gbps", "value": 0},
+        {"name": "20Gbps", "value": 1},
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 6, "end_bit": 6, "name": "Gen T Port Not Available", "short_name": "PNA"},
+      {"start_bit": 7, "end_bit": 7, "name": "U2CL2 Enable", "short_name": "U2CL2"},
+      {"start_bit": 8, "end_bit": 8, "name": "Link Commands Aggregation Enable", "short_name": "LCAE"},
+      {"start_bit": 30, "end_bit": 30, "name": "Valid", "short_name": "V"},
+      {"start_bit": 31, "end_bit": 31, "name": "Path Enable", "short_name": "PE"}
+    ]},
+    {"offset": 4, "cap_id": 4, "adapter_type": ["USB 3 Gen T Down", "USB 3 Gen T Up"], "name": "ADP_USB3_GT_PORT_CS_0", "bitfields": [
+      {"start_bit": 0, "end_bit": 3, "name": "Port Link State", "short_name": "PLS", "values": [
+        {"name": "U0 state", "value": 0},
+        {"name": "U2 state", "value": 2},
+        {"name": "U3 state", "value": 3},
+        {"name": "Disabled state", "value": 4},
+        {"name": "Disconnect state", "value": 5},
+        {"name": "Error state", "value": 6}
+      ]},
+      {"start_bit": 4, "end_bit": 6, "name": "Maximum Tx Supported Link Rate", "values": [
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 7, "end_bit": 9, "name": "Maximum Rx Supported Link Rate", "values": [
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 10, "end_bit": 13, "name": "USB3 Host Controller Index"},
+      {"start_bit": 14, "end_bit": 21, "name": "Gen T Port Number"}
+    ]},
+    {"offset": 5, "cap_id": 4, "adapter_type": ["USB 3 Gen T Down", "USB 3 Gen T Up"], "name": "ADP_USB3_GT_PORT_CS_1", "bitfields": [
+      {"start_bit": 0, "end_bit": 2, "name": "Active Tx Link Rate", "values": [
+        {"name": "10Gbps", "value": 0},
+        {"name": "20Gbps", "value": 1},
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 3, "end_bit": 4, "name": "Active Rx Link Rate", "values": [
+        {"name": "10Gbps", "value": 0},
+        {"name": "20Gbps", "value": 1},
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 6, "end_bit": 6, "name": "Gen T Port Not Available", "short_name": "PNA"},
+      {"start_bit": 7, "end_bit": 7, "name": "U2CL2 Enable", "short_name": "U2CL2"},
+      {"start_bit": 8, "end_bit": 8, "name": "Link Commands Aggregation Enable", "short_name": "LCAE"},
+      {"start_bit": 30, "end_bit": 30, "name": "Valid", "short_name": "V"},
+      {"start_bit": 31, "end_bit": 31, "name": "Path Enable", "short_name": "PE"}
+    ]},
+    {"offset": 6, "cap_id": 4, "adapter_type": ["USB 3 Gen T Down", "USB 3 Gen T Up"], "name": "ADP_USB3_GT_PORT_CS_0", "bitfields": [
+      {"start_bit": 0, "end_bit": 3, "name": "Port Link State", "short_name": "PLS", "values": [
+        {"name": "U0 state", "value": 0},
+        {"name": "U2 state", "value": 2},
+        {"name": "U3 state", "value": 3},
+        {"name": "Disabled state", "value": 4},
+        {"name": "Disconnect state", "value": 5},
+        {"name": "Error state", "value": 6}
+      ]},
+      {"start_bit": 4, "end_bit": 6, "name": "Maximum Tx Supported Link Rate", "values": [
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 7, "end_bit": 9, "name": "Maximum Rx Supported Link Rate", "values": [
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 10, "end_bit": 13, "name": "USB3 Host Controller Index"},
+      {"start_bit": 14, "end_bit": 21, "name": "Gen T Port Number"}
+    ]},
+    {"offset": 7, "cap_id": 4, "adapter_type": ["USB 3 Gen T Down", "USB 3 Gen T Up"], "name": "ADP_USB3_GT_PORT_CS_1", "bitfields": [
+      {"start_bit": 0, "end_bit": 2, "name": "Active Tx Link Rate", "values": [
+        {"name": "10Gbps", "value": 0},
+        {"name": "20Gbps", "value": 1},
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 3, "end_bit": 4, "name": "Active Rx Link Rate", "values": [
+        {"name": "10Gbps", "value": 0},
+        {"name": "20Gbps", "value": 1},
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 6, "end_bit": 6, "name": "Gen T Port Not Available", "short_name": "PNA"},
+      {"start_bit": 7, "end_bit": 7, "name": "U2CL2 Enable", "short_name": "U2CL2"},
+      {"start_bit": 8, "end_bit": 8, "name": "Link Commands Aggregation Enable", "short_name": "LCAE"},
+      {"start_bit": 30, "end_bit": 30, "name": "Valid", "short_name": "V"},
+      {"start_bit": 31, "end_bit": 31, "name": "Path Enable", "short_name": "PE"}
+    ]},
+    {"offset": 8, "cap_id": 4, "adapter_type": ["USB 3 Gen T Down", "USB 3 Gen T Up"], "name": "ADP_USB3_GT_PORT_CS_0", "bitfields": [
+      {"start_bit": 0, "end_bit": 3, "name": "Port Link State", "short_name": "PLS", "values": [
+        {"name": "U0 state", "value": 0},
+        {"name": "U2 state", "value": 2},
+        {"name": "U3 state", "value": 3},
+        {"name": "Disabled state", "value": 4},
+        {"name": "Disconnect state", "value": 5},
+        {"name": "Error state", "value": 6}
+      ]},
+      {"start_bit": 4, "end_bit": 6, "name": "Maximum Tx Supported Link Rate", "values": [
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 7, "end_bit": 9, "name": "Maximum Rx Supported Link Rate", "values": [
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 10, "end_bit": 13, "name": "USB3 Host Controller Index"},
+      {"start_bit": 14, "end_bit": 21, "name": "Gen T Port Number"}
+    ]},
+    {"offset": 9, "cap_id": 4, "adapter_type": ["USB 3 Gen T Down", "USB 3 Gen T Up"], "name": "ADP_USB3_GT_PORT_CS_1", "bitfields": [
+      {"start_bit": 0, "end_bit": 2, "name": "Active Tx Link Rate", "values": [
+        {"name": "10Gbps", "value": 0},
+        {"name": "20Gbps", "value": 1},
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 3, "end_bit": 4, "name": "Active Rx Link Rate", "values": [
+        {"name": "10Gbps", "value": 0},
+        {"name": "20Gbps", "value": 1},
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 6, "end_bit": 6, "name": "Gen T Port Not Available", "short_name": "PNA"},
+      {"start_bit": 7, "end_bit": 7, "name": "U2CL2 Enable", "short_name": "U2CL2"},
+      {"start_bit": 8, "end_bit": 8, "name": "Link Commands Aggregation Enable", "short_name": "LCAE"},
+      {"start_bit": 30, "end_bit": 30, "name": "Valid", "short_name": "V"},
+      {"start_bit": 31, "end_bit": 31, "name": "Path Enable", "short_name": "PE"}
+    ]},
+    {"offset": 10, "cap_id": 4, "adapter_type": ["USB 3 Gen T Down", "USB 3 Gen T Up"], "name": "ADP_USB3_GT_PORT_CS_0", "bitfields": [
+      {"start_bit": 0, "end_bit": 3, "name": "Port Link State", "short_name": "PLS", "values": [
+        {"name": "U0 state", "value": 0},
+        {"name": "U2 state", "value": 2},
+        {"name": "U3 state", "value": 3},
+        {"name": "Disabled state", "value": 4},
+        {"name": "Disconnect state", "value": 5},
+        {"name": "Error state", "value": 6}
+      ]},
+      {"start_bit": 4, "end_bit": 6, "name": "Maximum Tx Supported Link Rate", "values": [
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 7, "end_bit": 9, "name": "Maximum Rx Supported Link Rate", "values": [
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 10, "end_bit": 13, "name": "USB3 Host Controller Index"},
+      {"start_bit": 14, "end_bit": 21, "name": "Gen T Port Number"}
+    ]},
+    {"offset": 11, "cap_id": 4, "adapter_type": ["USB 3 Gen T Down", "USB 3 Gen T Up"], "name": "ADP_USB3_GT_PORT_CS_1", "bitfields": [
+      {"start_bit": 0, "end_bit": 2, "name": "Active Tx Link Rate", "values": [
+        {"name": "10Gbps", "value": 0},
+        {"name": "20Gbps", "value": 1},
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 3, "end_bit": 4, "name": "Active Rx Link Rate", "values": [
+        {"name": "10Gbps", "value": 0},
+        {"name": "20Gbps", "value": 1},
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 6, "end_bit": 6, "name": "Gen T Port Not Available", "short_name": "PNA"},
+      {"start_bit": 7, "end_bit": 7, "name": "U2CL2 Enable", "short_name": "U2CL2"},
+      {"start_bit": 8, "end_bit": 8, "name": "Link Commands Aggregation Enable", "short_name": "LCAE"},
+      {"start_bit": 30, "end_bit": 30, "name": "Valid", "short_name": "V"},
+      {"start_bit": 31, "end_bit": 31, "name": "Path Enable", "short_name": "PE"}
+    ]},
+    {"offset": 12, "cap_id": 4, "adapter_type": ["USB 3 Gen T Down", "USB 3 Gen T Up"], "name": "ADP_USB3_GT_PORT_CS_0", "bitfields": [
+      {"start_bit": 0, "end_bit": 3, "name": "Port Link State", "short_name": "PLS", "values": [
+        {"name": "U0 state", "value": 0},
+        {"name": "U2 state", "value": 2},
+        {"name": "U3 state", "value": 3},
+        {"name": "Disabled state", "value": 4},
+        {"name": "Disconnect state", "value": 5},
+        {"name": "Error state", "value": 6}
+      ]},
+      {"start_bit": 4, "end_bit": 6, "name": "Maximum Tx Supported Link Rate", "values": [
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 7, "end_bit": 9, "name": "Maximum Rx Supported Link Rate", "values": [
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 10, "end_bit": 13, "name": "USB3 Host Controller Index"},
+      {"start_bit": 14, "end_bit": 21, "name": "Gen T Port Number"}
+    ]},
+    {"offset": 13, "cap_id": 4, "adapter_type": ["USB 3 Gen T Down", "USB 3 Gen T Up"], "name": "ADP_USB3_GT_PORT_CS_1", "bitfields": [
+      {"start_bit": 0, "end_bit": 2, "name": "Active Tx Link Rate", "values": [
+        {"name": "10Gbps", "value": 0},
+        {"name": "20Gbps", "value": 1},
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 3, "end_bit": 4, "name": "Active Rx Link Rate", "values": [
+        {"name": "10Gbps", "value": 0},
+        {"name": "20Gbps", "value": 1},
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 6, "end_bit": 6, "name": "Gen T Port Not Available", "short_name": "PNA"},
+      {"start_bit": 7, "end_bit": 7, "name": "U2CL2 Enable", "short_name": "U2CL2"},
+      {"start_bit": 8, "end_bit": 8, "name": "Link Commands Aggregation Enable", "short_name": "LCAE"},
+      {"start_bit": 30, "end_bit": 30, "name": "Valid", "short_name": "V"},
+      {"start_bit": 31, "end_bit": 31, "name": "Path Enable", "short_name": "PE"}
+    ]},
+    {"offset": 14, "cap_id": 4, "adapter_type": ["USB 3 Gen T Down", "USB 3 Gen T Up"], "name": "ADP_USB3_GT_PORT_CS_0", "bitfields": [
+      {"start_bit": 0, "end_bit": 3, "name": "Port Link State", "short_name": "PLS", "values": [
+        {"name": "U0 state", "value": 0},
+        {"name": "U2 state", "value": 2},
+        {"name": "U3 state", "value": 3},
+        {"name": "Disabled state", "value": 4},
+        {"name": "Disconnect state", "value": 5},
+        {"name": "Error state", "value": 6}
+      ]},
+      {"start_bit": 4, "end_bit": 6, "name": "Maximum Tx Supported Link Rate", "values": [
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 7, "end_bit": 9, "name": "Maximum Rx Supported Link Rate", "values": [
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 10, "end_bit": 13, "name": "USB3 Host Controller Index"},
+      {"start_bit": 14, "end_bit": 21, "name": "Gen T Port Number"}
+    ]},
+    {"offset": 15, "cap_id": 4, "adapter_type": ["USB 3 Gen T Down", "USB 3 Gen T Up"], "name": "ADP_USB3_GT_PORT_CS_1", "bitfields": [
+      {"start_bit": 0, "end_bit": 2, "name": "Active Tx Link Rate", "values": [
+        {"name": "10Gbps", "value": 0},
+        {"name": "20Gbps", "value": 1},
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 3, "end_bit": 4, "name": "Active Rx Link Rate", "values": [
+        {"name": "10Gbps", "value": 0},
+        {"name": "20Gbps", "value": 1},
+        {"name": "40Gbps", "value": 2},
+        {"name": "80Gbps", "value": 3},
+        {"name": "120Gbps", "value": 4}
+      ]},
+      {"start_bit": 6, "end_bit": 6, "name": "Gen T Port Not Available", "short_name": "PNA"},
+      {"start_bit": 7, "end_bit": 7, "name": "U2CL2 Enable", "short_name": "U2CL2"},
+      {"start_bit": 8, "end_bit": 8, "name": "Link Commands Aggregation Enable", "short_name": "LCAE"},
+      {"start_bit": 30, "end_bit": 30, "name": "Valid", "short_name": "V"},
+      {"start_bit": 31, "end_bit": 31, "name": "Path Enable", "short_name": "PE"}
+    ]},
     {"offset": 0, "cap_id": 6, "adapter_type": ["Lane"], "name": "PORT_CS_0", "bitfields": [
       {"start_bit": 0, "end_bit": 7, "name": "Next Capability Pointer"},
       {"start_bit": 8, "end_bit": 15, "name": "Capability ID"}
