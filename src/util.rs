@@ -12,7 +12,7 @@ use std::{
 };
 
 use lazy_static::lazy_static;
-use nix::sys::time::TimeVal;
+use nix::sys::time::{self, TimeVal};
 use num_traits::Num;
 use regex::Regex;
 use uuid;
@@ -153,7 +153,7 @@ pub fn system_boot_time() -> io::Result<TimeVal> {
 
     if btime.len() == 1 {
         if let Some(caps) = RE.captures(btime[0]) {
-            if let Some(seconds) = parse_number::<i64>(&caps[1]) {
+            if let Some(seconds) = parse_number::<time::time_t>(&caps[1]) {
                 return Ok(TimeVal::new(seconds, 0));
             }
         }
