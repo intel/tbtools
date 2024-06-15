@@ -67,7 +67,6 @@ pub const ADP_PCIE_CS_0_PE: u32 = 1 << 31;
 pub const PATH_CS_0_OUT_HOP_MASK: u32 = genmask!(6, 0);
 pub const PATH_CS_0_OUT_ADAPTER_MASK: u32 = genmask!(16, 11);
 pub const PATH_CS_0_OUT_ADAPTER_SHIFT: u32 = 11;
-pub const PATH_CS_0_PMPS: u32 = 1 << 24;
 pub const PATH_CS_0_VALID: u32 = 1 << 31;
 
 pub const MARGIN_CAP_0_MODES_HW: u32 = 1 << 0;

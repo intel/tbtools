@@ -715,8 +715,6 @@ pub struct Path {
     out_adapter: u16,
     /// Output HopID
     out_hop: u16,
-    /// PM packet support bit
-    pmps: bool,
 }
 
 impl Path {
@@ -726,14 +724,11 @@ impl Path {
             let out_hop = path_cs_0 & usb4::PATH_CS_0_OUT_HOP_MASK;
             let out_adapter =
                 (path_cs_0 & usb4::PATH_CS_0_OUT_ADAPTER_MASK) >> usb4::PATH_CS_0_OUT_ADAPTER_SHIFT;
-            let pmps = (path_cs_0 & usb4::PATH_CS_0_PMPS) > 0;
-
             return Some(Self {
                 in_adapter,
                 in_hop,
                 out_adapter: out_adapter as u16,
                 out_hop: out_hop as u16,
-                pmps,
             });
         }
         None
@@ -757,11 +752,6 @@ impl Path {
     /// Returns out `HopID`.
     pub fn out_hop(&self) -> u16 {
         self.out_hop
-    }
-
-    /// Returns `true` if PM package support bit is set for this entry.
-    pub fn pmps(&self) -> bool {
-        self.pmps
     }
 }
 
