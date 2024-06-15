@@ -32,7 +32,7 @@ install-scripts:
 
 uninstall-scripts:
 	$(foreach script, $(SCRIPTS), $(RM) -f $(PREFIX)/share/tbtools/scripts/$(script);)
-	$(RMDIR) $(PREFIX)/share/tbtools/scripts
+	-$(RMDIR) $(PREFIX)/share/tbtools/scripts
 
 install-completion:
 	$(INSTALL) -m 0644 scripts/tbtools-completion.bash $(PREFIX)/share/bash-completion/completions
