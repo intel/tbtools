@@ -51,7 +51,7 @@ use crate::{
     genmask, util, Address, ConfigSpace, Pdf,
 };
 use lazy_static::lazy_static;
-use nix::sys::time::TimeVal;
+use nix::sys::time::{self, TimeVal};
 use regex::Regex;
 use serde_json::Value;
 use std::{
@@ -770,8 +770,8 @@ impl Entry {
             static ref RE: Regex = Regex::new(r"(\d+)\.(\d+):\s+").unwrap();
         }
         let caps = RE.captures(s)?;
-        let seconds = caps[1].parse::<i64>().ok()?;
-        let useconds = caps[2].parse::<i64>().ok()?;
+        let seconds = caps[1].parse::<time::time_t>().ok()?;
+        let useconds = caps[2].parse::<time::suseconds_t>().ok()?;
         Some(TimeVal::new(seconds, useconds))
     }
 
