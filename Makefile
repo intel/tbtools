@@ -5,7 +5,6 @@ CARGO = cargo
 INSTALL = install
 LN = ln
 RM = rm
-MKDIR = mkdir
 RMDIR = rmdir
 
 # Release build, uncomment for debug build
@@ -28,7 +27,7 @@ run:
 	$(CARGO) run $(CFLAGS)
 
 install-scripts:
-	$(MKDIR) -p $(PREFIX)/share/tbtools/scripts
+	$(INSTALL) -d $(PREFIX)/share/tbtools/scripts
 	$(foreach script, $(SCRIPTS), $(INSTALL) -m 0755 scripts/$(script) $(PREFIX)/share/tbtools/scripts/$(script);)
 
 uninstall-scripts:
