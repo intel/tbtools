@@ -136,7 +136,7 @@ Any adapter can be addressed in the same way. For example host router
 ## Named registers
 
 The library currently knows the names of registers in USB4 spec and
-these are available in tools suchs as `tbdump`, `tbget` and `tbset`. For
+these are available in tools such as `tbdump`, `tbget` and `tbset`. For
 instance reading `PORT_CS_18` register of downstream port of the host
 router can also be done like this:
 ```
