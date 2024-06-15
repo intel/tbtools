@@ -46,6 +46,7 @@ impl Monitor {
         let mut tv: Option<time::TimeVal> = duration.map(|duration| {
             time::TimeVal::new(
                 duration.as_secs().try_into().unwrap(),
+                #[allow(clippy::unnecessary_fallible_conversions)]
                 duration.subsec_micros().try_into().unwrap(),
             )
         });
