@@ -10,6 +10,7 @@ use std::{
 };
 
 use clap::Parser;
+use csv::Writer;
 use nix::unistd::Uid;
 
 use tbtools::{
@@ -45,6 +46,9 @@ struct Args {
     /// Query all register names starting with name
     #[arg(short = 'Q', long, group = "output")]
     query: bool,
+    /// Output suitable for scripting (only works with --query)
+    #[arg(short = 'S', long)]
+    script: bool,
     /// Verbose output (only works with --query)
     #[arg(short, long)]
     verbose: bool,
@@ -62,7 +66,7 @@ fn dump_value(value: u32, args: &Args) {
     }
 }
 
-fn query_register(registers: &[Register], args: &Args) {
+fn query_register(registers: &[Register], args: &Args) -> io::Result<()> {
     struct NameInfo {
         name: String,
         offset: Option<u32>,
@@ -114,24 +118,62 @@ fn query_register(registers: &[Register], args: &Args) {
         }
     }
 
-    for name in &names {
-        print!("{}", name.name);
+    if args.script {
+        let mut writer = Writer::from_writer(io::stdout());
+        let mut headers = vec!["name"];
+
         if args.verbose {
-            if let Some(offset) = name.offset {
-                print!(" 0x{:04x}", offset);
-            }
-            if let Some(range) = &name.range {
-                print!(" [{:>02}:{:>02}]", range.start(), range.end());
-            }
+            headers.push("offset");
+            headers.push("range_start");
+            headers.push("range_end");
         }
-        println!();
+
+        writer.write_record(headers)?;
+
+        for name in &names {
+            let mut record = Vec::new();
+
+            record.push(name.name.clone());
+
+            if args.verbose {
+                if let Some(offset) = name.offset {
+                    record.push(format!("0x{:04x}", offset))
+                } else {
+                    record.push(String::new());
+                }
+                if let Some(range) = &name.range {
+                    record.push(format!("{}", range.start()));
+                    record.push(format!("{}", range.end()));
+                } else {
+                    record.push(String::new());
+                    record.push(String::new());
+                }
+            }
+
+            writer.write_record(record)?;
+        }
+    } else {
+        for name in &names {
+            print!("{}", name.name);
+            if args.verbose {
+                if let Some(offset) = name.offset {
+                    print!(" 0x{:04x}", offset);
+                }
+                if let Some(range) = &name.range {
+                    print!(" [{:>02}:{:>02}]", range.start(), range.end());
+                }
+            }
+            println!();
+        }
     }
+    Ok(())
 }
 
-fn query_router(device: &Device, args: &Args) {
+fn query_router(device: &Device, args: &Args) -> io::Result<()> {
     if let Some(registers) = device.registers() {
-        query_register(registers, args);
+        query_register(registers, args)?;
     }
+    Ok(())
 }
 
 fn read_router(device: &mut Device, args: &Args) -> io::Result<()> {
@@ -180,7 +222,7 @@ fn query_adapter(device: &mut Device, adapter: u16, args: &Args) -> io::Result<(
         } else {
             adapter.registers()
         } {
-            query_register(registers, args);
+            query_register(registers, args)?;
         }
     }
 
@@ -268,7 +310,7 @@ fn read(args: &Args) -> io::Result<()> {
             read_adapter(&mut device, adapter, args)?
         }
     } else if args.query {
-        query_router(&device, args);
+        query_router(&device, args)?;
     } else {
         read_router(&mut device, args)?;
     }
