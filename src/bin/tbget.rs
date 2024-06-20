@@ -120,7 +120,7 @@ fn query_register(registers: &[Register], args: &Args) -> io::Result<()> {
 
     if args.script {
         let mut writer = Writer::from_writer(io::stdout());
-        let mut headers = vec!["name"];
+        let mut headers = vec!["domain", "route", "adapter", "index", "name"];
 
         if args.verbose {
             headers.push("offset");
@@ -133,6 +133,15 @@ fn query_register(registers: &[Register], args: &Args) -> io::Result<()> {
         for name in &names {
             let mut record = Vec::new();
 
+            record.push(format!("{}", args.domain));
+            record.push(format!("{:x}", args.route));
+            if let Some(adapter) = &args.adapter {
+                record.push(format!("{}", adapter));
+            } else {
+                record.push(String::new());
+            }
+            // TODO: Add index with retimer support.
+            record.push(String::new());
             record.push(name.name.clone());
 
             if args.verbose {
