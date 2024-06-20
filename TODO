@@ -1,5 +1,5 @@
- tbtools
- -------
+tbtools
+-------
  - tbmand - a "web server" version of tbman (REST API or so). Allows
             more complex graphics for device topology etc through HTML5
 	    but still should work on minimal userspace (for example buildroot)
@@ -7,8 +7,13 @@
 - DMA test (dma_test.ko) support. Probably some sort of script that runs
   it automatically or so.
 
- tbman
- -----
+tbget/tbdump
+-----
+- Move --query and --script to tbdump instead (update the bash
+  completion to use tbdump as well).
+
+tbman
+-----
  - full tunnel viewer + DP (bw management) stuff
  - NVM access
  - log viewer (for example show logs for this device)
