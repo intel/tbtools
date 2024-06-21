@@ -87,16 +87,25 @@ fn query_register(registers: &[Register], args: &Args) -> io::Result<()> {
         });
     } else {
         for reg in &args.regs {
-            let reg: Vec<_> = reg.split('.').collect();
+            let query: Vec<_> = reg.split('.').collect();
 
             registers.iter().for_each(|r| {
                 if let Some(name) = r.name() {
-                    if reg.len() > 1 {
-                        if name.to_lowercase().contains(&reg[0].to_lowercase()) || reg[0].is_empty()
+                    if query.len() > 1 {
+                        if name.to_lowercase().contains(&query[0].to_lowercase())
+                            || query[0].is_empty()
                         {
+                            // Special case "." dump all known names.
+                            if query[0].is_empty() && query[1].is_empty() {
+                                names.push(NameInfo {
+                                    name: name.to_string(),
+                                    offset: Some(r.offset()),
+                                    range: None,
+                                });
+                            }
                             if let Some(fields) = r.fields() {
                                 fields.iter().for_each(|f| {
-                                    if f.name().to_lowercase().contains(&reg[1].to_lowercase()) {
+                                    if f.name().to_lowercase().contains(&query[1].to_lowercase()) {
                                         names.push(NameInfo {
                                             name: format!("{}.{}", name, f.name()),
                                             offset: Some(r.offset()),
@@ -106,7 +115,7 @@ fn query_register(registers: &[Register], args: &Args) -> io::Result<()> {
                                 });
                             }
                         }
-                    } else if name.to_lowercase().contains(&reg[0].to_lowercase()) {
+                    } else if name.to_lowercase().contains(&query[0].to_lowercase()) {
                         names.push(NameInfo {
                             name: name.to_string(),
                             offset: Some(r.offset()),
