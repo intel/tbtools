@@ -70,6 +70,7 @@ fn query_register(registers: &[Register], args: &Args) -> io::Result<()> {
     struct NameInfo {
         name: String,
         offset: Option<u32>,
+        field: Option<String>,
         range: Option<RangeInclusive<u8>>,
     }
 
@@ -81,6 +82,7 @@ fn query_register(registers: &[Register], args: &Args) -> io::Result<()> {
                 names.push(NameInfo {
                     name: name.to_string(),
                     offset: Some(r.offset()),
+                    field: None,
                     range: None,
                 });
             }
@@ -100,6 +102,7 @@ fn query_register(registers: &[Register], args: &Args) -> io::Result<()> {
                                 names.push(NameInfo {
                                     name: name.to_string(),
                                     offset: Some(r.offset()),
+                                    field: None,
                                     range: None,
                                 });
                             }
@@ -107,8 +110,9 @@ fn query_register(registers: &[Register], args: &Args) -> io::Result<()> {
                                 fields.iter().for_each(|f| {
                                     if f.name().to_lowercase().contains(&query[1].to_lowercase()) {
                                         names.push(NameInfo {
-                                            name: format!("{}.{}", name, f.name()),
+                                            name: name.to_string(),
                                             offset: Some(r.offset()),
+                                            field: Some(f.name().to_string()),
                                             range: Some(f.range().clone()),
                                         });
                                     }
@@ -119,6 +123,7 @@ fn query_register(registers: &[Register], args: &Args) -> io::Result<()> {
                         names.push(NameInfo {
                             name: name.to_string(),
                             offset: Some(r.offset()),
+                            field: None,
                             range: None,
                         });
                     }
@@ -129,7 +134,7 @@ fn query_register(registers: &[Register], args: &Args) -> io::Result<()> {
 
     if args.script {
         let mut writer = Writer::from_writer(io::stdout());
-        let mut headers = vec!["domain", "route", "adapter", "index", "name"];
+        let mut headers = vec!["domain", "route", "adapter", "index", "name", "field"];
 
         if args.verbose {
             headers.push("offset");
@@ -153,6 +158,12 @@ fn query_register(registers: &[Register], args: &Args) -> io::Result<()> {
             record.push(String::new());
             record.push(name.name.clone());
 
+            if let Some(field) = &name.field {
+                record.push(field.clone());
+            } else {
+                record.push(String::new());
+            }
+
             if args.verbose {
                 if let Some(offset) = name.offset {
                     record.push(format!("0x{:04x}", offset))
@@ -173,6 +184,9 @@ fn query_register(registers: &[Register], args: &Args) -> io::Result<()> {
     } else {
         for name in &names {
             print!("{}", name.name);
+            if let Some(field) = &name.field {
+                print!(".{}", field);
+            }
             if args.verbose {
                 if let Some(offset) = name.offset {
                     print!(" 0x{:04x}", offset);
