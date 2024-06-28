@@ -285,6 +285,8 @@ buffer as well.
                     [31:31]        0x0 Path Enable (PE)
   ...
 ```
+`tbman` supports tracing too. You can press <kbd>&lt;F3&gt;</kbd> to enable and disable tracing and <kbd>&lt;F4&gt;</kbd> to view
+the current trace buffer.
 
 ## Development
 
