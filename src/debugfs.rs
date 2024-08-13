@@ -274,12 +274,13 @@ impl Metadata {
         };
 
         let adapter_types = if let Some(adapter_type) = value.get("adapter_type") {
-            let mut adapter_types: Vec<Type> = Vec::new();
             let adapter_type = adapter_type.as_array().unwrap();
-            for at in adapter_type {
-                adapter_types.push(at.as_str().unwrap().into());
-            }
-            Some(adapter_types)
+            Some(
+                adapter_type
+                    .iter()
+                    .map(|at| at.as_str().unwrap().into())
+                    .collect(),
+            )
         } else {
             None
         };
