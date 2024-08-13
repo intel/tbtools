@@ -242,24 +242,24 @@ fn run_margining(args: &Args, margining: &mut Margining) -> Result<()> {
     println!();
 
     for (index, test) in tests.iter().enumerate() {
-        let mut margins = Vec::new();
-
-        match test {
+        let margins: Vec<Margin> = match test {
             Test::Voltage => {
                 println!("Running {} voltage margining", margining.mode());
                 if caps.independent_voltage_margins() {
-                    margins.push(Margin::Low);
-                    margins.push(Margin::High);
+                    vec![Margin::Low, Margin::High]
+                } else {
+                    vec![]
                 }
             }
             Test::Time => {
                 println!("Running {} time margining", margining.mode());
                 if caps.independent_time_margins() {
-                    margins.push(Margin::Left);
-                    margins.push(Margin::Right);
+                    vec![Margin::Left, Margin::Right]
+                } else {
+                    vec![]
                 }
             }
-        }
+        };
 
         margining.set_test(test);
 
