@@ -214,18 +214,10 @@ impl BitField {
 
     pub(crate) fn parse(value: &Value) -> Option<Vec<BitField>> {
         if let Some(fields) = value.get("bitfields")?.as_array() {
-            let mut all_fields = Vec::new();
-
-            for field in fields {
-                if let Some(field) = Self::parse_one(field) {
-                    all_fields.push(field);
-                }
-            }
-
-            return Some(all_fields);
+            Some(fields.iter().filter_map(Self::parse_one).collect())
+        } else {
+            None
         }
-
-        None
     }
 }
 
