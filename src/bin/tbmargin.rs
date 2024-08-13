@@ -233,13 +233,11 @@ fn run_margining(args: &Args, margining: &mut Margining) -> Result<()> {
         vec![Test::Voltage]
     };
 
-    let mut lanes = Vec::new();
-    if caps.all_lanes() {
-        lanes.push(Lanes::All);
+    let lanes = if caps.all_lanes() {
+        vec![Lanes::All]
     } else {
-        lanes.push(Lanes::Lane0);
-        lanes.push(Lanes::Lane1);
-    }
+        vec![Lanes::Lane0, Lanes::Lane1]
+    };
 
     println!();
 
