@@ -205,23 +205,6 @@ impl Caps {
         (self.1 & usb4::MARGIN_CAP_1_TIME_STEPS_MASK) >> usb4::MARGIN_CAP_1_TIME_STEPS_SHIFT
     }
 
-    fn results(&self, time: bool, values: (u32, u32)) -> Results {
-        let voltage_ratio = self.max_voltage_offset() / self.voltage_steps() as f64;
-
-        let time_ratio = if self.time() {
-            self.max_time_offset() / self.time_steps() as f64
-        } else {
-            0.0
-        };
-
-        Results {
-            result: [values.0, values.1],
-            time,
-            voltage_ratio,
-            time_ratio,
-        }
-    }
-
     fn new(values: (u32, u32)) -> Self {
         Caps(values.0, values.1)
     }
@@ -374,6 +357,23 @@ pub struct Results {
 }
 
 impl Results {
+    fn new(caps: &Caps, time: bool, values: (u32, u32)) -> Self {
+        let voltage_ratio = caps.max_voltage_offset() / caps.voltage_steps() as f64;
+
+        let time_ratio = if caps.time() {
+            caps.max_time_offset() / caps.time_steps() as f64
+        } else {
+            0.0
+        };
+
+        Self {
+            result: [values.0, values.1],
+            time,
+            voltage_ratio,
+            time_ratio,
+        }
+    }
+
     /// Returns `true` if this result is from time margining.
     pub fn time(&self) -> bool {
         self.time
@@ -597,7 +597,7 @@ impl Margining {
 
         // Read back results
         let results = read_results(&self.path)?;
-        Ok(self.caps.results(self.is_time(), results))
+        Ok(Results::new(&self.caps, self.is_time(), results))
     }
 
     /// Attaches margining to a given USB4 port or retimer.
