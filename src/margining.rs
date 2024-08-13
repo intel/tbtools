@@ -45,9 +45,7 @@ by setting following in your kernel .config:
 ";
 
 fn read_attr(path: &str, attr: &str) -> Result<String> {
-    let mut path_buf = PathBuf::new();
-    path_buf.push(path);
-    path_buf.push(attr);
+    let path_buf: PathBuf = [path, attr].iter().collect();
 
     let mut file = File::open(path_buf)?;
     let mut value = String::new();
@@ -57,9 +55,7 @@ fn read_attr(path: &str, attr: &str) -> Result<String> {
 }
 
 fn write_attr(path: &str, attr: &str, value: &str) -> Result<()> {
-    let mut path_buf = PathBuf::new();
-    path_buf.push(path);
-    path_buf.push(attr);
+    let path_buf: PathBuf = [path, attr].iter().collect();
 
     let file = OpenOptions::new().write(true).open(path_buf)?;
     let mut buf = BufWriter::new(file);
