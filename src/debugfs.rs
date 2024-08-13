@@ -336,11 +336,11 @@ impl Metadata {
         }
     }
 
-    fn from_router_offset(offset: u16) -> Option<Vec<Self>> {
+    fn with_router_offset(offset: u16) -> Option<Vec<Self>> {
         Self::lookup_from_json(NAMES.get("router").unwrap(), offset, None)
     }
 
-    fn from_router_vendor_offset(
+    fn with_router_vendor_offset(
         vendor_id: u16,
         cap_id: u16,
         vs_cap_id: u16,
@@ -361,7 +361,7 @@ impl Metadata {
         None
     }
 
-    fn from_adapter_type_and_offset(
+    fn with_adapter_type_and_offset(
         name: &str,
         adapter_type: Type,
         offset: u16,
@@ -719,7 +719,7 @@ pub struct Path {
 
 impl Path {
     /// Creates a new path entry from `PATH_CS_0` register.
-    fn from(in_adapter: u16, in_hop: u16, path_cs_0: u32) -> Option<Self> {
+    fn new(in_adapter: u16, in_hop: u16, path_cs_0: u32) -> Option<Self> {
         if (path_cs_0 & usb4::PATH_CS_0_VALID) == usb4::PATH_CS_0_VALID {
             let out_hop = path_cs_0 & usb4::PATH_CS_0_OUT_HOP_MASK;
             let out_adapter =
@@ -1084,7 +1084,7 @@ impl Adapter {
         // Pull in metadata.
         for reg in &mut regs {
             let metadata =
-                Metadata::from_adapter_type_and_offset("adapter", self.kind(), reg.relative_offset);
+                Metadata::with_adapter_type_and_offset("adapter", self.kind(), reg.relative_offset);
             if let Some(metadata) = metadata {
                 reg.set_metadata(metadata);
             }
@@ -1174,7 +1174,7 @@ impl Adapter {
         if let Some(path_regs) = &mut self.path_regs {
             for reg in path_regs.iter_mut() {
                 let metadata =
-                    Metadata::from_adapter_type_and_offset("path", kind, reg.relative_offset);
+                    Metadata::with_adapter_type_and_offset("path", kind, reg.relative_offset);
                 if let Some(metadata) = metadata {
                     reg.set_metadata(metadata);
                 }
@@ -1193,7 +1193,7 @@ impl Adapter {
             {
                 let in_hop: u16 = (p.offset / 2) as u16;
 
-                if let Some(path) = Path::from(self.adapter, in_hop, p.value) {
+                if let Some(path) = Path::new(self.adapter, in_hop, p.value) {
                     paths.push(path);
                 }
             }
@@ -1379,7 +1379,7 @@ impl Device {
             }
 
             if let Some(metadata) =
-                Metadata::from_router_vendor_offset(vendor_id, cap_id, vs_cap_id, offset)
+                Metadata::with_router_vendor_offset(vendor_id, cap_id, vs_cap_id, offset)
             {
                 reg.set_metadata(metadata);
             }
@@ -1392,7 +1392,7 @@ impl Device {
 
         // Pull in metadata.
         for reg in &mut regs {
-            if let Some(metadata) = Metadata::from_router_offset(reg.relative_offset) {
+            if let Some(metadata) = Metadata::with_router_offset(reg.relative_offset) {
                 reg.set_metadata(metadata);
             }
         }

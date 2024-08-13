@@ -319,7 +319,7 @@ fn main() {
         }
     };
 
-    let mut margining = match Margining::from(&address) {
+    let mut margining = match Margining::new(&address) {
         Err(err) => {
             eprintln!("Error: failed to initialize margining: {}", err);
             process::exit(1);

@@ -134,7 +134,7 @@ fn read_double_dwords(path: &str, attr: &str) -> Result<(u32, u32)> {
 }
 
 fn read_caps(path: &str) -> Result<Caps> {
-    Ok(Caps::from(read_double_dwords(path, MARGINING_CAPS)?))
+    Ok(Caps::new(read_double_dwords(path, MARGINING_CAPS)?))
 }
 
 fn read_results(path: &str) -> Result<(u32, u32)> {
@@ -231,7 +231,7 @@ impl Caps {
         }
     }
 
-    fn from(values: (u32, u32)) -> Self {
+    fn new(values: (u32, u32)) -> Self {
         Caps(values.0, values.1)
     }
 }
@@ -489,7 +489,7 @@ impl Results {
 /// # fn main() -> io::Result<()> {
 /// // Run margining on host router, first USB4 port.
 /// let address = Address::Adapter { domain: 0, route: 0, adapter: 1 };
-/// let mut margining = Margining::from(&address)?;
+/// let mut margining = Margining::new(&address)?;
 ///
 /// // Do additional configuration according to margining.caps().
 /// // ...
@@ -610,7 +610,7 @@ impl Margining {
     }
 
     /// Attaches margining to a given USB4 port or retimer.
-    pub fn from(address: &Address) -> Result<Self> {
+    pub fn new(address: &Address) -> Result<Self> {
         let mut path_buf = debugfs::path_buf()?;
 
         match address {
