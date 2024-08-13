@@ -227,10 +227,11 @@ fn run_margining(args: &Args, margining: &mut Margining) -> Result<()> {
         margining.set_mode(&Mode::Software);
     }
 
-    let mut tests = vec![Test::Voltage];
-    if caps.time() && !caps.time_is_destructive() {
-        tests.push(Test::Time);
-    }
+    let tests = if caps.time() && !caps.time_is_destructive() {
+        vec![Test::Voltage, Test::Time]
+    } else {
+        vec![Test::Voltage]
+    };
 
     let mut lanes = Vec::new();
     if caps.all_lanes() {
