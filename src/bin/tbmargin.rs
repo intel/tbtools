@@ -61,7 +61,10 @@ macro_rules! show_margin {
             Margin::Low | Margin::Left => $res.low_left_margin_exceeds($l),
             Margin::High | Margin::Right => $res.high_right_margin_exceeds($l),
         };
-        let unit = if $res.time() { "UI " } else { "mV" };
+        let unit = match $res.test() {
+            Test::Time => "UI ",
+            Test::Voltage => "mV",
+        };
         let margin = $m.to_string();
 
         match $l {

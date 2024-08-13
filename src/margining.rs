@@ -317,7 +317,7 @@ impl fmt::Display for Lanes {
 /// Selected margining test.
 ///
 /// Time margining can only be selected if [`Caps::time()`] returns `true`.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Test {
     /// Run voltage margining.
     Voltage,
@@ -351,13 +351,13 @@ impl fmt::Display for Test {
 #[derive(Debug)]
 pub struct Results {
     result: [u32; 2],
-    time: bool,
+    test: Test,
     voltage_ratio: f64,
     time_ratio: f64,
 }
 
 impl Results {
-    fn new(caps: &Caps, time: bool, values: (u32, u32)) -> Self {
+    fn new(caps: &Caps, test: Test, values: (u32, u32)) -> Self {
         let voltage_ratio = caps.max_voltage_offset() / caps.voltage_steps() as f64;
 
         let time_ratio = if caps.time() {
@@ -368,22 +368,21 @@ impl Results {
 
         Self {
             result: [values.0, values.1],
-            time,
+            test,
             voltage_ratio,
             time_ratio,
         }
     }
 
     /// Returns `true` if this result is from time margining.
-    pub fn time(&self) -> bool {
-        self.time
+    pub fn test(&self) -> Test {
+        self.test
     }
 
     fn to_margin(&self, value: u32) -> f64 {
-        if self.time() {
-            value as f64 * self.time_ratio
-        } else {
-            value as f64 * self.voltage_ratio
+        match self.test {
+            Test::Time => value as f64 * self.time_ratio,
+            Test::Voltage => value as f64 * self.voltage_ratio,
         }
     }
 
@@ -597,7 +596,7 @@ impl Margining {
 
         // Read back results
         let results = read_results(&self.path)?;
-        Ok(Results::new(&self.caps, self.is_time(), results))
+        Ok(Results::new(&self.caps, self.test, results))
     }
 
     /// Attaches margining to a given USB4 port or retimer.
