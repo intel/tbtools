@@ -10,8 +10,8 @@
 use lazy_static::lazy_static;
 
 use std::fmt;
-use std::fs::{File, OpenOptions};
-use std::io::{BufWriter, Error, ErrorKind, Read, Result, Write};
+use std::fs::{read_to_string, OpenOptions};
+use std::io::{BufWriter, Error, ErrorKind, Result, Write};
 use std::path::PathBuf;
 
 use regex::Regex;
@@ -46,12 +46,7 @@ by setting following in your kernel .config:
 
 fn read_attr(path: &str, attr: &str) -> Result<String> {
     let path_buf: PathBuf = [path, attr].iter().collect();
-
-    let mut file = File::open(path_buf)?;
-    let mut value = String::new();
-    file.read_to_string(&mut value)?;
-
-    Ok(value)
+    read_to_string(path_buf)
 }
 
 fn write_attr(path: &str, attr: &str, value: &str) -> Result<()> {
