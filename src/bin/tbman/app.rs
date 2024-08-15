@@ -2130,7 +2130,7 @@ fn build_details(siv: &mut Cursive, device: &Device) {
         }
 
         if let Some(unique_id) = device.unique_id() {
-            l.add_child(build_detail("UUID", unique_id));
+            l.add_child(build_detail("UUID:", unique_id));
         }
 
         if let Some(generation) = device.generation() {
@@ -2142,7 +2142,7 @@ fn build_details(siv: &mut Cursive, device: &Device) {
                 }
                 _ => String::from("Unknown"),
             };
-            l.add_child(build_detail("Generation", generation));
+            l.add_child(build_detail("Generation:", generation));
         }
 
         if let Some(nvm_version) = device.nvm_version() {
@@ -2170,7 +2170,7 @@ fn build_details(siv: &mut Cursive, device: &Device) {
             if let Some(authorized) = device.authorized() {
                 let mut line = SpannedString::new();
 
-                line.append_styled(format!("{:>14} ", "Authorized: "), theme::label());
+                line.append_styled(format!("{:>14} ", "Authorized:"), theme::label());
                 if authorized {
                     line.append_styled("Yes", theme::authorized());
                 } else {
