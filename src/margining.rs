@@ -561,7 +561,7 @@ impl Margining {
 
     /// Returns which "test" is selected.
     pub fn test(&self) -> Test {
-        self.test.clone()
+        self.test
     }
 
     /// Returns `true` if time margining is currently selected.
@@ -571,7 +571,7 @@ impl Margining {
 
     /// Sets desired margining "test".
     pub fn set_test(&mut self, test: &Test) {
-        self.test = test.clone()
+        self.test = *test;
     }
 
     /// Runs margining according to the configured settings.
