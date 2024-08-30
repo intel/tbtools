@@ -51,6 +51,20 @@ fn color_result(value: f64, exceeds: bool) -> String {
     }
 }
 
+fn color_counter(counter: u32) -> String {
+    if io::stdout().is_terminal() {
+        if counter > 0 {
+            Red.paint(format!("{}", counter)).to_string()
+        } else {
+            Green.paint(format!("{}", counter)).to_string()
+        }
+    } else if counter > 0 {
+        format!("{}!", counter)
+    } else {
+        format!("{}", counter)
+    }
+}
+
 macro_rules! show_margin {
     ($res:ident, $l:expr, $m:expr) => {{
         let margins = match $m {
@@ -89,10 +103,7 @@ macro_rules! show_errors {
         println!(
             "Lane {} margin errors : {}",
             if $l == &Lanes::Lane0 { 0 } else { 1 },
-            color_result(
-                $res.error_counter($l).0.into(),
-                $res.error_counter($l).0 > 0
-            )
+            color_counter($res.error_counter($l).0)
         );
     }};
 }
