@@ -453,7 +453,7 @@ impl Results {
 
     /// Returns error counters used with software margining.
     pub fn error_counter(&self, lane: &Lanes) -> (u32, u32) {
-        let lane0_counter = self.result[0] & usb4::MARGIN_SW_ERR_RX0_MASK;
+        let lane0_counter = self.result[1] & usb4::MARGIN_SW_ERR_RX0_MASK;
         let lane1_counter =
             (self.result[0] & usb4::MARGIN_SW_ERR_RX1_MASK) >> usb4::MARGIN_SW_ERR_RX1_SHIFT;
 
