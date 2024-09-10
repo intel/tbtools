@@ -94,14 +94,25 @@ pub mod margin {
         pub type TimeSteps = RegField<15, 11>;
         pub type TimeOffset = RegField<20, 16>;
     }
+
+    pub mod hw_res_1 {
+        use crate::util;
+        type RegBit<const BIT: u32> = util::RegBit<1, BIT>;
+        type RegField<const LOW: u32, const HIGH: u32> = util::RegField<1, LOW, HIGH>;
+        pub type HighRightMarginRX0 = RegField<6, 0>;
+        pub type HighRightExceedsRX0 = RegBit<7>;
+        pub type LowLeftMarginRX0 = RegField<14, 8>;
+        pub type LowLeftExceedsRX0 = RegBit<15>;
+        pub type HighRightMarginRX1 = RegField<22, 16>;
+        pub type HighRightExceedsRX1 = RegBit<23>;
+        pub type LowLeftMarginRX1 = RegField<30, 24>;
+        pub type LowLeftExceedsRX1 = RegBit<31>;
+    }
+
+    pub mod sw_err {
+        use crate::util;
+        type RegField<const LOW: u32, const HIGH: u32> = util::RegField<0, LOW, HIGH>;
+        pub type RX0 = RegField<3, 0>;
+        pub type RX1 = RegField<7, 4>;
+    }
 }
-
-pub const MARGIN_HW_RES_1_MARGIN_MASK: u32 = genmask!(6, 0);
-pub const MARGIN_HW_RES_1_EXCEEDS: u32 = 1 << 7;
-pub const MARGIN_HW_RES_1_RX0_LL_MARGIN_SHIFT: u32 = 8;
-pub const MARGIN_HW_RES_1_RX1_RH_MARGIN_SHIFT: u32 = 16;
-pub const MARGIN_HW_RES_1_RX1_LL_MARGIN_SHIFT: u32 = 24;
-
-pub const MARGIN_SW_ERR_RX0_MASK: u32 = genmask!(3, 0);
-pub const MARGIN_SW_ERR_RX1_MASK: u32 = genmask!(7, 4);
-pub const MARGIN_SW_ERR_RX1_SHIFT: u32 = 4;
