@@ -134,47 +134,50 @@ fn read_results(path: &str) -> Result<(u32, u32)> {
 
 /// Margining capabilities result from `READ_LANE_MARGIN_CAP` USB4 port operation.
 #[derive(Debug, Clone, Copy)]
-pub struct Caps(u32, u32);
+pub struct Caps {
+    raw: [u32; 2],
+}
 
 impl Caps {
     /// Is hardware margining supported.
     pub fn hardware(&self) -> bool {
-        (self.0 & usb4::MARGIN_CAP_0_MODES_HW) == usb4::MARGIN_CAP_0_MODES_HW
+        (self.raw[0] & usb4::MARGIN_CAP_0_MODES_HW) == usb4::MARGIN_CAP_0_MODES_HW
     }
 
     /// Is software marginint supported.
     pub fn software(&self) -> bool {
-        (self.0 & usb4::MARGIN_CAP_0_MODES_SW) == usb4::MARGIN_CAP_0_MODES_SW
+        (self.raw[0] & usb4::MARGIN_CAP_0_MODES_SW) == usb4::MARGIN_CAP_0_MODES_SW
     }
 
     /// Does the margining run on individual lanes or all lanes at once.
     pub fn all_lanes(&self) -> bool {
-        (self.0 & usb4::MARGIN_CAP_0_MULTI_LANE) == usb4::MARGIN_CAP_0_MULTI_LANE
+        (self.raw[0] & usb4::MARGIN_CAP_0_MULTI_LANE) == usb4::MARGIN_CAP_0_MULTI_LANE
     }
 
     /// Is time margining supported.
     pub fn time(&self) -> bool {
-        (self.0 & usb4::MARGIN_CAP_0_TIME) == usb4::MARGIN_CAP_0_TIME
+        (self.raw[0] & usb4::MARGIN_CAP_0_TIME) == usb4::MARGIN_CAP_0_TIME
     }
 
     /// Is time margining destructive.
     pub fn time_is_destructive(&self) -> bool {
         if self.time() {
-            return (self.1 & usb4::MARGIN_CAP_1_TIME_DESTR) == usb4::MARGIN_CAP_1_TIME_DESTR;
+            return (self.raw[1] & usb4::MARGIN_CAP_1_TIME_DESTR) == usb4::MARGIN_CAP_1_TIME_DESTR;
         }
         false
     }
 
     /// Independent voltage margins supported.
     pub fn independent_voltage_margins(&self) -> bool {
-        (self.0 & usb4::MARGIN_CAP_0_VOLTAGE_INDP_MASK) >> usb4::MARGIN_CAP_0_VOLTAGE_INDP_SHIFT
+        (self.raw[0] & usb4::MARGIN_CAP_0_VOLTAGE_INDP_MASK)
+            >> usb4::MARGIN_CAP_0_VOLTAGE_INDP_SHIFT
             == usb4::MARGIN_CAP_0_VOLTAGE_HL
     }
 
     /// Independent time margins supported (only if [`time()`](`Self::time()`) returns `true`).
     pub fn independent_time_margins(&self) -> bool {
         if self.time() {
-            return (self.1 & usb4::MARGIN_CAP_1_TIME_INDP_MASK)
+            return (self.raw[1] & usb4::MARGIN_CAP_1_TIME_INDP_MASK)
                 >> usb4::MARGIN_CAP_1_TIME_INDP_SHIFT
                 == usb4::MARGIN_CAP_1_TIME_LR;
         }
@@ -183,30 +186,33 @@ impl Caps {
 
     /// Maximum voltage offset in `mV`.
     pub fn max_voltage_offset(&self) -> f64 {
-        let value = (self.0 & usb4::MARGIN_CAP_0_MAX_VOLTAGE_OFFSET_MASK)
+        let value = (self.raw[0] & usb4::MARGIN_CAP_0_MAX_VOLTAGE_OFFSET_MASK)
             >> usb4::MARGIN_CAP_0_MAX_VOLTAGE_OFFSET_SHIFT;
         74.0 + value as f64 * 2.0
     }
 
     /// Number of voltage margining steps supported.
     pub fn voltage_steps(&self) -> u32 {
-        (self.0 & usb4::MARGIN_CAP_0_VOLTAGE_STEPS_MASK) >> usb4::MARGIN_CAP_0_VOLTAGE_STEPS_SHIFT
+        (self.raw[0] & usb4::MARGIN_CAP_0_VOLTAGE_STEPS_MASK)
+            >> usb4::MARGIN_CAP_0_VOLTAGE_STEPS_SHIFT
     }
 
     /// Maximum time margining offset in `UI` (Unit Interval).
     pub fn max_time_offset(&self) -> f64 {
-        let value =
-            (self.1 & usb4::MARGIN_CAP_1_TIME_OFFSET_MASK) >> usb4::MARGIN_CAP_1_TIME_OFFSET_SHIFT;
+        let value = (self.raw[1] & usb4::MARGIN_CAP_1_TIME_OFFSET_MASK)
+            >> usb4::MARGIN_CAP_1_TIME_OFFSET_SHIFT;
         0.2 + 0.01 * value as f64
     }
 
     /// Number of time margining steps supported.
     pub fn time_steps(&self) -> u32 {
-        (self.1 & usb4::MARGIN_CAP_1_TIME_STEPS_MASK) >> usb4::MARGIN_CAP_1_TIME_STEPS_SHIFT
+        (self.raw[1] & usb4::MARGIN_CAP_1_TIME_STEPS_MASK) >> usb4::MARGIN_CAP_1_TIME_STEPS_SHIFT
     }
 
     fn new(values: (u32, u32)) -> Self {
-        Caps(values.0, values.1)
+        Caps {
+            raw: [values.0, values.1],
+        }
     }
 }
 
