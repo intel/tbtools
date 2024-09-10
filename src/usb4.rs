@@ -69,26 +69,32 @@ pub const PATH_CS_0_OUT_ADAPTER_MASK: u32 = genmask!(16, 11);
 pub const PATH_CS_0_OUT_ADAPTER_SHIFT: u32 = 11;
 pub const PATH_CS_0_VALID: u32 = 1 << 31;
 
-pub const MARGIN_CAP_0_MODES_HW: u32 = 1 << 0;
-pub const MARGIN_CAP_0_MODES_SW: u32 = 1 << 1;
-pub const MARGIN_CAP_0_MULTI_LANE: u32 = 1 << 2;
-pub const MARGIN_CAP_0_VOLTAGE_INDP_MASK: u32 = genmask!(4, 3);
-pub const MARGIN_CAP_0_VOLTAGE_INDP_SHIFT: u32 = 3;
-pub const MARGIN_CAP_0_VOLTAGE_HL: u32 = 1;
-pub const MARGIN_CAP_0_TIME: u32 = 1 << 5;
-pub const MARGIN_CAP_0_VOLTAGE_STEPS_MASK: u32 = genmask!(12, 6);
-pub const MARGIN_CAP_0_VOLTAGE_STEPS_SHIFT: u32 = 6;
-pub const MARGIN_CAP_0_MAX_VOLTAGE_OFFSET_MASK: u32 = genmask!(18, 13);
-pub const MARGIN_CAP_0_MAX_VOLTAGE_OFFSET_SHIFT: u32 = 13;
+pub mod margin {
+    pub mod cap_0 {
+        use crate::util;
+        type RegBit<const BIT: u32> = util::RegBit<0, BIT>;
+        type RegField<const LOW: u32, const HIGH: u32> = util::RegField<0, LOW, HIGH>;
+        pub type ModesHW = RegBit<0>;
+        pub type ModesSW = RegBit<1>;
+        pub type MultiLane = RegBit<2>;
+        pub type VoltageIndp = RegField<4, 3>;
+        pub const VOLTAGE_HL: u32 = 1;
+        pub type Time = RegBit<5>;
+        pub type VoltageSteps = RegField<12, 6>;
+        pub type MaxVoltageOffset = RegField<18, 13>;
+    }
 
-pub const MARGIN_CAP_1_TIME_DESTR: u32 = 1 << 8;
-pub const MARGIN_CAP_1_TIME_INDP_MASK: u32 = genmask!(10, 9);
-pub const MARGIN_CAP_1_TIME_INDP_SHIFT: u32 = 9;
-pub const MARGIN_CAP_1_TIME_LR: u32 = 1;
-pub const MARGIN_CAP_1_TIME_STEPS_MASK: u32 = genmask!(15, 11);
-pub const MARGIN_CAP_1_TIME_STEPS_SHIFT: u32 = 11;
-pub const MARGIN_CAP_1_TIME_OFFSET_MASK: u32 = genmask!(20, 16);
-pub const MARGIN_CAP_1_TIME_OFFSET_SHIFT: u32 = 16;
+    pub mod cap_1 {
+        use crate::util;
+        type RegBit<const BIT: u32> = util::RegBit<1, BIT>;
+        type RegField<const LOW: u32, const HIGH: u32> = util::RegField<1, LOW, HIGH>;
+        pub type TimeDestr = RegBit<8>;
+        pub type TimeIndp = RegField<10, 9>;
+        pub const TIME_LR: u32 = 1;
+        pub type TimeSteps = RegField<15, 11>;
+        pub type TimeOffset = RegField<20, 16>;
+    }
+}
 
 pub const MARGIN_HW_RES_1_MARGIN_MASK: u32 = genmask!(6, 0);
 pub const MARGIN_HW_RES_1_EXCEEDS: u32 = 1 << 7;

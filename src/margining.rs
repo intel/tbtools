@@ -141,72 +141,66 @@ pub struct Caps {
 impl Caps {
     /// Is hardware margining supported.
     pub fn hardware(&self) -> bool {
-        (self.raw[0] & usb4::MARGIN_CAP_0_MODES_HW) == usb4::MARGIN_CAP_0_MODES_HW
+        usb4::margin::cap_0::ModesHW::get_bit(&self.raw)
     }
 
     /// Is software marginint supported.
     pub fn software(&self) -> bool {
-        (self.raw[0] & usb4::MARGIN_CAP_0_MODES_SW) == usb4::MARGIN_CAP_0_MODES_SW
+        usb4::margin::cap_0::ModesSW::get_bit(&self.raw)
     }
 
     /// Does the margining run on individual lanes or all lanes at once.
     pub fn all_lanes(&self) -> bool {
-        (self.raw[0] & usb4::MARGIN_CAP_0_MULTI_LANE) == usb4::MARGIN_CAP_0_MULTI_LANE
+        usb4::margin::cap_0::MultiLane::get_bit(&self.raw)
     }
 
     /// Is time margining supported.
     pub fn time(&self) -> bool {
-        (self.raw[0] & usb4::MARGIN_CAP_0_TIME) == usb4::MARGIN_CAP_0_TIME
+        usb4::margin::cap_0::Time::get_bit(&self.raw)
     }
 
     /// Is time margining destructive.
     pub fn time_is_destructive(&self) -> bool {
         if self.time() {
-            return (self.raw[1] & usb4::MARGIN_CAP_1_TIME_DESTR) == usb4::MARGIN_CAP_1_TIME_DESTR;
+            return usb4::margin::cap_1::TimeDestr::get_bit(&self.raw);
         }
         false
     }
 
     /// Independent voltage margins supported.
     pub fn independent_voltage_margins(&self) -> bool {
-        (self.raw[0] & usb4::MARGIN_CAP_0_VOLTAGE_INDP_MASK)
-            >> usb4::MARGIN_CAP_0_VOLTAGE_INDP_SHIFT
-            == usb4::MARGIN_CAP_0_VOLTAGE_HL
+        usb4::margin::cap_0::VoltageIndp::get_field(&self.raw) == usb4::margin::cap_0::VOLTAGE_HL
     }
 
     /// Independent time margins supported (only if [`time()`](`Self::time()`) returns `true`).
     pub fn independent_time_margins(&self) -> bool {
         if self.time() {
-            return (self.raw[1] & usb4::MARGIN_CAP_1_TIME_INDP_MASK)
-                >> usb4::MARGIN_CAP_1_TIME_INDP_SHIFT
-                == usb4::MARGIN_CAP_1_TIME_LR;
+            return usb4::margin::cap_1::TimeIndp::get_field(&self.raw)
+                == usb4::margin::cap_1::TIME_LR;
         }
         false
     }
 
     /// Maximum voltage offset in `mV`.
     pub fn max_voltage_offset(&self) -> f64 {
-        let value = (self.raw[0] & usb4::MARGIN_CAP_0_MAX_VOLTAGE_OFFSET_MASK)
-            >> usb4::MARGIN_CAP_0_MAX_VOLTAGE_OFFSET_SHIFT;
+        let value = usb4::margin::cap_0::MaxVoltageOffset::get_field(&self.raw);
         74.0 + value as f64 * 2.0
     }
 
     /// Number of voltage margining steps supported.
     pub fn voltage_steps(&self) -> u32 {
-        (self.raw[0] & usb4::MARGIN_CAP_0_VOLTAGE_STEPS_MASK)
-            >> usb4::MARGIN_CAP_0_VOLTAGE_STEPS_SHIFT
+        usb4::margin::cap_0::VoltageSteps::get_field(&self.raw)
     }
 
     /// Maximum time margining offset in `UI` (Unit Interval).
     pub fn max_time_offset(&self) -> f64 {
-        let value = (self.raw[1] & usb4::MARGIN_CAP_1_TIME_OFFSET_MASK)
-            >> usb4::MARGIN_CAP_1_TIME_OFFSET_SHIFT;
+        let value = usb4::margin::cap_1::TimeOffset::get_field(&self.raw);
         0.2 + 0.01 * value as f64
     }
 
     /// Number of time margining steps supported.
     pub fn time_steps(&self) -> u32 {
-        (self.raw[1] & usb4::MARGIN_CAP_1_TIME_STEPS_MASK) >> usb4::MARGIN_CAP_1_TIME_STEPS_SHIFT
+        usb4::margin::cap_1::TimeSteps::get_field(&self.raw)
     }
 
     fn new(values: (u32, u32)) -> Self {
