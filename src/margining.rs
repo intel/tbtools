@@ -133,7 +133,7 @@ fn read_results(path: &str) -> Result<(u32, u32)> {
 }
 
 /// Margining capabilities result from `READ_LANE_MARGIN_CAP` USB4 port operation.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Caps(u32, u32);
 
 impl Caps {
@@ -503,7 +503,7 @@ pub struct Margining {
 impl Margining {
     /// Returns the capabilities of the USB4 port or retimer.
     pub fn caps(&self) -> Caps {
-        Caps(self.caps.0, self.caps.1)
+        self.caps
     }
 
     /// Returns current BER level contour value if supported.
