@@ -161,3 +161,75 @@ pub fn system_boot_time() -> io::Result<TimeVal> {
 
     Err(Error::from(ErrorKind::Unsupported))
 }
+
+/// Define a single bit within a register
+///
+/// This type provides a compile time representation of how a given bit within
+/// a register is to be parsed. The `get_bit()` and `set_bit()` methods operate
+/// on an array slice that represents multiple consecutive words.
+///
+/// # Const Parameters
+///
+/// * `WORD_OFFSET` - The index of the array of words at which the bit resides
+/// * `BIT` - The bit offset within the word
+///
+/// # Examples
+/// ```
+/// use tbtools::util;
+/// type ModesSW = util::RegBit<0, 1>; // Word offset 0, bit offset 1
+///
+/// let mut raw = [0u32; 2];
+/// ModesSW::set_bit(&mut raw, true);
+/// assert_eq!(raw[0], 1 << 1);
+/// assert!(ModesSW::get_bit(&raw));
+/// ```
+pub struct RegBit<const WORD_OFFSET: usize, const BIT: u32>;
+
+impl<const WORD_OFFSET: usize, const BIT: u32> RegBit<WORD_OFFSET, BIT> {
+    const MASK: u32 = 1u32 << BIT;
+    const SHIFT: u32 = BIT;
+
+    pub fn get_bit(raw: &[u32]) -> bool {
+        (raw[WORD_OFFSET] & Self::MASK) >> Self::SHIFT != 0
+    }
+
+    pub fn set_bit(raw: &mut [u32], value: bool) {
+        raw[WORD_OFFSET] = (!Self::MASK & raw[WORD_OFFSET]) | if value { Self::MASK } else { 0 };
+    }
+}
+
+/// Define a field within a register
+///
+/// See `RegBit` documentation for background.
+///
+/// # Const Parameters
+///
+/// * `WORD_OFFSET` - The index of the array of words at which the bit resides
+/// * `LOW` - The bit offset of the lowest bit of the field
+/// * `HIGH` - The bit offset of the highest bit of the field
+///
+/// # Examples
+/// ```
+/// use tbtools::util;
+/// type VoltageIndp = util::RegField<1, 4, 3>;
+/// const VOLTAGE_HL: u32 = 1;
+///
+/// let mut raw = [0u32; 2];
+/// VoltageIndp::set_field(&mut raw, VOLTAGE_HL);
+/// assert_eq!(raw[1], VOLTAGE_HL << 3);
+/// assert_eq!(VoltageIndp::get_field(&raw), VOLTAGE_HL);
+/// ```
+pub struct RegField<const WORD_OFFSET: usize, const HIGH: u32, const LOW: u32>;
+
+impl<const WORD_OFFSET: usize, const HIGH: u32, const LOW: u32> RegField<WORD_OFFSET, HIGH, LOW> {
+    const MASK: u32 = genmask!(HIGH, LOW);
+    const SHIFT: u32 = LOW;
+
+    pub fn get_field(raw: &[u32]) -> u32 {
+        (raw[WORD_OFFSET] & Self::MASK) >> Self::SHIFT
+    }
+
+    pub fn set_field(raw: &mut [u32], value: u32) {
+        raw[WORD_OFFSET] = (!Self::MASK & raw[WORD_OFFSET]) | (Self::MASK & (value << Self::SHIFT));
+    }
+}
