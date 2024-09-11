@@ -69,7 +69,7 @@ fn dump_value(value: u32, args: &Args) {
 fn query_register(registers: &[Register], args: &Args) -> io::Result<()> {
     struct NameInfo {
         name: String,
-        offset: Option<u32>,
+        offset: Option<u16>,
         field: Option<String>,
         range: Option<RangeInclusive<u8>>,
     }

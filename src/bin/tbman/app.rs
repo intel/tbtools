@@ -1021,7 +1021,7 @@ fn update_register(siv: &mut Cursive) {
             let devices: &mut SelectView<Device> = &mut siv.find_name(DEVICES).unwrap();
             let index = devices.selected_id().unwrap();
             let device = devices.get_item_mut(index).unwrap().1;
-            let offset = reg.offset() as u16;
+            let offset = reg.offset();
             let space = selected_space(siv);
 
             let hw_reg = match space {

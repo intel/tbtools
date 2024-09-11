@@ -51,7 +51,7 @@ struct Args {
     offset: Option<String>,
 }
 
-fn offset(regs: &[Register], args: &Args) -> u32 {
+fn offset(regs: &[Register], args: &Args) -> u16 {
     if let Some(offset) = &args.offset {
         match util::parse_number(offset) {
             Some(offset) => offset,
@@ -124,7 +124,7 @@ fn dump_regs(regs: &Vec<Register>, args: &Args) {
             }
 
             // Offset and nregs are now relative to the cap_id.
-            if (reg.relative_offset() as u32) < offset {
+            if reg.relative_offset() < offset {
                 continue;
             }
         } else if let Some(vs_cap_id) = args.vs_cap_id {
@@ -133,7 +133,7 @@ fn dump_regs(regs: &Vec<Register>, args: &Args) {
             }
 
             // Offset and nregs are now relative to the vs_cap_id.
-            if (reg.relative_offset() as u32) < offset {
+            if reg.relative_offset() < offset {
                 continue;
             }
         } else if reg.offset() < offset {

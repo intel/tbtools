@@ -443,7 +443,7 @@ pub trait BitFields<T: PartialOrd + Num> {
 #[derive(Clone, Debug)]
 pub struct Register {
     /// Register absolute offset.
-    offset: u32,
+    offset: u16,
     /// Relative offset inside capability.
     relative_offset: u16,
     /// Register capability ID.
@@ -504,7 +504,7 @@ impl Register {
             return None;
         }
 
-        let offset = util::parse_hex::<u32>(values[0])?;
+        let offset = util::parse_hex::<u16>(values[0])?;
         let relative_offset = values[1].parse::<u16>().ok()?;
         let cap_id: u16;
         let vs_cap_id: u16;
@@ -533,8 +533,7 @@ impl Register {
     }
 
     /// Returns register absolute offset in the config space.
-    pub fn offset(&self) -> u32 {
-        // XXX: use u16 for the type
+    pub fn offset(&self) -> u16 {
         self.offset
     }
 
@@ -649,7 +648,7 @@ pub fn mount() -> Result<()> {
     }
 }
 
-fn read(path_buf: &PathBuf, offset: Option<u32>, nregs: Option<usize>) -> Result<Vec<Register>> {
+fn read(path_buf: &PathBuf, offset: Option<u16>, nregs: Option<usize>) -> Result<Vec<Register>> {
     let file = File::open(path_buf)?;
     let reader = BufReader::new(file);
     let offset = offset.unwrap_or(0);
@@ -914,10 +913,10 @@ impl Adapter {
             Type::Usb3GenTDown | Type::Usb3GenTUp => {
                 if let Some(reg) = self.register_by_name("ADP_USB3_GT_CS_0") {
                     let cap_offset = reg.offset();
-                    let nports = reg.field("Gen T Port Count");
+                    let nports = reg.field("Gen T Port Count") as u16;
 
                     for port in 0..nports {
-                        let offset = (cap_offset + 3 + port * 2) as u16;
+                        let offset = cap_offset + 3 + port * 2;
 
                         // If any of the ports have paths enabled we treat this adapter as enabled.
                         if let Some(pcs1) = self.register_by_offset(offset) {
@@ -1126,18 +1125,12 @@ impl Adapter {
 
     /// Returns adapter config space register by absolute offset.
     pub fn register_by_offset(&self, offset: u16) -> Option<&Register> {
-        self.regs
-            .as_ref()?
-            .iter()
-            .find(|r| r.offset == offset as u32)
+        self.regs.as_ref()?.iter().find(|r| r.offset == offset)
     }
 
     /// Returns mutable reference to an adapter config space register by absolute offset.
     pub fn register_by_offset_mut(&mut self, offset: u16) -> Option<&mut Register> {
-        self.regs
-            .as_mut()?
-            .iter_mut()
-            .find(|r| r.offset == offset as u32)
+        self.regs.as_mut()?.iter_mut().find(|r| r.offset == offset)
     }
 
     /// Reads adapter path config space.
@@ -1179,7 +1172,7 @@ impl Adapter {
                 .iter()
                 .filter(|p| p.offset >= (in_min_hop * 2).into() && p.offset % 2 == 0)
             {
-                let in_hop: u16 = (p.offset / 2) as u16;
+                let in_hop = p.offset / 2;
 
                 if let Some(path) = Path::new(self.adapter, in_hop, p.value) {
                     paths.push(path);
@@ -1214,10 +1207,7 @@ impl Adapter {
 
     /// Returns path config space register by absolute offset.
     pub fn path_register_by_offset(&self, offset: u16) -> Option<&Register> {
-        self.path_regs
-            .as_ref()?
-            .iter()
-            .find(|r| r.offset == offset as u32)
+        self.path_regs.as_ref()?.iter().find(|r| r.offset == offset)
     }
 
     /// Returns mutable reference to a path config space register by absolute offset.
@@ -1225,7 +1215,7 @@ impl Adapter {
         self.path_regs
             .as_mut()?
             .iter_mut()
-            .find(|r| r.offset == offset as u32)
+            .find(|r| r.offset == offset)
     }
 
     /// Returns enabled path in `in_hop`.
@@ -1280,7 +1270,7 @@ impl Adapter {
         self.counter_regs
             .as_ref()?
             .iter()
-            .find(|r| r.offset == offset as u32)
+            .find(|r| r.offset == offset)
     }
 
     /// Returns mutable reference to a counter register by absolute offset.
@@ -1288,7 +1278,7 @@ impl Adapter {
         self.counter_regs
             .as_mut()?
             .iter_mut()
-            .find(|r| r.offset == offset as u32)
+            .find(|r| r.offset == offset)
     }
 
     /// Clears all counters. This takes effect immediately.
@@ -1435,18 +1425,12 @@ impl Device {
 
     /// Get a single register by offset.
     pub fn register_by_offset(&self, offset: u16) -> Option<&Register> {
-        self.regs
-            .as_ref()?
-            .iter()
-            .find(|r| r.offset == offset as u32)
+        self.regs.as_ref()?.iter().find(|r| r.offset == offset)
     }
 
     /// Get a single mutable register by offset.
     pub fn register_by_offset_mut(&mut self, offset: u16) -> Option<&mut Register> {
-        self.regs
-            .as_mut()?
-            .iter_mut()
-            .find(|r| r.offset == offset as u32)
+        self.regs.as_mut()?.iter_mut().find(|r| r.offset == offset)
     }
 
     fn read_adapter(&self, adapter: u16, upstream: bool) -> Result<Adapter> {
