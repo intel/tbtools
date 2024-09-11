@@ -213,7 +213,8 @@ impl BitField {
     }
 
     pub(crate) fn parse(value: &Value) -> Option<Vec<BitField>> {
-        value.get("bitfields")?
+        value
+            .get("bitfields")?
             .as_array()
             .map(|fields| fields.iter().filter_map(Self::parse_one).collect())
     }
