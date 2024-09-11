@@ -15,6 +15,7 @@ tbget/tbdump
 tbman
 -----
  - full tunnel viewer + DP (bw management) stuff
+ - DROM viewer
  - NVM access
  - log viewer (for example show logs for this device)
  - lane margining
