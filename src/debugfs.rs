@@ -459,18 +459,6 @@ pub struct Register {
 }
 
 impl Register {
-    fn new(offset: u32, relative_offset: u16, cap_id: u16, vs_cap_id: u16, value: u32) -> Self {
-        Self {
-            offset,
-            relative_offset,
-            cap_id,
-            vs_cap_id,
-            value,
-            changed: false,
-            metadata: None,
-        }
-    }
-
     fn set_metadata(&mut self, metadata: Vec<Metadata>) {
         let mut matches: Vec<_> = metadata
             .into_iter()
@@ -533,7 +521,15 @@ impl Register {
             value = util::parse_hex::<u32>(values[4])?;
         }
 
-        Some(Self::new(offset, relative_offset, cap_id, vs_cap_id, value))
+        Some(Self {
+            offset,
+            relative_offset,
+            cap_id,
+            vs_cap_id,
+            value,
+            changed: false,
+            metadata: None,
+        })
     }
 
     /// Returns register absolute offset in the config space.
