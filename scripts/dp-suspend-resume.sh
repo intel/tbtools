@@ -386,7 +386,7 @@ get_dp_in_adapters()
 	eval "dp_in_adapters=($adps)"
 
 	if [ ${#dp_in_adapters[@]} -eq 0 ]; then
-		log_err "Couldn't find any enabled DP IN adapters to test\n"
+		log "Couldn't find any enabled DP IN adapters to test\n"
 		return 2
 	fi
 
@@ -400,7 +400,7 @@ init_dp_in_adapters()
 
 	$dry_run && return 0
 
-	get_dp_in_adapters || return 1
+	get_dp_in_adapters || return 0
 
 	if $adapters_got_detected; then
 		config_detect_str=detected
