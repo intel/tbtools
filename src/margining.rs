@@ -113,21 +113,21 @@ fn write_lanes(path: &Path, value: &Lanes) -> Result<()> {
     write_attr(path, MARGINING_LANES, &value.to_string())
 }
 
-fn read_double_dwords(path: &Path, attr: &str) -> Result<(u32, u32)> {
+fn read_double_dwords(path: &Path, attr: &str) -> Result<[u32; 2]> {
     let value = read_attr(path, attr)?;
     let lines = value.split('\n');
     let dwords: Vec<_> = lines
         .filter(|line| line.starts_with("0x"))
         .map(|line| util::parse_hex::<u32>(line).unwrap())
         .collect();
-    Ok((dwords[0], *(dwords.get(1).unwrap_or(&0))))
+    Ok([dwords[0], *(dwords.get(1).unwrap_or(&0))])
 }
 
 fn read_caps(path: &Path) -> Result<Caps> {
     Ok(Caps::new(read_double_dwords(path, MARGINING_CAPS)?))
 }
 
-fn read_results(path: &Path) -> Result<(u32, u32)> {
+fn read_results(path: &Path) -> Result<[u32; 2]> {
     read_double_dwords(path, MARGINING_RESULTS)
 }
 
@@ -202,10 +202,8 @@ impl Caps {
         usb4::margin::cap_1::TimeSteps::get_field(&self.raw)
     }
 
-    fn new(values: (u32, u32)) -> Self {
-        Caps {
-            raw: [values.0, values.1],
-        }
+    fn new(raw: [u32; 2]) -> Self {
+        Self { raw }
     }
 }
 
@@ -356,7 +354,7 @@ pub struct Results {
 }
 
 impl Results {
-    fn new(caps: &Caps, test: Test, values: (u32, u32)) -> Self {
+    fn new(caps: &Caps, test: Test, values: [u32; 2]) -> Self {
         let voltage_ratio = caps.max_voltage_offset() / caps.voltage_steps() as f64;
 
         let time_ratio = if caps.time() {
@@ -366,7 +364,7 @@ impl Results {
         };
 
         Self {
-            result: [values.0, values.1],
+            result: values,
             test,
             voltage_ratio,
             time_ratio,
