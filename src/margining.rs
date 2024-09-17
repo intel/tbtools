@@ -12,7 +12,7 @@ use lazy_static::lazy_static;
 use std::fmt;
 use std::fs::{read_to_string, OpenOptions};
 use std::io::{BufWriter, Error, ErrorKind, Result, Write};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use regex::Regex;
 
@@ -44,13 +44,12 @@ by setting following in your kernel .config:
     CONFIG_USB4_DEBUGFS_MARGINING=y
 ";
 
-fn read_attr(path: &str, attr: &str) -> Result<String> {
-    let path_buf: PathBuf = [path, attr].iter().collect();
-    read_to_string(path_buf)
+fn read_attr(path: &Path, attr: &str) -> Result<String> {
+    read_to_string(path.join(attr))
 }
 
-fn write_attr(path: &str, attr: &str, value: &str) -> Result<()> {
-    let path_buf: PathBuf = [path, attr].iter().collect();
+fn write_attr(path: &Path, attr: &str, value: &str) -> Result<()> {
+    let path_buf = path.join(attr);
 
     let file = OpenOptions::new().write(true).open(path_buf)?;
     let mut buf = BufWriter::new(file);
@@ -58,63 +57,63 @@ fn write_attr(path: &str, attr: &str, value: &str) -> Result<()> {
     buf.flush()
 }
 
-fn read_ber_level_contour(path: &str) -> Result<u32> {
+fn read_ber_level_contour(path: &Path) -> Result<u32> {
     let value = read_attr(path, MARGINING_BER_LEVEL_CONTOUR)?;
     let caps = BER_LEVEL_RE.captures(&value).unwrap();
 
     Ok(caps[1].parse::<u32>().unwrap())
 }
 
-fn write_ber_level_contour(path: &str, value: u32) -> Result<()> {
+fn write_ber_level_contour(path: &Path, value: u32) -> Result<()> {
     write_attr(path, MARGINING_BER_LEVEL_CONTOUR, &value.to_string())
 }
 
 /// Reads `[value0] value1 value2` attribute and returns the one that is
 /// currently selected (in brackets)
-fn read_select(path: &str, attr: &str) -> Result<String> {
+fn read_select(path: &Path, attr: &str) -> Result<String> {
     let value = read_attr(path, attr)?;
     let caps = SELECT_RE.captures(&value).unwrap();
 
     Ok(String::from(&caps[1]))
 }
 
-fn read_margin(path: &str) -> Result<Margin> {
+fn read_margin(path: &Path) -> Result<Margin> {
     let value: &str = &read_select(path, MARGINING_MARGIN)?;
     Ok(Margin::from(value))
 }
 
-fn write_margin(path: &str, value: &Margin) -> Result<()> {
+fn write_margin(path: &Path, value: &Margin) -> Result<()> {
     write_attr(path, MARGINING_MARGIN, &value.to_string())
 }
 
-fn read_mode(path: &str) -> Result<Mode> {
+fn read_mode(path: &Path) -> Result<Mode> {
     let value: &str = &read_select(path, MARGINING_MODE)?;
     Ok(Mode::from(value))
 }
 
-fn write_mode(path: &str, value: &Mode) -> Result<()> {
+fn write_mode(path: &Path, value: &Mode) -> Result<()> {
     write_attr(path, MARGINING_MODE, &value.to_string())
 }
 
-fn read_test(path: &str) -> Result<Test> {
+fn read_test(path: &Path) -> Result<Test> {
     let value: &str = &read_select(path, MARGINING_TEST)?;
     Ok(Test::from(value))
 }
 
-fn write_test(path: &str, value: &Test) -> Result<()> {
+fn write_test(path: &Path, value: &Test) -> Result<()> {
     write_attr(path, MARGINING_TEST, &value.to_string())
 }
 
-fn read_lanes(path: &str) -> Result<Lanes> {
+fn read_lanes(path: &Path) -> Result<Lanes> {
     let value: &str = &read_select(path, MARGINING_LANES)?;
     Ok(Lanes::from(value))
 }
 
-fn write_lanes(path: &str, value: &Lanes) -> Result<()> {
+fn write_lanes(path: &Path, value: &Lanes) -> Result<()> {
     write_attr(path, MARGINING_LANES, &value.to_string())
 }
 
-fn read_double_dwords(path: &str, attr: &str) -> Result<(u32, u32)> {
+fn read_double_dwords(path: &Path, attr: &str) -> Result<(u32, u32)> {
     let value = read_attr(path, attr)?;
     let lines = value.split('\n');
     let dwords: Vec<_> = lines
@@ -124,11 +123,11 @@ fn read_double_dwords(path: &str, attr: &str) -> Result<(u32, u32)> {
     Ok((dwords[0], *(dwords.get(1).unwrap_or(&0))))
 }
 
-fn read_caps(path: &str) -> Result<Caps> {
+fn read_caps(path: &Path) -> Result<Caps> {
     Ok(Caps::new(read_double_dwords(path, MARGINING_CAPS)?))
 }
 
-fn read_results(path: &str) -> Result<(u32, u32)> {
+fn read_results(path: &Path) -> Result<(u32, u32)> {
     read_double_dwords(path, MARGINING_RESULTS)
 }
 
@@ -489,7 +488,7 @@ pub struct Margining {
     ber_level_contour: Option<u32>,
     lanes: Lanes,
     test: Test,
-    path: String,
+    path: PathBuf,
 }
 
 impl Margining {
@@ -617,8 +616,8 @@ impl Margining {
 
         path_buf.push(MARGINING_DIR);
 
-        let path = String::from(path_buf.to_str().unwrap());
-        let caps = match read_caps(&path) {
+        let path = path_buf.as_path();
+        let caps = match read_caps(path) {
             Err(err) if err.kind() == ErrorKind::NotFound => {
                 eprintln!("{}", MARGINING_HELP);
                 Err(err)
@@ -635,19 +634,20 @@ impl Margining {
         }
 
         let ber_level_contour = if caps.hardware() {
-            Some(read_ber_level_contour(&path)?)
-        } else {
-            None
-        };
-        let margin = if caps.independent_voltage_margins() || caps.independent_time_margins() {
-            Some(read_margin(&path)?)
+            Some(read_ber_level_contour(path)?)
         } else {
             None
         };
 
-        let test = read_test(&path)?;
-        let mode = read_mode(&path)?;
-        let lanes = read_lanes(&path)?;
+        let margin = if caps.independent_voltage_margins() || caps.independent_time_margins() {
+            Some(read_margin(path)?)
+        } else {
+            None
+        };
+
+        let test = read_test(path)?;
+        let mode = read_mode(path)?;
+        let lanes = read_lanes(path)?;
 
         Ok(Margining {
             caps,
@@ -656,7 +656,7 @@ impl Margining {
             ber_level_contour,
             lanes,
             test,
-            path,
+            path: path_buf,
         })
     }
 }
