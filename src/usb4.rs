@@ -78,7 +78,9 @@ pub mod margin {
         pub type ModesSW = RegBit<1>;
         pub type MultiLane = RegBit<2>;
         pub type VoltageIndp = RegField<4, 3>;
-        pub const VOLTAGE_HL: u32 = 1;
+        pub const VOLTAGE_INDP_MIN: u32 = 0;
+        pub const VOLTAGE_INDP_EITHER: u32 = 1;
+        pub const VOLTAGE_INDP_BOTH: u32 = 2;
         pub type Time = RegBit<5>;
         pub type VoltageSteps = RegField<12, 6>;
         pub type MaxVoltageOffset = RegField<18, 13>;
@@ -90,7 +92,9 @@ pub mod margin {
         type RegField<const LOW: u32, const HIGH: u32> = util::RegField<1, LOW, HIGH>;
         pub type TimeDestr = RegBit<8>;
         pub type TimeIndp = RegField<10, 9>;
-        pub const TIME_LR: u32 = 1;
+        pub const TIME_INDP_MIN: u32 = 0;
+        pub const TIME_INDP_EITHER: u32 = 1;
+        pub const TIME_INDP_BOTH: u32 = 2;
         pub type TimeSteps = RegField<15, 11>;
         pub type TimeOffset = RegField<20, 16>;
     }

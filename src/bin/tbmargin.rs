@@ -12,7 +12,9 @@ use nix::unistd::Uid;
 
 use tbtools::{
     debugfs,
-    margining::{Caps, Lanes, Margin, Margining, Mode, Results, Test},
+    margining::{
+        Caps, IndependentTiming, IndependentVoltage, Lanes, Margin, Margining, Mode, Results, Test,
+    },
     util, Address,
 };
 
@@ -204,10 +206,10 @@ fn show_caps(caps: &Caps) {
     println!("Voltage margin steps       : {}", caps.voltage_steps());
     println!(
         "Independent voltage margins: {}",
-        if caps.independent_voltage_margins() {
-            "Yes"
-        } else {
-            "No"
+        match caps.independent_voltage_margins() {
+            tbtools::margining::IndependentVoltage::Minimum => "No (minimum)",
+            tbtools::margining::IndependentVoltage::Both => "Yes (both)",
+            tbtools::margining::IndependentVoltage::Either => "Yes (either)",
         }
     );
 
@@ -259,7 +261,7 @@ fn run_margining(args: &Args, margining: &mut Margining) -> Result<()> {
         let margins: Vec<Margin> = match test {
             Test::Voltage => {
                 println!("Running {} voltage margining", margining.mode());
-                if caps.independent_voltage_margins() {
+                if caps.independent_voltage_margins() == IndependentVoltage::Either {
                     vec![Margin::Low, Margin::High]
                 } else {
                     vec![]
@@ -267,7 +269,10 @@ fn run_margining(args: &Args, margining: &mut Margining) -> Result<()> {
             }
             Test::Time => {
                 println!("Running {} time margining", margining.mode());
-                if caps.independent_time_margins() {
+                if caps
+                    .independent_time_margins()
+                    .is_some_and(|indp| indp == IndependentTiming::Either)
+                {
                     vec![Margin::Left, Margin::Right]
                 } else {
                     vec![]

@@ -131,6 +131,28 @@ fn read_results(path: &Path) -> Result<[u32; 2]> {
     read_double_dwords(path, MARGINING_RESULTS)
 }
 
+/// Which type of independent voltage margins are supported.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum IndependentVoltage {
+    /// Minimum between high and low margins is returned.
+    Minimum,
+    /// Either high or low margins is returned.
+    Either,
+    /// Both high and low margins are returned.
+    Both,
+}
+
+/// Which type of independent timing margins are supported.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum IndependentTiming {
+    /// Minimum between right and left margins is returned.
+    Minimum,
+    /// Either right or left margins is returned.
+    Either,
+    /// Both right and left margins are returned.
+    Both,
+}
+
 /// Margining capabilities result from `READ_LANE_MARGIN_CAP` USB4 port operation.
 #[derive(Debug, Clone, Copy)]
 pub struct Caps {
@@ -167,17 +189,26 @@ impl Caps {
     }
 
     /// Independent voltage margins supported.
-    pub fn independent_voltage_margins(&self) -> bool {
-        usb4::margin::cap_0::VoltageIndp::get_field(&self.raw) == usb4::margin::cap_0::VOLTAGE_HL
+    pub fn independent_voltage_margins(&self) -> IndependentVoltage {
+        match usb4::margin::cap_0::VoltageIndp::get_field(&self.raw) {
+            usb4::margin::cap_0::VOLTAGE_INDP_MIN => IndependentVoltage::Minimum,
+            usb4::margin::cap_0::VOLTAGE_INDP_EITHER => IndependentVoltage::Either,
+            usb4::margin::cap_0::VOLTAGE_INDP_BOTH => IndependentVoltage::Both,
+            _ => panic!("Unsupported independent voltage margin caps value"),
+        }
     }
 
     /// Independent time margins supported (only if [`time()`](`Self::time()`) returns `true`).
-    pub fn independent_time_margins(&self) -> bool {
+    pub fn independent_time_margins(&self) -> Option<IndependentTiming> {
         if self.time() {
-            return usb4::margin::cap_1::TimeIndp::get_field(&self.raw)
-                == usb4::margin::cap_1::TIME_LR;
+            return Some(match usb4::margin::cap_1::TimeIndp::get_field(&self.raw) {
+                usb4::margin::cap_1::TIME_INDP_MIN => IndependentTiming::Minimum,
+                usb4::margin::cap_1::TIME_INDP_EITHER => IndependentTiming::Either,
+                usb4::margin::cap_1::TIME_INDP_BOTH => IndependentTiming::Both,
+                _ => panic!("Unsupported independent timing margin caps value"),
+            });
         }
-        false
+        None
     }
 
     /// Maximum voltage offset in `mV`.
@@ -637,7 +668,11 @@ impl Margining {
             None
         };
 
-        let margin = if caps.independent_voltage_margins() || caps.independent_time_margins() {
+        let margin = if caps.independent_voltage_margins() == IndependentVoltage::Either
+            || caps
+                .independent_time_margins()
+                .is_some_and(|indp| indp == IndependentTiming::Either)
+        {
             Some(read_margin(path)?)
         } else {
             None
