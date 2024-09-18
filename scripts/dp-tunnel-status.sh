@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 #
 # Dumps the DisplayPort tunnel status.
 #
@@ -38,16 +38,11 @@ dp_tunnel_status() {
 	local val
 
 	# Check type first
-	val=$(tbget -d $domain -r $route -a $adapter ADP_CS_2)
-	val=$(printf "0x%x" $((val & 0xffffff)))
-	case $val in
-	0xe0101 | 0xe0102)
-		;;
-	*)
-		echo "Error: unsupported adapter type: $val" 1>&2
+	val=$(tbadapters -d $domain -r $route -a $adapter -S | sed 1d | cut -d, -f 2)
+	if [[ $val != "DisplayPort IN" ]]; then
+		echo "Error: DisplayPort IN adapter expected" 1>&2
 		exit 1
-		;;
-	esac
+	fi
 
 	# Check if paths are enabled
 	val=$(tbget -d $domain -r $route -a $adapter ADP_DP_CS_0.VE)
