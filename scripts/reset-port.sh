@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 #
 # Triggers Downstream Port Reset on an adapter. Can be useful for
 # simulating hotplug for instance.
@@ -39,16 +39,11 @@ reset_port() {
 	local val
 
 	# Check type first
-	val=$(tbget -d $domain -r $route -a $adapter ADP_CS_2)
-	val=$(printf "0x%x" $((val & 0xffffff)))
-	case $val in
-	0x1)
-		;;
-	*)
+	val=$(tbadapters -d $domain -r $route -a $adapter -S | sed 1d | cut -d, -f 2)
+	if [[ $val != "Lane 0" ]]; then
 		echo "Error: unsupported adapter type: $val" 1>&2
 		exit 1
-		;;
-	esac
+	fi
 
 	tbset -d $domain -r $route -a $adapter PORT_CS_19.DPR=1
 	sleep 1
