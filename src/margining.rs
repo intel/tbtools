@@ -113,22 +113,22 @@ fn write_lanes(path: &Path, value: &Lanes) -> Result<()> {
     write_attr(path, MARGINING_LANES, &value.to_string())
 }
 
-fn read_double_dwords(path: &Path, attr: &str) -> Result<[u32; 2]> {
+fn read_dwords<const NUM_DWORDS: usize>(path: &Path, attr: &str) -> Result<[u32; NUM_DWORDS]> {
     let value = read_attr(path, attr)?;
     let lines = value.split('\n');
-    let dwords: Vec<_> = lines
+    let mut dwords_iter = lines
         .filter(|line| line.starts_with("0x"))
         .map(|line| util::parse_hex::<u32>(line).unwrap())
-        .collect();
-    Ok([dwords[0], *(dwords.get(1).unwrap_or(&0))])
+        .chain(std::iter::repeat(0));
+    Ok(std::array::from_fn(|_| dwords_iter.next().unwrap()))
 }
 
 fn read_caps(path: &Path) -> Result<Caps> {
-    Ok(Caps::new(read_double_dwords(path, MARGINING_CAPS)?))
+    Ok(Caps::new(read_dwords(path, MARGINING_CAPS)?))
 }
 
 fn read_results(path: &Path) -> Result<[u32; 2]> {
-    read_double_dwords(path, MARGINING_RESULTS)
+    read_dwords(path, MARGINING_RESULTS)
 }
 
 /// Which type of independent voltage margins are supported.
