@@ -153,94 +153,97 @@ pub enum IndependentTiming {
     Both,
 }
 
+/// Timing margining specific capabilities result from `READ_LANE_MARGIN_CAP` USB4 port operation.
+#[derive(Debug, Clone, Copy)]
+pub struct TimeCaps {
+    /// Is time margining supported.
+    pub destructive: bool,
+    /// Type of independent time margins.
+    pub independent_margins: IndependentTiming,
+    /// Maximum time offset in `UI` (Unit Interval).
+    pub max_offset: f64,
+    /// Number of time margining steps supported.
+    pub steps: u32,
+}
+
 /// Margining capabilities result from `READ_LANE_MARGIN_CAP` USB4 port operation.
 #[derive(Debug, Clone, Copy)]
 pub struct Caps {
-    raw: [u32; 2],
+    /// Is hardware margining supported.
+    pub hardware: bool,
+    /// Is software margining supported.
+    pub software: bool,
+    /// Does margining run on individual lanes or all lanes at once.
+    pub all_lanes: bool,
+    /// Time margining capabilities if supported.
+    pub time: Option<TimeCaps>,
+    /// Type of independent voltage margins.
+    pub independent_voltage_margins: IndependentVoltage,
+    /// Maximum voltage offset in `mV`.
+    pub max_voltage_offset: f64,
+    /// Number of voltage margining steps supported.
+    pub voltage_steps: u32,
 }
 
 impl Caps {
-    /// Is hardware margining supported.
-    pub fn hardware(&self) -> bool {
-        usb4::margin::cap_0::ModesHW::get_bit(&self.raw)
-    }
+    fn new(values: [u32; 2]) -> Self {
+        let hardware = usb4::margin::cap_0::ModesHW::get_bit(&values);
+        let software = usb4::margin::cap_0::ModesSW::get_bit(&values);
+        let all_lanes = usb4::margin::cap_0::MultiLane::get_bit(&values);
 
-    /// Is software marginint supported.
-    pub fn software(&self) -> bool {
-        usb4::margin::cap_0::ModesSW::get_bit(&self.raw)
-    }
-
-    /// Does the margining run on individual lanes or all lanes at once.
-    pub fn all_lanes(&self) -> bool {
-        usb4::margin::cap_0::MultiLane::get_bit(&self.raw)
-    }
-
-    /// Is time margining supported.
-    pub fn time(&self) -> bool {
-        usb4::margin::cap_0::Time::get_bit(&self.raw)
-    }
-
-    /// Is time margining destructive.
-    pub fn time_is_destructive(&self) -> bool {
-        if self.time() {
-            return usb4::margin::cap_1::TimeDestr::get_bit(&self.raw);
-        }
-        false
-    }
-
-    /// Independent voltage margins supported.
-    pub fn independent_voltage_margins(&self) -> IndependentVoltage {
-        match usb4::margin::cap_0::VoltageIndp::get_field(&self.raw) {
-            usb4::margin::cap_0::VOLTAGE_INDP_MIN => IndependentVoltage::Minimum,
-            usb4::margin::cap_0::VOLTAGE_INDP_EITHER => IndependentVoltage::Either,
-            usb4::margin::cap_0::VOLTAGE_INDP_BOTH => IndependentVoltage::Both,
-            _ => panic!("Unsupported independent voltage margin caps value"),
-        }
-    }
-
-    /// Independent time margins supported (only if [`time()`](`Self::time()`) returns `true`).
-    pub fn independent_time_margins(&self) -> Option<IndependentTiming> {
-        if self.time() {
-            return Some(match usb4::margin::cap_1::TimeIndp::get_field(&self.raw) {
+        let time = if usb4::margin::cap_0::Time::get_bit(&values) {
+            let destructive = usb4::margin::cap_1::TimeDestr::get_bit(&values);
+            let independent_margins = match usb4::margin::cap_1::TimeIndp::get_field(&values) {
                 usb4::margin::cap_1::TIME_INDP_MIN => IndependentTiming::Minimum,
                 usb4::margin::cap_1::TIME_INDP_EITHER => IndependentTiming::Either,
                 usb4::margin::cap_1::TIME_INDP_BOTH => IndependentTiming::Both,
                 _ => panic!("Unsupported independent timing margin caps value"),
-            });
+            };
+            let max_offset = {
+                let value = usb4::margin::cap_1::TimeOffset::get_field(&values);
+                0.2 + 0.01 * value as f64
+            };
+            let steps = usb4::margin::cap_1::TimeSteps::get_field(&values);
+            Some(TimeCaps {
+                destructive,
+                independent_margins,
+                max_offset,
+                steps,
+            })
+        } else {
+            None
+        };
+
+        let independent_voltage_margins = match usb4::margin::cap_0::VoltageIndp::get_field(&values)
+        {
+            usb4::margin::cap_0::VOLTAGE_INDP_MIN => IndependentVoltage::Minimum,
+            usb4::margin::cap_0::VOLTAGE_INDP_EITHER => IndependentVoltage::Either,
+            usb4::margin::cap_0::VOLTAGE_INDP_BOTH => IndependentVoltage::Both,
+            _ => panic!("Unsupported independent voltage margin caps value"),
+        };
+
+        let max_voltage_offset = {
+            let value = usb4::margin::cap_0::MaxVoltageOffset::get_field(&values);
+            74.0 + value as f64 * 2.0
+        };
+
+        let voltage_steps = usb4::margin::cap_0::VoltageSteps::get_field(&values);
+
+        Self {
+            hardware,
+            software,
+            all_lanes,
+            time,
+            independent_voltage_margins,
+            max_voltage_offset,
+            voltage_steps,
         }
-        None
-    }
-
-    /// Maximum voltage offset in `mV`.
-    pub fn max_voltage_offset(&self) -> f64 {
-        let value = usb4::margin::cap_0::MaxVoltageOffset::get_field(&self.raw);
-        74.0 + value as f64 * 2.0
-    }
-
-    /// Number of voltage margining steps supported.
-    pub fn voltage_steps(&self) -> u32 {
-        usb4::margin::cap_0::VoltageSteps::get_field(&self.raw)
-    }
-
-    /// Maximum time margining offset in `UI` (Unit Interval).
-    pub fn max_time_offset(&self) -> f64 {
-        let value = usb4::margin::cap_1::TimeOffset::get_field(&self.raw);
-        0.2 + 0.01 * value as f64
-    }
-
-    /// Number of time margining steps supported.
-    pub fn time_steps(&self) -> u32 {
-        usb4::margin::cap_1::TimeSteps::get_field(&self.raw)
-    }
-
-    fn new(raw: [u32; 2]) -> Self {
-        Self { raw }
     }
 }
 
 /// Determines the margin in case independent margins are supported.
 ///
-/// See also [`Caps::independent_voltage_margins()`] and [`Caps::independent_time_margins()`].
+/// See also [`Caps::independent_voltage_margins`] and [`Caps::time.independent_margins`].
 #[derive(Clone, Debug)]
 pub enum Margin {
     /// Low voltage margin.
@@ -308,7 +311,7 @@ impl fmt::Display for Mode {
 
 /// Selected lanes used for margining.
 ///
-/// If [`Caps::all_lanes()`] returns `true` only `All` can be selected. Otherwise both lanes can be
+/// If [`Caps::all_lanes`] is `true` only `All` can be selected. Otherwise both lanes can be
 /// used separately.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Lanes {
@@ -344,7 +347,7 @@ impl fmt::Display for Lanes {
 
 /// Selected margining test.
 ///
-/// Time margining can only be selected if [`Caps::time()`] returns `true`.
+/// Time margining can only be selected if [`Caps::time`] is `true`.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Test {
     /// Run voltage margining.
@@ -386,10 +389,10 @@ pub struct Results {
 
 impl Results {
     fn new(caps: &Caps, test: Test, values: [u32; 2]) -> Self {
-        let voltage_ratio = caps.max_voltage_offset() / caps.voltage_steps() as f64;
+        let voltage_ratio = caps.max_voltage_offset / caps.voltage_steps as f64;
 
-        let time_ratio = if caps.time() {
-            caps.max_time_offset() / caps.time_steps() as f64
+        let time_ratio = if let Some(time) = caps.time {
+            time.max_offset / time.steps as f64
         } else {
             0.0
         };
@@ -658,20 +661,20 @@ impl Margining {
         // Check that the margining is actually supported. Some routers such as the Anker one does
         // not support margining even though it's spec violation.
 
-        if !caps.hardware() && !caps.software() {
+        if !caps.hardware && !caps.software {
             return Err(Error::from(ErrorKind::Unsupported));
         }
 
-        let ber_level_contour = if caps.hardware() {
+        let ber_level_contour = if caps.hardware {
             Some(read_ber_level_contour(path)?)
         } else {
             None
         };
 
-        let margin = if caps.independent_voltage_margins() == IndependentVoltage::Either
+        let margin = if caps.independent_voltage_margins == IndependentVoltage::Either
             || caps
-                .independent_time_margins()
-                .is_some_and(|indp| indp == IndependentTiming::Either)
+                .time
+                .is_some_and(|time| time.independent_margins == IndependentTiming::Either)
         {
             Some(read_margin(path)?)
         } else {

@@ -185,45 +185,41 @@ fn show_results(
 fn show_caps(caps: &Caps) {
     println!(
         "Hardware margining         : {}",
-        if caps.hardware() { "Yes" } else { "No" }
+        if caps.hardware { "Yes" } else { "No" }
     );
     println!(
         "Software margining         : {}",
-        if caps.software() { "Yes" } else { "No" }
+        if caps.software { "Yes" } else { "No" }
     );
     println!(
         "Multi-lane margining       : {}",
-        if caps.all_lanes() { "Yes" } else { "No" }
+        if caps.all_lanes { "Yes" } else { "No" }
     );
     println!(
         "Time margining             : {}",
-        if caps.time() { "Yes" } else { "No" }
+        if caps.time.is_some() { "Yes" } else { "No" }
     );
     println!(
         "Maximum voltage offset     : {} mV",
-        caps.max_voltage_offset()
+        caps.max_voltage_offset
     );
-    println!("Voltage margin steps       : {}", caps.voltage_steps());
+    println!("Voltage margin steps       : {}", caps.voltage_steps);
     println!(
         "Independent voltage margins: {}",
-        match caps.independent_voltage_margins() {
+        match caps.independent_voltage_margins {
             tbtools::margining::IndependentVoltage::Minimum => "No (minimum)",
             tbtools::margining::IndependentVoltage::Both => "Yes (both)",
             tbtools::margining::IndependentVoltage::Either => "Yes (either)",
         }
     );
 
-    if caps.time() {
+    if let Some(time) = caps.time {
         println!(
             "Destructive time margining : {}",
-            if caps.time_is_destructive() {
-                "Yes"
-            } else {
-                "No"
-            }
+            if time.destructive { "Yes" } else { "No" }
         );
-        println!("Maximum time offset        : {} UI", caps.max_time_offset());
-        println!("Time margin steps          : {}", caps.time_steps());
+        println!("Maximum time offset        : {} UI", time.max_offset);
+        println!("Time margin steps          : {}", time.steps);
     }
 }
 
@@ -237,19 +233,19 @@ fn run_margining(args: &Args, margining: &mut Margining) -> Result<()> {
     }
 
     // Try with the hardware mode but if not supported then software.
-    if caps.hardware() {
+    if caps.hardware {
         margining.set_mode(&Mode::Hardware);
     } else {
         margining.set_mode(&Mode::Software);
     }
 
-    let tests = if caps.time() && !caps.time_is_destructive() {
+    let tests = if caps.time.is_some_and(|time| !time.destructive) {
         vec![Test::Voltage, Test::Time]
     } else {
         vec![Test::Voltage]
     };
 
-    let lanes = if caps.all_lanes() {
+    let lanes = if caps.all_lanes {
         vec![Lanes::All]
     } else {
         vec![Lanes::Lane0, Lanes::Lane1]
@@ -261,7 +257,7 @@ fn run_margining(args: &Args, margining: &mut Margining) -> Result<()> {
         let margins: Vec<Margin> = match test {
             Test::Voltage => {
                 println!("Running {} voltage margining", margining.mode());
-                if caps.independent_voltage_margins() == IndependentVoltage::Either {
+                if caps.independent_voltage_margins == IndependentVoltage::Either {
                     vec![Margin::Low, Margin::High]
                 } else {
                     vec![]
@@ -270,8 +266,8 @@ fn run_margining(args: &Args, margining: &mut Margining) -> Result<()> {
             Test::Time => {
                 println!("Running {} time margining", margining.mode());
                 if caps
-                    .independent_time_margins()
-                    .is_some_and(|indp| indp == IndependentTiming::Either)
+                    .time
+                    .is_some_and(|time| time.independent_margins == IndependentTiming::Either)
                 {
                     vec![Margin::Left, Margin::Right]
                 } else {
