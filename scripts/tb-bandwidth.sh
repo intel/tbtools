@@ -153,7 +153,7 @@ for pipe in $pipes; do
 	if [ -z "$crtc_id" ]; then
 		continue
 	fi
-	PATTERN="\[CRTC:$crtc_id:pipe $pipe\]:"
+	PATTERN="\\\[CRTC:$crtc_id:pipe $pipe\\\]:"
 	pipe_info=$(awk -v pattern="$PATTERN" '
 		$0 ~ pattern { printing = 1; next }
 		printing && /^\t/ { print; next }
