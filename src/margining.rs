@@ -123,10 +123,6 @@ fn read_dwords<const NUM_DWORDS: usize>(path: &Path, attr: &str) -> Result<[u32;
     Ok(std::array::from_fn(|_| dwords_iter.next().unwrap()))
 }
 
-fn read_caps(path: &Path) -> Result<Caps> {
-    Ok(Caps::new(read_dwords(path, MARGINING_CAPS)?))
-}
-
 fn read_results(path: &Path) -> Result<[u32; 2]> {
     read_dwords(path, MARGINING_RESULTS)
 }
@@ -238,6 +234,10 @@ impl Caps {
             max_voltage_offset,
             voltage_steps,
         }
+    }
+
+    fn with_path(path: &Path) -> Result<Self> {
+        Ok(Self::new(read_dwords(path, MARGINING_CAPS)?))
     }
 }
 
@@ -649,7 +649,7 @@ impl Margining {
         path_buf.push(MARGINING_DIR);
 
         let path = path_buf.as_path();
-        let caps = match read_caps(path) {
+        let caps = match Caps::with_path(path) {
             Err(err) if err.kind() == ErrorKind::NotFound => {
                 eprintln!("{}", MARGINING_HELP);
                 Err(err)
