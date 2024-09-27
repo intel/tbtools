@@ -99,6 +99,23 @@ pub mod margin {
         pub type TimeOffset = RegField<20, 16>;
     }
 
+    pub mod cap_2 {
+        use crate::util;
+        type RegBit<const BIT: u32> = util::RegBit<2, BIT>;
+        type RegField<const LOW: u32, const HIGH: u32> = util::RegField<2, LOW, HIGH>;
+        pub type ModesHW = RegBit<0>;
+        pub type ModesSW = RegBit<1>;
+        pub type Time = RegBit<2>;
+        pub type MaxVoltageOffset = RegField<8, 3>;
+        pub type VoltageSteps = RegField<15, 9>;
+        pub type VoltageIndp = RegField<17, 16>;
+        pub const VOLTAGE_INDP_MIN: u32 = 0;
+        pub const VOLTAGE_INDP_BOTH: u32 = 1;
+        pub type TimeIndp = RegField<10, 9>;
+        pub const TIME_INDP_MIN: u32 = 0;
+        pub const TIME_INDP_BOTH: u32 = 1;
+    }
+
     pub mod hw_res_1 {
         use crate::util;
         type RegBit<const BIT: u32> = util::RegBit<1, BIT>;

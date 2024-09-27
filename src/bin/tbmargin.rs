@@ -207,9 +207,11 @@ fn show_caps(caps: &Caps) {
     println!(
         "Independent voltage margins: {}",
         match caps.independent_voltage_margins {
-            tbtools::margining::IndependentVoltage::Minimum => "No (minimum)",
-            tbtools::margining::IndependentVoltage::Both => "Yes (both)",
-            tbtools::margining::IndependentVoltage::Either => "Yes (either)",
+            tbtools::margining::IndependentVoltage::Gen23Minimum => "No (minimum)",
+            tbtools::margining::IndependentVoltage::Gen23Both => "Yes (both)",
+            tbtools::margining::IndependentVoltage::Gen23Either => "Yes (either)",
+            tbtools::margining::IndependentVoltage::Gen4Minimum => "No (minimum)",
+            tbtools::margining::IndependentVoltage::Gen4Both => "Yes (both)",
         }
     );
 
@@ -257,7 +259,7 @@ fn run_margining(args: &Args, margining: &mut Margining) -> Result<()> {
         let margins: Vec<Margin> = match test {
             Test::Voltage => {
                 println!("Running {} voltage margining", margining.mode());
-                if caps.independent_voltage_margins == IndependentVoltage::Either {
+                if caps.independent_voltage_margins == IndependentVoltage::Gen23Either {
                     vec![Margin::Low, Margin::High]
                 } else {
                     vec![]
@@ -267,7 +269,7 @@ fn run_margining(args: &Args, margining: &mut Margining) -> Result<()> {
                 println!("Running {} time margining", margining.mode());
                 if caps
                     .time
-                    .is_some_and(|time| time.independent_margins == IndependentTiming::Either)
+                    .is_some_and(|time| time.independent_margins == IndependentTiming::Gen23Either)
                 {
                     vec![Margin::Left, Margin::Right]
                 } else {

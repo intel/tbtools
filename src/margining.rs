@@ -17,7 +17,7 @@ use std::path::{Path, PathBuf};
 use regex::Regex;
 
 use crate::debugfs;
-use crate::device::Address;
+use crate::device::{find_device, Address};
 use crate::usb4;
 use crate::util;
 
@@ -131,22 +131,30 @@ fn read_results(path: &Path) -> Result<[u32; 2]> {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum IndependentVoltage {
     /// Minimum between high and low margins is returned.
-    Minimum,
+    Gen23Minimum,
     /// Either high or low margins is returned.
-    Either,
+    Gen23Either,
     /// Both high and low margins are returned.
-    Both,
+    Gen23Both,
+    /// Minimum between high and low margins of the upper and lower eye is returned.
+    Gen4Minimum,
+    /// Both high and low margins are returned for upper and lower eye.
+    Gen4Both,
 }
 
 /// Which type of independent timing margins are supported.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum IndependentTiming {
     /// Minimum between right and left margins is returned.
-    Minimum,
+    Gen23Minimum,
     /// Either right or left margins is returned.
-    Either,
+    Gen23Either,
     /// Both right and left margins are returned.
-    Both,
+    Gen23Both,
+    /// Minimum between right and left margins of the upper and lower eye is returned.
+    Gen4Minimum,
+    /// Both right and left margins are returned for upper and lower eye.
+    Gen4Both,
 }
 
 /// Timing margining specific capabilities result from `READ_LANE_MARGIN_CAP` USB4 port operation.
@@ -182,18 +190,36 @@ pub struct Caps {
 }
 
 impl Caps {
-    fn new(values: [u32; 2]) -> Self {
-        let hardware = usb4::margin::cap_0::ModesHW::get_bit(&values);
-        let software = usb4::margin::cap_0::ModesSW::get_bit(&values);
+    fn new(values: [u32; 3], generation: u8) -> Self {
+        let (hardware, software, has_time) = match generation {
+            2 | 3 => (
+                usb4::margin::cap_0::ModesHW::get_bit(&values),
+                usb4::margin::cap_0::ModesSW::get_bit(&values),
+                usb4::margin::cap_0::Time::get_bit(&values),
+            ),
+            _ => (
+                usb4::margin::cap_2::ModesHW::get_bit(&values),
+                usb4::margin::cap_2::ModesSW::get_bit(&values),
+                usb4::margin::cap_2::Time::get_bit(&values),
+            ),
+        };
         let all_lanes = usb4::margin::cap_0::MultiLane::get_bit(&values);
 
-        let time = if usb4::margin::cap_0::Time::get_bit(&values) {
+        let time = if has_time {
             let destructive = usb4::margin::cap_1::TimeDestr::get_bit(&values);
-            let independent_margins = match usb4::margin::cap_1::TimeIndp::get_field(&values) {
-                usb4::margin::cap_1::TIME_INDP_MIN => IndependentTiming::Minimum,
-                usb4::margin::cap_1::TIME_INDP_EITHER => IndependentTiming::Either,
-                usb4::margin::cap_1::TIME_INDP_BOTH => IndependentTiming::Both,
-                _ => panic!("Unsupported independent timing margin caps value"),
+
+            let independent_margins = match generation {
+                2 | 3 => match usb4::margin::cap_1::TimeIndp::get_field(&values) {
+                    usb4::margin::cap_1::TIME_INDP_MIN => IndependentTiming::Gen23Minimum,
+                    usb4::margin::cap_1::TIME_INDP_EITHER => IndependentTiming::Gen23Either,
+                    usb4::margin::cap_1::TIME_INDP_BOTH => IndependentTiming::Gen23Both,
+                    _ => panic!("Unsupported independent timing margin caps value"),
+                },
+                _ => match usb4::margin::cap_2::TimeIndp::get_field(&values) {
+                    usb4::margin::cap_2::TIME_INDP_MIN => IndependentTiming::Gen4Minimum,
+                    usb4::margin::cap_2::TIME_INDP_BOTH => IndependentTiming::Gen4Both,
+                    _ => panic!("Unsupported independent Gen4 timing margin caps value"),
+                },
             };
             let max_offset = {
                 let value = usb4::margin::cap_1::TimeOffset::get_field(&values);
@@ -210,20 +236,30 @@ impl Caps {
             None
         };
 
-        let independent_voltage_margins = match usb4::margin::cap_0::VoltageIndp::get_field(&values)
-        {
-            usb4::margin::cap_0::VOLTAGE_INDP_MIN => IndependentVoltage::Minimum,
-            usb4::margin::cap_0::VOLTAGE_INDP_EITHER => IndependentVoltage::Either,
-            usb4::margin::cap_0::VOLTAGE_INDP_BOTH => IndependentVoltage::Both,
-            _ => panic!("Unsupported independent voltage margin caps value"),
+        let independent_voltage_margins = match generation {
+            2 | 3 => match usb4::margin::cap_0::VoltageIndp::get_field(&values) {
+                usb4::margin::cap_0::VOLTAGE_INDP_MIN => IndependentVoltage::Gen23Minimum,
+                usb4::margin::cap_0::VOLTAGE_INDP_EITHER => IndependentVoltage::Gen23Either,
+                usb4::margin::cap_0::VOLTAGE_INDP_BOTH => IndependentVoltage::Gen23Both,
+                _ => panic!("Unsupported independent voltage margin caps value"),
+            },
+            _ => match usb4::margin::cap_2::VoltageIndp::get_field(&values) {
+                usb4::margin::cap_0::VOLTAGE_INDP_MIN => IndependentVoltage::Gen4Minimum,
+                usb4::margin::cap_0::VOLTAGE_INDP_BOTH => IndependentVoltage::Gen4Both,
+                _ => panic!("Unsupported independent Gen4 voltage margin caps value"),
+            },
         };
 
-        let max_voltage_offset = {
-            let value = usb4::margin::cap_0::MaxVoltageOffset::get_field(&values);
-            74.0 + value as f64 * 2.0
+        let (max_voltage_offset, voltage_steps) = match generation {
+            2 | 3 => (
+                74.0 + usb4::margin::cap_0::MaxVoltageOffset::get_field(&values) as f64 * 2.0,
+                usb4::margin::cap_0::VoltageSteps::get_field(&values),
+            ),
+            _ => (
+                74.0 / 2.0 + usb4::margin::cap_2::MaxVoltageOffset::get_field(&values) as f64,
+                usb4::margin::cap_2::VoltageSteps::get_field(&values),
+            ),
         };
-
-        let voltage_steps = usb4::margin::cap_0::VoltageSteps::get_field(&values);
 
         Self {
             hardware,
@@ -236,8 +272,8 @@ impl Caps {
         }
     }
 
-    fn with_path(path: &Path) -> Result<Self> {
-        Ok(Self::new(read_dwords(path, MARGINING_CAPS)?))
+    fn with_path(path: &Path, generation: u8) -> Result<Self> {
+        Ok(Self::new(read_dwords(path, MARGINING_CAPS)?, generation))
     }
 }
 
@@ -624,6 +660,8 @@ impl Margining {
 
     /// Attaches margining to a given USB4 port or retimer.
     pub fn new(address: &Address) -> Result<Self> {
+        let device = find_device(address)?.unwrap();
+        let generation = device.generation().unwrap();
         let mut path_buf = debugfs::path_buf()?;
 
         match address {
@@ -649,7 +687,7 @@ impl Margining {
         path_buf.push(MARGINING_DIR);
 
         let path = path_buf.as_path();
-        let caps = match Caps::with_path(path) {
+        let caps = match Caps::with_path(path, generation) {
             Err(err) if err.kind() == ErrorKind::NotFound => {
                 eprintln!("{}", MARGINING_HELP);
                 Err(err)
@@ -670,11 +708,10 @@ impl Margining {
         } else {
             None
         };
-
-        let margin = if caps.independent_voltage_margins == IndependentVoltage::Either
+        let margin = if (caps.independent_voltage_margins == IndependentVoltage::Gen23Either)
             || caps
                 .time
-                .is_some_and(|time| time.independent_margins == IndependentTiming::Either)
+                .is_some_and(|time| time.independent_margins == IndependentTiming::Gen23Either)
         {
             Some(read_margin(path)?)
         } else {
