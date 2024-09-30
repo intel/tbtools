@@ -122,6 +122,7 @@ pub mod margin {
         type RegField<const LOW: u32, const HIGH: u32> = util::RegField<0, LOW, HIGH>;
         pub type LaneSelect = RegField<2, 0>;
         pub type Time = RegBit<3>;
+        pub type RHU = RegBit<4>;
     }
 
     pub mod hw_res_1 {

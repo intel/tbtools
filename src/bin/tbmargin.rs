@@ -13,8 +13,8 @@ use nix::unistd::Uid;
 use tbtools::{
     debugfs,
     margining::{
-        Caps, IndependentTiming, IndependentVoltage, LaneResult, Lanes, Margin, Margining, Mode,
-        ResultValue, Results, Test,
+        Caps, IndependentTiming, IndependentVoltage, LaneResult, LaneTimingResult,
+        LaneVoltageResult, Lanes, Margin, Margining, Mode, ResultValue, Results, Test,
     },
     util, Address,
 };
@@ -68,27 +68,40 @@ fn color_counter(counter: u32) -> String {
     }
 }
 
-macro_rules! show_margin {
-    ($res:ident, $m:expr) => {{
-        let margins = match $m {
-            Margin::Low | Margin::Left => $res.low_left_margin(),
-            Margin::High | Margin::Right => $res.high_right_margin(),
-        };
-        let margin = $m.to_string();
+fn show_lane_margin(idx: usize, margin: &str, result_value: &ResultValue, unit: &str) {
+    println!(
+        "Lane {idx} {margin:6 } : {} {unit}",
+        color_result(result_value)
+    );
+}
 
-        for (idx, result) in margins.iter().enumerate() {
-            if let Some(result) = result {
-                let (value, unit) = match result {
-                    LaneResult::Timing(value) => (value, "UI"),
-                    LaneResult::Voltage(value) => (value, "mV"),
-                };
-                println!(
-                    "Lane {idx} {margin:6 }margin : {} {unit}",
-                    color_result(value)
-                );
+fn show_lane_result(idx: usize, lane_result: &LaneResult) {
+    match lane_result {
+        LaneResult::Voltage(result) => {
+            let unit = "mV";
+            match result {
+                LaneVoltageResult::Minimum(value) => show_lane_margin(idx, "Min", value, unit),
+                LaneVoltageResult::Both { low, high } => {
+                    show_lane_margin(idx, "Low", low, unit);
+                    show_lane_margin(idx, "High", high, unit);
+                }
+                LaneVoltageResult::Low(value) => show_lane_margin(idx, "Low", value, unit),
+                LaneVoltageResult::High(value) => show_lane_margin(idx, "High", value, unit),
+            };
+        }
+        LaneResult::Timing(result) => {
+            let unit = "UI";
+            match result {
+                LaneTimingResult::Minimum(value) => show_lane_margin(idx, "Min", value, unit),
+                LaneTimingResult::Both { left, right } => {
+                    show_lane_margin(idx, "Left", left, unit);
+                    show_lane_margin(idx, "Right", right, unit);
+                }
+                LaneTimingResult::Left(value) => show_lane_margin(idx, "Left", value, unit),
+                LaneTimingResult::Right(value) => show_lane_margin(idx, "Right", value, unit),
             }
         }
-    }};
+    };
 }
 
 macro_rules! show_errors {
@@ -101,26 +114,13 @@ macro_rules! show_errors {
     }};
 }
 
-fn show_hardware_results(test: &Test, margin: Option<&Margin>, results: &Results) {
-    match *test {
-        Test::Voltage => match margin {
-            Some(m @ Margin::Low) => show_margin!(results, m),
-            Some(m @ Margin::High) => show_margin!(results, m),
-            None => {
-                show_margin!(results, Margin::Low);
-                show_margin!(results, Margin::High);
-            }
-            _ => panic!("Unsupported voltage margin"),
-        },
-        Test::Time => match margin {
-            Some(m @ Margin::Left) => show_margin!(results, m),
-            Some(m @ Margin::Right) => show_margin!(results, m),
-            None => {
-                show_margin!(results, Margin::Left);
-                show_margin!(results, Margin::Right);
-            }
-            _ => panic!("Unsupported time margin"),
-        },
+fn show_hardware_results(results: &Results) {
+    let margins = results.margins();
+
+    for (idx, lane) in margins.iter().enumerate() {
+        if let Some(lane_result) = lane {
+            show_lane_result(idx, lane_result);
+        }
     }
 }
 
@@ -137,9 +137,9 @@ fn show_software_results(lane: Lanes, test: &Test, results: &Results) {
     }
 }
 
-fn show_results(lane: Lanes, test: &Test, mode: &Mode, margin: Option<&Margin>, results: &Results) {
+fn show_results(lane: Lanes, test: &Test, mode: &Mode, results: &Results) {
     if *mode == Mode::Hardware {
-        show_hardware_results(test, margin, results)
+        show_hardware_results(results)
     } else {
         show_software_results(lane, test, results)
     }
@@ -249,16 +249,10 @@ fn run_margining(args: &Args, margining: &mut Margining) -> Result<()> {
             if !margins.is_empty() {
                 for margin in &margins {
                     margining.set_margin(margin);
-                    show_results(
-                        lane,
-                        test,
-                        &margining.mode(),
-                        Some(margin),
-                        &margining.run()?,
-                    );
+                    show_results(lane, test, &margining.mode(), &margining.run()?);
                 }
             } else {
-                show_results(lane, test, &margining.mode(), None, &margining.run()?);
+                show_results(lane, test, &margining.mode(), &margining.run()?);
             }
         }
 

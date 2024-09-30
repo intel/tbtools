@@ -437,20 +437,77 @@ impl ResultValue {
     }
 }
 
+/// Holds voltage lane margining result.
+#[derive(Debug)]
+pub enum LaneVoltageResult {
+    /// Result contains minimum between high and low voltage margins.
+    Minimum(ResultValue),
+    /// Results contains both high and low voltage margins.
+    Both { low: ResultValue, high: ResultValue },
+    /// Result contains high voltage margin.
+    High(ResultValue),
+    /// Result contains low voltage margin.
+    Low(ResultValue),
+}
+
+/// Holds time lane margining result.
+#[derive(Debug)]
+pub enum LaneTimingResult {
+    /// Result contains minimum between left and right time margins.
+    Minimum(ResultValue),
+    /// Result contains both left and right time margins.
+    Both {
+        left: ResultValue,
+        right: ResultValue,
+    },
+    /// Result contains right time margin.
+    Right(ResultValue),
+    /// Result contains left time margin.
+    Left(ResultValue),
+}
+
 /// Type of the margining result.
 #[derive(Debug)]
 pub enum LaneResult {
     /// Result is voltage margining.
-    Voltage(ResultValue),
+    Voltage(LaneVoltageResult),
     /// Result is time margining.
-    Timing(ResultValue),
+    Timing(LaneTimingResult),
 }
 
 impl LaneResult {
-    fn new(test: Test, result_value: ResultValue) -> Self {
+    fn new(
+        caps: &Caps,
+        test: Test,
+        rhu: bool,
+        ll_result_value: ResultValue,
+        hr_result_value: ResultValue,
+    ) -> Self {
         match test {
-            Test::Time => LaneResult::Timing(result_value),
-            Test::Voltage => LaneResult::Voltage(result_value),
+            Test::Voltage => LaneResult::Voltage(match caps.independent_voltage_margins {
+                IndependentVoltage::Gen23Minimum => LaneVoltageResult::Minimum(ll_result_value),
+                IndependentVoltage::Gen23Both => LaneVoltageResult::Both {
+                    low: ll_result_value,
+                    high: hr_result_value,
+                },
+                IndependentVoltage::Gen23Either => match rhu {
+                    true => LaneVoltageResult::High(hr_result_value),
+                    false => LaneVoltageResult::Low(hr_result_value),
+                },
+                _ => todo!("Gen4"),
+            }),
+            Test::Time => LaneResult::Timing(match caps.time.unwrap().independent_margins {
+                IndependentTiming::Gen23Minimum => LaneTimingResult::Minimum(ll_result_value),
+                IndependentTiming::Gen23Both => LaneTimingResult::Both {
+                    left: ll_result_value,
+                    right: hr_result_value,
+                },
+                IndependentTiming::Gen23Either => match rhu {
+                    true => LaneTimingResult::Right(hr_result_value),
+                    false => LaneTimingResult::Left(hr_result_value),
+                },
+                _ => todo!("Gen4"),
+            }),
         }
     }
 }
@@ -461,8 +518,10 @@ impl LaneResult {
 #[derive(Debug)]
 pub struct Results {
     result: [u32; 2],
+    caps: Caps,
     test: Test,
     lanes: Lanes,
+    rhu: bool,
     voltage_ratio: f64,
     time_ratio: f64,
 }
@@ -490,10 +549,14 @@ impl Results {
             0.0
         };
 
+        let rhu = usb4::margin::hw_res_0::RHU::get_bit(&values);
+
         Self {
             result: values,
+            caps: *caps,
             lanes,
             test,
+            rhu,
             voltage_ratio,
             time_ratio,
         }
@@ -534,19 +597,17 @@ impl Results {
     ///
     /// Depending on which lane was selected returns tuple of values in either `mV` or `UI` for
     /// each margin.
-    pub fn high_right_margin(&self) -> [Option<LaneResult>; 2] {
+    pub fn margins(&self) -> [Option<LaneResult>; 2] {
         let handle_lane = |l| {
-            self.lanes.intersects_with(l)
-                .then(|| LaneResult::new(self.test, self.result_value(l, true)))
-        };
-        [handle_lane(Lanes::Lane0), handle_lane(Lanes::Lane1)]
-    }
-
-    /// Returns low (or left) margin values in `mV` or `UI`.
-    pub fn low_left_margin(&self) -> [Option<LaneResult>; 2] {
-        let handle_lane = |l| {
-            self.lanes.intersects_with(l)
-                .then(|| LaneResult::new(self.test, self.result_value(l, false)))
+            self.lanes.intersects_with(l).then(|| {
+                LaneResult::new(
+                    &self.caps,
+                    self.test,
+                    self.rhu,
+                    self.result_value(l, true),
+                    self.result_value(Lanes::Lane0, false),
+                )
+            })
         };
         [handle_lane(Lanes::Lane0), handle_lane(Lanes::Lane1)]
     }
