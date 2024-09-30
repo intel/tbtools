@@ -462,6 +462,7 @@ impl LaneResult {
 pub struct Results {
     result: [u32; 2],
     test: Test,
+    lanes: Lanes,
     voltage_ratio: f64,
     time_ratio: f64,
 }
@@ -476,6 +477,13 @@ impl Results {
             Test::Voltage
         };
 
+        let lanes = match usb4::margin::hw_res_0::LaneSelect::get_field(&values) {
+            0 => Lanes::Lane0,
+            1 => Lanes::Lane1,
+            7 => Lanes::All,
+            lanes => panic!("Error: Unsupported lanes: {:#x}", lanes),
+        };
+
         let time_ratio = if let Some(time) = caps.time {
             time.max_offset / time.steps as f64
         } else {
@@ -484,6 +492,7 @@ impl Results {
 
         Self {
             result: values,
+            lanes,
             test,
             voltage_ratio,
             time_ratio,
@@ -525,18 +534,18 @@ impl Results {
     ///
     /// Depending on which lane was selected returns tuple of values in either `mV` or `UI` for
     /// each margin.
-    pub fn high_right_margin(&self, lane: Lanes) -> [Option<LaneResult>; 2] {
+    pub fn high_right_margin(&self) -> [Option<LaneResult>; 2] {
         let handle_lane = |l| {
-            lane.intersects_with(l)
+            self.lanes.intersects_with(l)
                 .then(|| LaneResult::new(self.test, self.result_value(l, true)))
         };
         [handle_lane(Lanes::Lane0), handle_lane(Lanes::Lane1)]
     }
 
     /// Returns low (or left) margin values in `mV` or `UI`.
-    pub fn low_left_margin(&self, lane: Lanes) -> [Option<LaneResult>; 2] {
+    pub fn low_left_margin(&self) -> [Option<LaneResult>; 2] {
         let handle_lane = |l| {
-            lane.intersects_with(l)
+            self.lanes.intersects_with(l)
                 .then(|| LaneResult::new(self.test, self.result_value(l, false)))
         };
         [handle_lane(Lanes::Lane0), handle_lane(Lanes::Lane1)]

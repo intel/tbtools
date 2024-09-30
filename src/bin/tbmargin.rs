@@ -69,10 +69,10 @@ fn color_counter(counter: u32) -> String {
 }
 
 macro_rules! show_margin {
-    ($res:ident, $l:expr, $m:expr) => {{
+    ($res:ident, $m:expr) => {{
         let margins = match $m {
-            Margin::Low | Margin::Left => $res.low_left_margin($l),
-            Margin::High | Margin::Right => $res.high_right_margin($l),
+            Margin::Low | Margin::Left => $res.low_left_margin(),
+            Margin::High | Margin::Right => $res.high_right_margin(),
         };
         let margin = $m.to_string();
 
@@ -101,47 +101,25 @@ macro_rules! show_errors {
     }};
 }
 
-fn show_hardware_results(lane: Lanes, test: &Test, margin: Option<&Margin>, results: &Results) {
+fn show_hardware_results(test: &Test, margin: Option<&Margin>, results: &Results) {
     match *test {
-        Test::Voltage => match lane {
-            Lanes::Lane0 | Lanes::All => match margin {
-                Some(m @ Margin::Low) => show_margin!(results, lane, m),
-                Some(m @ Margin::High) => show_margin!(results, lane, m),
-                None => {
-                    show_margin!(results, Lanes::Lane0, Margin::Low);
-                    show_margin!(results, Lanes::Lane0, Margin::High);
-                }
-                _ => panic!("Unsupported voltage margin"),
-            },
-            Lanes::Lane1 => match margin {
-                Some(m @ Margin::Low) => show_margin!(results, lane, m),
-                Some(m @ Margin::High) => show_margin!(results, lane, m),
-                None => {
-                    show_margin!(results, lane, Margin::Low);
-                    show_margin!(results, lane, Margin::High);
-                }
-                _ => panic!("Unsupported voltage margin"),
-            },
+        Test::Voltage => match margin {
+            Some(m @ Margin::Low) => show_margin!(results, m),
+            Some(m @ Margin::High) => show_margin!(results, m),
+            None => {
+                show_margin!(results, Margin::Low);
+                show_margin!(results, Margin::High);
+            }
+            _ => panic!("Unsupported voltage margin"),
         },
-        Test::Time => match lane {
-            Lanes::Lane0 | Lanes::All => match margin {
-                Some(m @ Margin::Left) => show_margin!(results, lane, m),
-                Some(m @ Margin::Right) => show_margin!(results, lane, m),
-                None => {
-                    show_margin!(results, Lanes::Lane0, Margin::Left);
-                    show_margin!(results, Lanes::Lane0, Margin::Right);
-                }
-                _ => panic!("Unsupported time margin"),
-            },
-            Lanes::Lane1 => match margin {
-                Some(m @ Margin::Left) => show_margin!(results, lane, m),
-                Some(m @ Margin::Right) => show_margin!(results, lane, m),
-                None => {
-                    show_margin!(results, lane, Margin::Left);
-                    show_margin!(results, lane, Margin::Right);
-                }
-                _ => panic!("Unsupported time margin"),
-            },
+        Test::Time => match margin {
+            Some(m @ Margin::Left) => show_margin!(results, m),
+            Some(m @ Margin::Right) => show_margin!(results, m),
+            None => {
+                show_margin!(results, Margin::Left);
+                show_margin!(results, Margin::Right);
+            }
+            _ => panic!("Unsupported time margin"),
         },
     }
 }
@@ -161,7 +139,7 @@ fn show_software_results(lane: Lanes, test: &Test, results: &Results) {
 
 fn show_results(lane: Lanes, test: &Test, mode: &Mode, margin: Option<&Margin>, results: &Results) {
     if *mode == Mode::Hardware {
-        show_hardware_results(lane, test, margin, results)
+        show_hardware_results(test, margin, results)
     } else {
         show_software_results(lane, test, results)
     }

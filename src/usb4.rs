@@ -119,6 +119,8 @@ pub mod margin {
     pub mod hw_res_0 {
         use crate::util;
         type RegBit<const BIT: u32> = util::RegBit<0, BIT>;
+        type RegField<const LOW: u32, const HIGH: u32> = util::RegField<0, LOW, HIGH>;
+        pub type LaneSelect = RegField<2, 0>;
         pub type Time = RegBit<3>;
     }
 
