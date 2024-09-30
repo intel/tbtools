@@ -359,6 +359,12 @@ pub enum Lanes {
     All,
 }
 
+impl Lanes {
+    fn intersects_with(&self, other: Self) -> bool {
+        *self == Lanes::All || other == Lanes::All || *self == other
+    }
+}
+
 impl From<&str> for Lanes {
     fn from(s: &str) -> Self {
         match s {
@@ -501,27 +507,20 @@ impl Results {
     /// Depending on which lane was selected returns tuple of values in either `mV` or `UI` for
     /// each margin.
     pub fn high_right_margin(&self, lane: Lanes) -> [Option<ResultValue>; 2] {
-        let lane0 = self.result_value(Lanes::Lane0, true);
-        let lane1 = self.result_value(Lanes::Lane1, true);
-        match lane {
-            Lanes::Lane0 => [Some(lane0), None],
-            Lanes::Lane1 => [None, Some(lane1)],
-            Lanes::All => [Some(lane0), Some(lane1)],
-        }
+        let handle_lane = |l| {
+            lane.intersects_with(l)
+                .then(|| self.result_value(l, true))
+        };
+        [handle_lane(Lanes::Lane0), handle_lane(Lanes::Lane1)]
     }
 
     /// Returns low (or left) margin values in `mV` or `UI`.
     pub fn low_left_margin(&self, lane: Lanes) -> [Option<ResultValue>; 2] {
-        let lane0 = self.result_value(Lanes::Lane0, true);
-        let lane1 = self.result_value(Lanes::Lane1, true);
-        match lane {
-            Lanes::Lane0 => [Some(lane0), None],
-            Lanes::Lane1 => [None, Some(lane1)],
-            Lanes::All => [
-                Some(lane0),
-                Some(lane1),
-            ],
-        }
+        let handle_lane = |l| {
+            lane.intersects_with(l)
+                .then(|| self.result_value(l, false))
+        };
+        [handle_lane(Lanes::Lane0), handle_lane(Lanes::Lane1)]
     }
 
     /// Returns error counters used with software margining.
