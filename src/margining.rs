@@ -355,6 +355,8 @@ pub enum Lanes {
     Lane0,
     /// Run only on lane 1.
     Lane1,
+    /// Run only on lane 2.
+    Lane2,
     /// Run on all lanes simultaneusly.
     All,
 }
@@ -370,6 +372,7 @@ impl From<&str> for Lanes {
         match s {
             "0" => Self::Lane0,
             "1" => Self::Lane1,
+            "2" => Self::Lane2,
             "all" => Self::All,
             _ => panic!("Error: unsupported lanes configuration"),
         }
@@ -381,6 +384,7 @@ impl fmt::Display for Lanes {
         let val = match *self {
             Self::Lane0 => "0",
             Self::Lane1 => "1",
+            Self::Lane2 => "2",
             Self::All => "all",
         };
         write!(f, "{}", val)
@@ -574,6 +578,7 @@ impl Results {
         let lanes = match usb4::margin::hw_res_0::LaneSelect::get_field(&values) {
             0 => Lanes::Lane0,
             1 => Lanes::Lane1,
+            2 => Lanes::Lane2,
             7 => Lanes::All,
             lanes => panic!("Error: Unsupported lanes: {:#x}", lanes),
         };
@@ -606,6 +611,7 @@ impl Results {
 
     fn result_value(&self, lane: Lanes, rhu: bool) -> ResultValue {
         use usb4::margin::hw_res_1::*;
+        use usb4::margin::hw_res_2::*;
         let (margin_value, exceeds) = match (lane, rhu) {
             (Lanes::Lane0, false) => (
                 LowLeftMarginRX0::get_field(&self.result),
@@ -623,6 +629,14 @@ impl Results {
                 HighRightMarginRX1::get_field(&self.result),
                 HighRightExceedsRX1::get_bit(&self.result),
             ),
+            (Lanes::Lane2, false) => (
+                LowLeftMarginRX2::get_field(&self.result),
+                LowLeftExceedsRX2::get_bit(&self.result),
+            ),
+            (Lanes::Lane2, true) => (
+                HighRightMarginRX2::get_field(&self.result),
+                HighRightExceedsRX2::get_bit(&self.result),
+            ),
             (Lanes::All, _) => panic!("Invalid lanes"),
         };
         ResultValue::new(self.to_margin(margin_value), exceeds)
@@ -632,7 +646,7 @@ impl Results {
     ///
     /// Depending on which lane was selected returns tuple of values in either `mV` or `UI` for
     /// each margin.
-    pub fn margins(&self) -> [Option<LaneResult>; 2] {
+    pub fn margins(&self) -> [Option<LaneResult>; 3] {
         let handle_lane = |l| {
             self.lanes.intersects_with(l).then(|| {
                 LaneResult::new(
@@ -644,17 +658,23 @@ impl Results {
                 )
             })
         };
-        [handle_lane(Lanes::Lane0), handle_lane(Lanes::Lane1)]
+        [
+            handle_lane(Lanes::Lane0),
+            handle_lane(Lanes::Lane1),
+            handle_lane(Lanes::Lane2),
+        ]
     }
 
     /// Returns error counters used with software margining.
     pub fn error_counter(&self, lane: Lanes) -> (u32, u32) {
         let lane0_counter = usb4::margin::sw_err::RX0::get_field(&self.result);
         let lane1_counter = usb4::margin::sw_err::RX1::get_field(&self.result);
+        let lane2_counter = usb4::margin::sw_err::RX2::get_field(&self.result);
 
         match lane {
             Lanes::Lane0 => (lane0_counter, 0u32),
             Lanes::Lane1 => (lane1_counter, 0u32),
+            Lanes::Lane2 => (lane2_counter, 0u32),
             Lanes::All => (lane0_counter, lane1_counter),
         }
     }

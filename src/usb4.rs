@@ -139,10 +139,21 @@ pub mod margin {
         pub type LowLeftExceedsRX1 = RegBit<31>;
     }
 
+    pub mod hw_res_2 {
+        use crate::util;
+        type RegBit<const BIT: u32> = util::RegBit<2, BIT>;
+        type RegField<const LOW: u32, const HIGH: u32> = util::RegField<2, LOW, HIGH>;
+        pub type HighRightMarginRX2 = RegField<6, 0>;
+        pub type HighRightExceedsRX2 = RegBit<7>;
+        pub type LowLeftMarginRX2 = RegField<14, 8>;
+        pub type LowLeftExceedsRX2 = RegBit<15>;
+    }
+
     pub mod sw_err {
         use crate::util;
         type RegField<const LOW: u32, const HIGH: u32> = util::RegField<1, LOW, HIGH>;
         pub type RX0 = RegField<3, 0>;
         pub type RX1 = RegField<7, 4>;
+        pub type RX2 = RegField<11, 8>;
     }
 }

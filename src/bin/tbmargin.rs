@@ -145,7 +145,7 @@ macro_rules! show_errors {
     ($l:expr, $res:ident) => {{
         println!(
             "Lane {} margin errors : {}",
-            if $l == Lanes::Lane0 { 0 } else { 1 },
+            $l,
             color_counter($res.error_counter($l).0)
         );
     }};
@@ -166,10 +166,12 @@ fn show_software_results(lane: Lanes, test: &Test, results: &Results) {
         Test::Voltage => match lane {
             Lanes::Lane0 | Lanes::All => show_errors!(Lanes::Lane0, results),
             Lanes::Lane1 => show_errors!(lane, results),
+            Lanes::Lane2 => show_errors!(lane, results),
         },
         Test::Time => match lane {
             Lanes::Lane0 | Lanes::All => show_errors!(Lanes::Lane0, results),
             Lanes::Lane1 => show_errors!(lane, results),
+            Lanes::Lane2 => show_errors!(lane, results),
         },
     }
 }
