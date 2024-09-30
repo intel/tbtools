@@ -13,7 +13,8 @@ use nix::unistd::Uid;
 use tbtools::{
     debugfs,
     margining::{
-        Caps, IndependentTiming, IndependentVoltage, Lanes, Margin, Margining, Mode, Results, Test,
+        Caps, IndependentTiming, IndependentVoltage, Lanes, Margin, Margining, Mode, ResultValue,
+        Results, Test,
     },
     util, Address,
 };
@@ -39,17 +40,17 @@ struct Args {
     caps: bool,
 }
 
-fn color_result(value: f64, exceeds: bool) -> String {
+fn color_result(res: &ResultValue) -> String {
     if io::stdout().is_terminal() {
-        if exceeds {
-            Red.paint(format!("{:6.2}", value)).to_string()
-        } else {
-            Green.paint(format!("{:6.2}", value)).to_string()
+        match res {
+            ResultValue::Ok(value) => Green.paint(format!("{:6.2}", value)).to_string(),
+            ResultValue::Exceeds(value) => Red.paint(format!("{:6.2}", value)).to_string(),
         }
-    } else if exceeds {
-        format!("{:6.2}!", value)
     } else {
-        format!("{:6.2}", value)
+        match res {
+            ResultValue::Ok(value) => format!("{:6.2}", value),
+            ResultValue::Exceeds(value) => format!("{:6.2}!", value),
+        }
     }
 }
 
@@ -73,27 +74,17 @@ macro_rules! show_margin {
             Margin::Low | Margin::Left => $res.low_left_margin($l),
             Margin::High | Margin::Right => $res.high_right_margin($l),
         };
-        let exceeds = match $m {
-            Margin::Low | Margin::Left => $res.low_left_margin_exceeds($l),
-            Margin::High | Margin::Right => $res.high_right_margin_exceeds($l),
-        };
         let unit = match $res.test() {
             Test::Time => "UI ",
             Test::Voltage => "mV",
         };
         let margin = $m.to_string();
 
-        match $l {
-            Lanes::Lane0 | Lanes::All => {
+        for (idx, result) in margins.iter().enumerate() {
+            if let Some(result) = result {
                 println!(
-                    "Lane 0 {margin:6 }margin : {} {unit}",
-                    color_result(margins.0, exceeds.0)
-                );
-            }
-            Lanes::Lane1 => {
-                println!(
-                    "Lane 1 {margin:6 }margin : {} {unit}",
-                    color_result(margins.0, exceeds.0)
+                    "Lane {idx} {margin:6 }margin : {} {unit}",
+                    color_result(result)
                 );
             }
         }

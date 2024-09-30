@@ -412,6 +412,25 @@ impl fmt::Display for Test {
     }
 }
 
+/// Margining result value.
+#[derive(Debug)]
+pub enum ResultValue {
+    /// Result exceeds the maximum.
+    Exceeds(f64),
+    /// Result is within the expected range.
+    Ok(f64),
+}
+
+impl ResultValue {
+    fn new(value: f64, exceeds: bool) -> Self {
+        if exceeds {
+            Self::Exceeds(value)
+        } else {
+            Self::Ok(value)
+        }
+    }
+}
+
 /// Results returned from a receiver lane margining operation.
 ///
 /// These are returned from [`Margining::run()`] after successful execution.
@@ -453,61 +472,55 @@ impl Results {
         }
     }
 
+    fn result_value(&self, lane: Lanes, rhu: bool) -> ResultValue {
+        use usb4::margin::hw_res_1::*;
+        let (margin_value, exceeds) = match (lane, rhu) {
+            (Lanes::Lane0, false) => (
+                LowLeftMarginRX0::get_field(&self.result),
+                LowLeftExceedsRX0::get_bit(&self.result),
+            ),
+            (Lanes::Lane0, true) => (
+                HighRightMarginRX0::get_field(&self.result),
+                HighRightExceedsRX0::get_bit(&self.result),
+            ),
+            (Lanes::Lane1, false) => (
+                LowLeftMarginRX1::get_field(&self.result),
+                LowLeftExceedsRX1::get_bit(&self.result),
+            ),
+            (Lanes::Lane1, true) => (
+                HighRightMarginRX1::get_field(&self.result),
+                HighRightExceedsRX1::get_bit(&self.result),
+            ),
+            (Lanes::All, _) => panic!("Invalid lanes"),
+        };
+        ResultValue::new(self.to_margin(margin_value), exceeds)
+    }
+
     /// High (or right) margin values.
     ///
     /// Depending on which lane was selected returns tuple of values in either `mV` or `UI` for
     /// each margin.
-    pub fn high_right_margin(&self, lane: Lanes) -> (f64, f64) {
-        let lane0_margin = self.to_margin(usb4::margin::hw_res_1::HighRightMarginRX0::get_field(
-            &self.result,
-        ));
-        let lane1_margin = self.to_margin(usb4::margin::hw_res_1::HighRightMarginRX1::get_field(
-            &self.result,
-        ));
-
+    pub fn high_right_margin(&self, lane: Lanes) -> [Option<ResultValue>; 2] {
+        let lane0 = self.result_value(Lanes::Lane0, true);
+        let lane1 = self.result_value(Lanes::Lane1, true);
         match lane {
-            Lanes::Lane0 => (lane0_margin, 0.0),
-            Lanes::Lane1 => (lane1_margin, 0.0),
-            Lanes::All => (lane0_margin, lane1_margin),
-        }
-    }
-
-    /// Returns `true` if high (or right) margin exceeds the maximum offset.
-    pub fn high_right_margin_exceeds(&self, lane: Lanes) -> (bool, bool) {
-        let lane0_exceeds = usb4::margin::hw_res_1::HighRightExceedsRX0::get_bit(&self.result);
-        let lane1_exceeds = usb4::margin::hw_res_1::HighRightExceedsRX1::get_bit(&self.result);
-
-        match lane {
-            Lanes::Lane0 => (lane0_exceeds, false),
-            Lanes::Lane1 => (lane1_exceeds, false),
-            Lanes::All => (lane0_exceeds, lane1_exceeds),
+            Lanes::Lane0 => [Some(lane0), None],
+            Lanes::Lane1 => [None, Some(lane1)],
+            Lanes::All => [Some(lane0), Some(lane1)],
         }
     }
 
     /// Returns low (or left) margin values in `mV` or `UI`.
-    pub fn low_left_margin(&self, lane: Lanes) -> (f64, f64) {
-        let lane0_margin = self.to_margin(usb4::margin::hw_res_1::LowLeftMarginRX0::get_field(
-            &self.result,
-        ));
-        let lane1_margin = self.to_margin(usb4::margin::hw_res_1::LowLeftMarginRX1::get_field(
-            &self.result,
-        ));
-
+    pub fn low_left_margin(&self, lane: Lanes) -> [Option<ResultValue>; 2] {
+        let lane0 = self.result_value(Lanes::Lane0, true);
+        let lane1 = self.result_value(Lanes::Lane1, true);
         match lane {
-            Lanes::Lane0 => (lane0_margin, 0.0),
-            Lanes::Lane1 => (lane1_margin, 0.0),
-            Lanes::All => (lane0_margin, lane1_margin),
-        }
-    }
-
-    /// Returns `true` if low (or left) margin exceeds the maximum offset.
-    pub fn low_left_margin_exceeds(&self, lane: Lanes) -> (bool, bool) {
-        let lane0_exceeds = usb4::margin::hw_res_1::LowLeftExceedsRX0::get_bit(&self.result);
-        let lane1_exceeds = usb4::margin::hw_res_1::LowLeftExceedsRX1::get_bit(&self.result);
-        match lane {
-            Lanes::Lane0 => (lane0_exceeds, false),
-            Lanes::Lane1 => (lane1_exceeds, false),
-            Lanes::All => (lane0_exceeds, lane1_exceeds),
+            Lanes::Lane0 => [Some(lane0), None],
+            Lanes::Lane1 => [None, Some(lane1)],
+            Lanes::All => [
+                Some(lane0),
+                Some(lane1),
+            ],
         }
     }
 
