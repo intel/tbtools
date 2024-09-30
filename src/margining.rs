@@ -123,7 +123,7 @@ fn read_dwords<const NUM_DWORDS: usize>(path: &Path, attr: &str) -> Result<[u32;
     Ok(std::array::from_fn(|_| dwords_iter.next().unwrap()))
 }
 
-fn read_results(path: &Path) -> Result<[u32; 2]> {
+fn read_results(path: &Path) -> Result<[u32; 3]> {
     read_dwords(path, MARGINING_RESULTS)
 }
 
@@ -437,6 +437,22 @@ impl ResultValue {
     }
 }
 
+/// Holds either Gen 4 upper eye or lower eye result.
+#[derive(Debug)]
+pub enum LaneResultGen4Both {
+    UpperEye(ResultValue),
+    LowerEye(ResultValue),
+}
+
+impl LaneResultGen4Both {
+    fn new(value: ResultValue, rhu: bool) -> Self {
+        match rhu {
+            true => Self::UpperEye(value),
+            false => Self::LowerEye(value),
+        }
+    }
+}
+
 /// Holds voltage lane margining result.
 #[derive(Debug)]
 pub enum LaneVoltageResult {
@@ -448,6 +464,11 @@ pub enum LaneVoltageResult {
     High(ResultValue),
     /// Result contains low voltage margin.
     Low(ResultValue),
+    /// Result contains high and low voltage margins if both eyes.
+    Gen4Both {
+        low: LaneResultGen4Both,
+        high: LaneResultGen4Both,
+    },
 }
 
 /// Holds time lane margining result.
@@ -464,6 +485,10 @@ pub enum LaneTimingResult {
     Right(ResultValue),
     /// Result contains left time margin.
     Left(ResultValue),
+    Gen4Both {
+        left: LaneResultGen4Both,
+        right: LaneResultGen4Both,
+    },
 }
 
 /// Type of the margining result.
@@ -485,7 +510,9 @@ impl LaneResult {
     ) -> Self {
         match test {
             Test::Voltage => LaneResult::Voltage(match caps.independent_voltage_margins {
-                IndependentVoltage::Gen23Minimum => LaneVoltageResult::Minimum(ll_result_value),
+                IndependentVoltage::Gen23Minimum | IndependentVoltage::Gen4Minimum => {
+                    LaneVoltageResult::Minimum(ll_result_value)
+                }
                 IndependentVoltage::Gen23Both => LaneVoltageResult::Both {
                     low: ll_result_value,
                     high: hr_result_value,
@@ -494,10 +521,15 @@ impl LaneResult {
                     true => LaneVoltageResult::High(hr_result_value),
                     false => LaneVoltageResult::Low(hr_result_value),
                 },
-                _ => todo!("Gen4"),
+                IndependentVoltage::Gen4Both => LaneVoltageResult::Gen4Both {
+                    high: LaneResultGen4Both::new(hr_result_value, rhu),
+                    low: LaneResultGen4Both::new(ll_result_value, rhu),
+                },
             }),
             Test::Time => LaneResult::Timing(match caps.time.unwrap().independent_margins {
-                IndependentTiming::Gen23Minimum => LaneTimingResult::Minimum(ll_result_value),
+                IndependentTiming::Gen23Minimum | IndependentTiming::Gen4Minimum => {
+                    LaneTimingResult::Minimum(ll_result_value)
+                }
                 IndependentTiming::Gen23Both => LaneTimingResult::Both {
                     left: ll_result_value,
                     right: hr_result_value,
@@ -506,7 +538,10 @@ impl LaneResult {
                     true => LaneTimingResult::Right(hr_result_value),
                     false => LaneTimingResult::Left(hr_result_value),
                 },
-                _ => todo!("Gen4"),
+                IndependentTiming::Gen4Both => LaneTimingResult::Gen4Both {
+                    right: LaneResultGen4Both::new(hr_result_value, rhu),
+                    left: LaneResultGen4Both::new(ll_result_value, rhu),
+                },
             }),
         }
     }
@@ -517,7 +552,7 @@ impl LaneResult {
 /// These are returned from [`Margining::run()`] after successful execution.
 #[derive(Debug)]
 pub struct Results {
-    result: [u32; 2],
+    result: [u32; 3],
     caps: Caps,
     test: Test,
     lanes: Lanes,
@@ -527,7 +562,7 @@ pub struct Results {
 }
 
 impl Results {
-    fn new(caps: &Caps, values: [u32; 2]) -> Self {
+    fn new(caps: &Caps, values: [u32; 3]) -> Self {
         let voltage_ratio = caps.max_voltage_offset / caps.voltage_steps as f64;
 
         let test = if usb4::margin::hw_res_0::Time::get_bit(&values) {

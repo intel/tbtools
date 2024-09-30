@@ -13,8 +13,9 @@ use nix::unistd::Uid;
 use tbtools::{
     debugfs,
     margining::{
-        Caps, IndependentTiming, IndependentVoltage, LaneResult, LaneTimingResult,
-        LaneVoltageResult, Lanes, Margin, Margining, Mode, ResultValue, Results, Test,
+        Caps, IndependentTiming, IndependentVoltage, LaneResult, LaneResultGen4Both,
+        LaneTimingResult, LaneVoltageResult, Lanes, Margin, Margining, Mode, ResultValue, Results,
+        Test,
     },
     util, Address,
 };
@@ -87,6 +88,24 @@ fn show_lane_result(idx: usize, lane_result: &LaneResult) {
                 }
                 LaneVoltageResult::Low(value) => show_lane_margin(idx, "Low", value, unit),
                 LaneVoltageResult::High(value) => show_lane_margin(idx, "High", value, unit),
+                LaneVoltageResult::Gen4Both { low, high } => {
+                    match low {
+                        LaneResultGen4Both::UpperEye(value) => {
+                            show_lane_margin(idx, "Upper eye low", value, unit)
+                        }
+                        LaneResultGen4Both::LowerEye(value) => {
+                            show_lane_margin(idx, "Lower eye low", value, unit)
+                        }
+                    }
+                    match high {
+                        LaneResultGen4Both::UpperEye(value) => {
+                            show_lane_margin(idx, "Upper eye high", value, unit)
+                        }
+                        LaneResultGen4Both::LowerEye(value) => {
+                            show_lane_margin(idx, "Lower eye high", value, unit)
+                        }
+                    }
+                }
             };
         }
         LaneResult::Timing(result) => {
@@ -99,6 +118,24 @@ fn show_lane_result(idx: usize, lane_result: &LaneResult) {
                 }
                 LaneTimingResult::Left(value) => show_lane_margin(idx, "Left", value, unit),
                 LaneTimingResult::Right(value) => show_lane_margin(idx, "Right", value, unit),
+                LaneTimingResult::Gen4Both { left, right } => {
+                    match left {
+                        LaneResultGen4Both::UpperEye(value) => {
+                            show_lane_margin(idx, "Upper eye left", value, unit)
+                        }
+                        LaneResultGen4Both::LowerEye(value) => {
+                            show_lane_margin(idx, "Lower eye left", value, unit)
+                        }
+                    }
+                    match right {
+                        LaneResultGen4Both::UpperEye(value) => {
+                            show_lane_margin(idx, "Upper eye right", value, unit)
+                        }
+                        LaneResultGen4Both::LowerEye(value) => {
+                            show_lane_margin(idx, "Lower eye right", value, unit)
+                        }
+                    }
+                }
             }
         }
     };
