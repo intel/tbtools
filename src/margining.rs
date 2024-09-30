@@ -449,8 +449,14 @@ pub struct Results {
 }
 
 impl Results {
-    fn new(caps: &Caps, test: Test, values: [u32; 2]) -> Self {
+    fn new(caps: &Caps, values: [u32; 2]) -> Self {
         let voltage_ratio = caps.max_voltage_offset / caps.voltage_steps as f64;
+
+        let test = if usb4::margin::hw_res_0::Time::get_bit(&values) {
+            Test::Time
+        } else {
+            Test::Voltage
+        };
 
         let time_ratio = if let Some(time) = caps.time {
             time.max_offset / time.steps as f64
@@ -667,7 +673,7 @@ impl Margining {
 
         // Read back results
         let results = read_results(&self.path)?;
-        Ok(Results::new(&self.caps, self.test, results))
+        Ok(Results::new(&self.caps, results))
     }
 
     /// Attaches margining to a given USB4 port or retimer.

@@ -116,6 +116,12 @@ pub mod margin {
         pub const TIME_INDP_BOTH: u32 = 1;
     }
 
+    pub mod hw_res_0 {
+        use crate::util;
+        type RegBit<const BIT: u32> = util::RegBit<0, BIT>;
+        pub type Time = RegBit<3>;
+    }
+
     pub mod hw_res_1 {
         use crate::util;
         type RegBit<const BIT: u32> = util::RegBit<1, BIT>;
