@@ -437,6 +437,24 @@ impl ResultValue {
     }
 }
 
+/// Type of the margining result.
+#[derive(Debug)]
+pub enum LaneResult {
+    /// Result is voltage margining.
+    Voltage(ResultValue),
+    /// Result is time margining.
+    Timing(ResultValue),
+}
+
+impl LaneResult {
+    fn new(test: Test, result_value: ResultValue) -> Self {
+        match test {
+            Test::Time => LaneResult::Timing(result_value),
+            Test::Voltage => LaneResult::Voltage(result_value),
+        }
+    }
+}
+
 /// Results returned from a receiver lane margining operation.
 ///
 /// These are returned from [`Margining::run()`] after successful execution.
@@ -470,11 +488,6 @@ impl Results {
             voltage_ratio,
             time_ratio,
         }
-    }
-
-    /// Returns `true` if this result is from time margining.
-    pub fn test(&self) -> Test {
-        self.test
     }
 
     fn to_margin(&self, value: u32) -> f64 {
@@ -512,19 +525,19 @@ impl Results {
     ///
     /// Depending on which lane was selected returns tuple of values in either `mV` or `UI` for
     /// each margin.
-    pub fn high_right_margin(&self, lane: Lanes) -> [Option<ResultValue>; 2] {
+    pub fn high_right_margin(&self, lane: Lanes) -> [Option<LaneResult>; 2] {
         let handle_lane = |l| {
             lane.intersects_with(l)
-                .then(|| self.result_value(l, true))
+                .then(|| LaneResult::new(self.test, self.result_value(l, true)))
         };
         [handle_lane(Lanes::Lane0), handle_lane(Lanes::Lane1)]
     }
 
     /// Returns low (or left) margin values in `mV` or `UI`.
-    pub fn low_left_margin(&self, lane: Lanes) -> [Option<ResultValue>; 2] {
+    pub fn low_left_margin(&self, lane: Lanes) -> [Option<LaneResult>; 2] {
         let handle_lane = |l| {
             lane.intersects_with(l)
-                .then(|| self.result_value(l, false))
+                .then(|| LaneResult::new(self.test, self.result_value(l, false)))
         };
         [handle_lane(Lanes::Lane0), handle_lane(Lanes::Lane1)]
     }

@@ -13,8 +13,8 @@ use nix::unistd::Uid;
 use tbtools::{
     debugfs,
     margining::{
-        Caps, IndependentTiming, IndependentVoltage, Lanes, Margin, Margining, Mode, ResultValue,
-        Results, Test,
+        Caps, IndependentTiming, IndependentVoltage, LaneResult, Lanes, Margin, Margining, Mode,
+        ResultValue, Results, Test,
     },
     util, Address,
 };
@@ -74,17 +74,17 @@ macro_rules! show_margin {
             Margin::Low | Margin::Left => $res.low_left_margin($l),
             Margin::High | Margin::Right => $res.high_right_margin($l),
         };
-        let unit = match $res.test() {
-            Test::Time => "UI ",
-            Test::Voltage => "mV",
-        };
         let margin = $m.to_string();
 
         for (idx, result) in margins.iter().enumerate() {
             if let Some(result) = result {
+                let (value, unit) = match result {
+                    LaneResult::Timing(value) => (value, "UI"),
+                    LaneResult::Voltage(value) => (value, "mV"),
+                };
                 println!(
                     "Lane {idx} {margin:6 }margin : {} {unit}",
-                    color_result(result)
+                    color_result(value)
                 );
             }
         }
