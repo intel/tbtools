@@ -132,7 +132,7 @@ pub mod margin {
 
     pub mod sw_err {
         use crate::util;
-        type RegField<const LOW: u32, const HIGH: u32> = util::RegField<0, LOW, HIGH>;
+        type RegField<const LOW: u32, const HIGH: u32> = util::RegField<1, LOW, HIGH>;
         pub type RX0 = RegField<3, 0>;
         pub type RX1 = RegField<7, 4>;
     }
