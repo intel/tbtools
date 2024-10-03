@@ -124,7 +124,7 @@ pub struct Device {
     kind: Kind,
     domain: u32,
     route: u64,
-    adapter_num: u16,
+    adapter_num: u8,
     index: u8,
     device: u16,
     vendor: u16,
@@ -271,7 +271,7 @@ impl Device {
     }
 
     /// If this is retimer, returns the adapter number this is connected to.
-    pub fn adapter_num(&self) -> u16 {
+    pub fn adapter_num(&self) -> u8 {
         self.adapter_num
     }
 
@@ -407,7 +407,7 @@ impl Device {
         kind: Kind,
         domain: u32,
         route: u64,
-        adapter_num: u16,
+        adapter_num: u8,
         index: u8,
         vendor: u16,
         device: u16,
@@ -541,7 +541,7 @@ impl Device {
         let kernel_name = String::from(udev.sysname().to_str()?);
         let domain: u32;
         let mut route: u64 = 0;
-        let mut adapter_num: u16 = 0;
+        let mut adapter_num: u8 = 0;
         let mut index: u8 = 0;
 
         match kind {

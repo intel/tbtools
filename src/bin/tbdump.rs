@@ -27,8 +27,8 @@ struct Args {
     #[arg(value_parser = util::parse_route, short, long)]
     route: u64,
     /// Adapter number if accessing adapters
-    #[arg(short, long, value_parser = clap::value_parser!(u16).range(1..64))]
-    adapter: Option<u16>,
+    #[arg(short, long, value_parser = clap::value_parser!(u8).range(1..64))]
+    adapter: Option<u8>,
     /// Select path config space of an adapter
     #[arg(short, long)]
     path: bool,
@@ -201,7 +201,7 @@ fn dump_router(device: &mut Device, args: &Args) -> io::Result<()> {
     Ok(())
 }
 
-fn dump_adapter(device: &mut Device, adapter: u16, args: &Args) -> io::Result<()> {
+fn dump_adapter(device: &mut Device, adapter: u8, args: &Args) -> io::Result<()> {
     device.read_adapters()?;
 
     if let Some(adapter) = device.adapter_mut(adapter) {

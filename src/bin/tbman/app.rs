@@ -705,7 +705,7 @@ fn selected_space(siv: &mut Cursive) -> ConfigSpace {
 }
 
 fn selected_adapter<'a>(siv: &mut Cursive, device: &'a mut Device) -> &'a mut Adapter {
-    let adapters = siv.find_name::<SelectView<u16>>("adapters").unwrap();
+    let adapters = siv.find_name::<SelectView<u8>>("adapters").unwrap();
     let adapter = adapters.selection().unwrap();
 
     device.adapter_mut(*adapter).unwrap()

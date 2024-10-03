@@ -364,10 +364,10 @@ impl<'a> ControlPacket<'a> {
     }
 
     /// Returns `Adapter Num` from the packet.
-    pub fn adapter_num(&self) -> Option<u16> {
+    pub fn adapter_num(&self) -> Option<u8> {
         Some(
             self.field_by_bitfield_name("Adapter Num")?
-                .field("Adapter Num") as u16,
+                .field("Adapter Num") as u8,
         )
     }
 
@@ -634,7 +634,7 @@ pub struct Entry {
     offset: Option<u16>,
     event: Option<Event>,
     dwords: Option<u16>,
-    adapter_num: Option<u16>,
+    adapter_num: Option<u8>,
     cs: Option<ConfigSpace>,
     sn: Option<u8>,
     unplug: Option<u8>,
@@ -708,7 +708,7 @@ impl Entry {
     }
 
     /// Adapter number if the packet was targeted to an adapter.
-    pub fn adapter_num(&self) -> Option<u16> {
+    pub fn adapter_num(&self) -> Option<u8> {
         match self.event() {
             // These two carry other than adapter number in "Event Info" field.
             Some(Event::RopCmplt) | Some(Event::DpConChange) => None,
@@ -857,7 +857,7 @@ impl Entry {
             .and_then(|o| util::parse_hex::<u8>(o))
             .map(|e| e.into());
         let dwords = kv.get("len").and_then(|l| l.parse::<u16>().ok());
-        let adapter_num = kv.get("port").and_then(|p| p.parse::<u16>().ok());
+        let adapter_num = kv.get("port").and_then(|p| p.parse::<u8>().ok());
         let cs: Option<ConfigSpace> = kv
             .get("config")
             .and_then(|cs| util::parse_hex::<u8>(cs))

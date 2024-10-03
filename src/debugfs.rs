@@ -695,18 +695,18 @@ fn write_changed(path_buf: &PathBuf, regs: &[Register]) -> Result<()> {
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Path {
     /// Input adapter number
-    in_adapter: u16,
+    in_adapter: u8,
     /// Input HopID
     in_hop: u16,
     /// Output adapter number
-    out_adapter: u16,
+    out_adapter: u8,
     /// Output HopID
     out_hop: u16,
 }
 
 impl Path {
     /// Creates a new path entry from `PATH_CS_0` register.
-    fn new(in_adapter: u16, in_hop: u16, path_cs_0: u32) -> Option<Self> {
+    fn new(in_adapter: u8, in_hop: u16, path_cs_0: u32) -> Option<Self> {
         if (path_cs_0 & usb4::PATH_CS_0_VALID) == usb4::PATH_CS_0_VALID {
             let out_hop = path_cs_0 & usb4::PATH_CS_0_OUT_HOP_MASK;
             let out_adapter =
@@ -714,7 +714,7 @@ impl Path {
             return Some(Self {
                 in_adapter,
                 in_hop,
-                out_adapter: out_adapter as u16,
+                out_adapter: out_adapter as u8,
                 out_hop: out_hop as u16,
             });
         }
@@ -722,7 +722,7 @@ impl Path {
     }
 
     /// Returns in adapter number.
-    pub fn in_adapter(&self) -> u16 {
+    pub fn in_adapter(&self) -> u8 {
         self.in_adapter
     }
 
@@ -732,7 +732,7 @@ impl Path {
     }
 
     /// Returns out adapter number.
-    pub fn out_adapter(&self) -> u16 {
+    pub fn out_adapter(&self) -> u8 {
         self.out_adapter
     }
 
@@ -806,7 +806,7 @@ pub enum State {
 /// ```
 #[derive(Clone, Debug)]
 pub struct Adapter {
-    adapter: u16,
+    adapter: u8,
     kind: Type,
     state: State,
     debugfs_path: PathBuf,
@@ -819,7 +819,7 @@ pub struct Adapter {
 }
 
 impl Adapter {
-    fn new(adapter: u16, debugfs_path: PathBuf, usb4: bool, upstream: bool) -> Self {
+    fn new(adapter: u8, debugfs_path: PathBuf, usb4: bool, upstream: bool) -> Self {
         Self {
             adapter,
             kind: Type::Inactive,
@@ -964,7 +964,7 @@ impl Adapter {
     }
 
     /// Returns number of this adapter.
-    pub fn adapter(&self) -> u16 {
+    pub fn adapter(&self) -> u8 {
         self.adapter
     }
 
@@ -1433,7 +1433,7 @@ impl Device {
         self.regs.as_mut()?.iter_mut().find(|r| r.offset == offset)
     }
 
-    fn read_adapter(&self, adapter: u16, upstream: bool) -> Result<Adapter> {
+    fn read_adapter(&self, adapter: u8, upstream: bool) -> Result<Adapter> {
         let mut path_buf = path_buf()?;
         path_buf.push(self.kernel_name());
 
@@ -1448,25 +1448,25 @@ impl Device {
     /// Return max adapter number.
     ///
     /// Only for routers. [`read_registers()`](Self::read_registers()) must be called before this.
-    pub fn max_adapter(&self) -> Option<u16> {
+    pub fn max_adapter(&self) -> Option<u8> {
         if !self.is_router() {
             return None;
         }
 
         let reg = self.register_by_name("ROUTER_CS_1")?;
-        Some(reg.field("Max Adapter") as u16)
+        Some(reg.field("Max Adapter") as u8)
     }
 
     /// Returns upstream adapter number of this device.
     ///
     /// Only for routers. [`read_registers()`](Self::read_registers()) must be called before this.
-    pub fn upstream_adapter(&self) -> Option<u16> {
+    pub fn upstream_adapter(&self) -> Option<u8> {
         if !self.is_router() {
             return None;
         }
 
         let reg = self.register_by_name("ROUTER_CS_1")?;
-        Some(reg.field("Upstream Adapter") as u16)
+        Some(reg.field("Upstream Adapter") as u8)
     }
 
     /// Reads device adapters from `debugfs`.
@@ -1509,7 +1509,7 @@ impl Device {
     }
 
     /// Returns device adapter with given number.
-    pub fn adapter(&self, adapter_num: u16) -> Option<&Adapter> {
+    pub fn adapter(&self, adapter_num: u8) -> Option<&Adapter> {
         self.adapters
             .as_ref()?
             .iter()
@@ -1517,7 +1517,7 @@ impl Device {
     }
 
     /// Returns mutable reference to an adapter with given number.
-    pub fn adapter_mut(&mut self, adapter_num: u16) -> Option<&mut Adapter> {
+    pub fn adapter_mut(&mut self, adapter_num: u8) -> Option<&mut Adapter> {
         self.adapters
             .as_mut()?
             .iter_mut()

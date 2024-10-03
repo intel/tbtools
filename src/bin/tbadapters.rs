@@ -30,14 +30,14 @@ struct Args {
     #[arg(value_parser = util::parse_route, short, long)]
     route: u64,
     /// Select only specific adapters
-    #[arg(short, long, value_parser = clap::value_parser!(u16).range(1..64))]
-    adapter: Option<Vec<u16>>,
+    #[arg(short, long, value_parser = clap::value_parser!(u8).range(1..64))]
+    adapter: Option<Vec<u8>>,
     /// Output suitable for scripting
     #[arg(short = 'S', long)]
     script: bool,
 }
 
-fn dump_adapter_num(adapter_num: u16, mut record: Option<&mut Vec<String>>) {
+fn dump_adapter_num(adapter_num: u8, mut record: Option<&mut Vec<String>>) {
     if let Some(ref mut record) = record {
         record.push(adapter_num.to_string());
     } else if io::stdout().is_terminal() {

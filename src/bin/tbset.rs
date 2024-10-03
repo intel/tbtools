@@ -25,8 +25,8 @@ struct Args {
     #[arg(value_parser = util::parse_route, short, long)]
     route: u64,
     /// Adapter number if accessing adapters
-    #[arg(short, long, value_parser = clap::value_parser!(u16).range(1..64))]
-    adapter: Option<u16>,
+    #[arg(short, long, value_parser = clap::value_parser!(u8).range(1..64))]
+    adapter: Option<u8>,
     /// Select path config space of an adapter
     #[arg(short, long)]
     path: bool,
@@ -74,7 +74,7 @@ fn write_router(device: &mut Device, values: &Vec<(String, u32)>) -> io::Result<
 
 fn write_adapter(
     device: &mut Device,
-    adapter: u16,
+    adapter: u8,
     values: &Vec<(String, u32)>,
     args: &Args,
 ) -> io::Result<()> {
