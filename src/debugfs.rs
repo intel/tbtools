@@ -770,6 +770,21 @@ pub enum State {
     Cld,
 }
 
+/// USB4 link speed.
+///
+/// Represents possible USB4 link speeds when the link is active.
+#[derive(Copy, Clone, Debug, PartialEq, PartialOrd, Eq, Hash, Ord)]
+pub enum Speed {
+    /// Link speed is unknown (e.g not active).
+    Unknown,
+    /// Link speed is Gen 2 (10 Gb/s).
+    Gen2,
+    /// Link speed is Gen 3 (20 Gb/s).
+    Gen3,
+    /// Link speed is Gen 4 (40 Gb/s).
+    Gen4,
+}
+
 /// Adapter of a router.
 ///
 /// This represents a single adapter of a router. When an adapter is created it contains its
@@ -1004,6 +1019,27 @@ impl Adapter {
     /// Is this lane 1 adapter.
     pub fn is_lane1(&self) -> bool {
         self.is_lane() && !self.is_lane0()
+    }
+
+    /// Returns current link speed of a lane adapter. If the link is not up or this is not a lane
+    /// adapter returns [`Speed::Unknown`].
+    pub fn link_speed(&self) -> Speed {
+        if self.is_lane() {
+            match self.state() {
+                State::Cl0 | State::Cl0sRx | State::Cl0sTx | State::Cl1 | State::Cl2 => {
+                    if let Some(reg) = self.register_by_name("LANE_ADP_CS_1") {
+                        match reg.field("Current Link Speed") {
+                            8 => return Speed::Gen2,
+                            4 => return Speed::Gen3,
+                            2 => return Speed::Gen4,
+                            _ => (),
+                        }
+                    }
+                }
+                _ => (),
+            }
+        }
+        Speed::Unknown
     }
 
     /// If the protocol adapter is enabled
