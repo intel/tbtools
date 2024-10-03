@@ -170,8 +170,8 @@ pub fn system_boot_time() -> io::Result<TimeVal> {
 ///
 /// # Const Parameters
 ///
-/// * `WORD_OFFSET` - The index of the array of words at which the bit resides
-/// * `BIT` - The bit offset within the word
+/// * `DWORD_OFFSET` - The index of the array of double words at which the bit resides
+/// * `BIT` - The bit offset within the double word
 ///
 /// # Examples
 /// ```
@@ -183,18 +183,18 @@ pub fn system_boot_time() -> io::Result<TimeVal> {
 /// assert_eq!(raw[0], 1 << 1);
 /// assert!(ModesSW::get_bit(&raw));
 /// ```
-pub struct RegBit<const WORD_OFFSET: usize, const BIT: u32>;
+pub struct RegBit<const DWORD_OFFSET: usize, const BIT: u32>;
 
-impl<const WORD_OFFSET: usize, const BIT: u32> RegBit<WORD_OFFSET, BIT> {
+impl<const DWORD_OFFSET: usize, const BIT: u32> RegBit<DWORD_OFFSET, BIT> {
     const MASK: u32 = 1u32 << BIT;
     const SHIFT: u32 = BIT;
 
     pub fn get_bit(raw: &[u32]) -> bool {
-        (raw[WORD_OFFSET] & Self::MASK) >> Self::SHIFT != 0
+        (raw[DWORD_OFFSET] & Self::MASK) >> Self::SHIFT != 0
     }
 
     pub fn set_bit(raw: &mut [u32], value: bool) {
-        raw[WORD_OFFSET] = (!Self::MASK & raw[WORD_OFFSET]) | if value { Self::MASK } else { 0 };
+        raw[DWORD_OFFSET] = (!Self::MASK & raw[DWORD_OFFSET]) | if value { Self::MASK } else { 0 };
     }
 }
 
@@ -204,7 +204,7 @@ impl<const WORD_OFFSET: usize, const BIT: u32> RegBit<WORD_OFFSET, BIT> {
 ///
 /// # Const Parameters
 ///
-/// * `WORD_OFFSET` - The index of the array of words at which the bit resides
+/// * `DWORD_OFFSET` - The index of the array of double words at which the bit resides
 /// * `LOW` - The bit offset of the lowest bit of the field
 /// * `HIGH` - The bit offset of the highest bit of the field
 ///
@@ -219,17 +219,18 @@ impl<const WORD_OFFSET: usize, const BIT: u32> RegBit<WORD_OFFSET, BIT> {
 /// assert_eq!(raw[1], VOLTAGE_HL << 3);
 /// assert_eq!(VoltageIndp::get_field(&raw), VOLTAGE_HL);
 /// ```
-pub struct RegField<const WORD_OFFSET: usize, const HIGH: u32, const LOW: u32>;
+pub struct RegField<const DWORD_OFFSET: usize, const HIGH: u32, const LOW: u32>;
 
-impl<const WORD_OFFSET: usize, const HIGH: u32, const LOW: u32> RegField<WORD_OFFSET, HIGH, LOW> {
+impl<const DWORD_OFFSET: usize, const HIGH: u32, const LOW: u32> RegField<DWORD_OFFSET, HIGH, LOW> {
     const MASK: u32 = genmask!(HIGH, LOW);
     const SHIFT: u32 = LOW;
 
     pub fn get_field(raw: &[u32]) -> u32 {
-        (raw[WORD_OFFSET] & Self::MASK) >> Self::SHIFT
+        (raw[DWORD_OFFSET] & Self::MASK) >> Self::SHIFT
     }
 
     pub fn set_field(raw: &mut [u32], value: u32) {
-        raw[WORD_OFFSET] = (!Self::MASK & raw[WORD_OFFSET]) | (Self::MASK & (value << Self::SHIFT));
+        raw[DWORD_OFFSET] =
+            (!Self::MASK & raw[DWORD_OFFSET]) | (Self::MASK & (value << Self::SHIFT));
     }
 }
