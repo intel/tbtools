@@ -282,7 +282,7 @@ impl Device {
 
     /// Returns depth of the device in topology.
     pub fn depth(&self) -> u32 {
-        ((u64::BITS - self.route.leading_zeros()) + ROUTE_SHIFT - 1) / ROUTE_SHIFT
+        (u64::BITS - self.route.leading_zeros()).div_ceil(ROUTE_SHIFT)
     }
 
     /// Returns Rx speed of the device in Mb/s.
