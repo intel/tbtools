@@ -3,7 +3,7 @@
 // Copyright (C) 2023, Intel Corporation
 // Author: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-use ansi_term::Colour::{Cyan, Yellow};
+use ansi_term::Colour::{Cyan, Green, Red, White, Yellow};
 use clap::Parser;
 use nix::unistd::Uid;
 use std::{
@@ -14,7 +14,8 @@ use std::{
 use tbtools::{
     self,
     debugfs::{self, BitFields, Name, Register},
-    usb4, util, Address, Device,
+    drom::{Drom, DromEntry, TmuMode, TmuRate},
+    usb4, util, Address, Device, Version,
 };
 
 #[derive(Parser, Debug)]
@@ -44,6 +45,9 @@ struct Args {
     /// Dump starting from specific VSEC capability only (OFFSET and NREGS are relative)
     #[arg(short = 'V', long, group = "cap")]
     vs_cap_id: Option<u16>,
+    /// Dump router DROM instead of registers
+    #[arg(short = 'R', long)]
+    drom: bool,
     /// Number of double words to read
     #[arg(short = 'N', long)]
     nregs: Option<usize>,
@@ -110,6 +114,36 @@ fn color_field_short_name(short_name: &str) -> String {
         Yellow.bold().paint(short_name).to_string()
     } else {
         String::from(short_name)
+    }
+}
+
+fn color_goodbad(yesno: bool) -> String {
+    if io::stdout().is_terminal() {
+        if yesno {
+            Green.bold().paint("✔").to_string()
+        } else {
+            Red.bold().paint("✘").to_string()
+        }
+    } else if yesno {
+        String::from("✔")
+    } else {
+        String::from("✘")
+    }
+}
+
+fn color_value(value: &str) -> String {
+    if io::stdout().is_terminal() {
+        Cyan.paint(value.to_string()).to_string()
+    } else {
+        value.to_string()
+    }
+}
+
+fn color_adapter_num(adapter_num: u8) -> String {
+    if io::stdout().is_terminal() {
+        White.bold().paint(format!("{}", adapter_num)).to_string()
+    } else {
+        format!("{}", adapter_num).to_string()
     }
 }
 
@@ -191,10 +225,262 @@ fn dump_regs(regs: &Vec<Register>, args: &Args) {
     }
 }
 
+fn dump_bytes(bytes: &[u8], offset: usize, args: &Args) {
+    let mut offset = offset;
+
+    for chunks in bytes.chunks(8) {
+        if args.verbose > 0 {
+            print!("0x{:04x} ", offset);
+        }
+
+        for byte in chunks {
+            print!("0x{:02x} ", byte);
+        }
+
+        if args.verbose > 0 {
+            let indent = 8 * (4 + 1) - chunks.len() * 4;
+            print!("{:>1$}", util::bytes_to_ascii(chunks), indent);
+        }
+
+        println!();
+        offset += chunks.len();
+    }
+}
+
+fn dump_drom(drom: &Drom, args: &Args) {
+    if args.verbose < 2 {
+        dump_bytes(drom.bytes(), 0, args);
+        return;
+    }
+
+    dump_bytes(drom.header(), 0, args);
+
+    if drom.is_tb3_compatible() {
+        println!(
+            "  CRC8: {} {}",
+            color_value(&format!("{:#x}", drom.crc8().unwrap())),
+            color_goodbad(drom.is_crc8_valid()),
+        );
+        println!(
+            "  UUID: {}",
+            color_value(&format!("{:#x}", drom.uuid().unwrap()))
+        );
+    }
+
+    println!(
+        "  CRC32: {} {}",
+        color_value(&format!("{:#x}", drom.crc32())),
+        color_goodbad(drom.is_crc32_valid()),
+    );
+    println!(
+        "  Version: {} ({})",
+        color_value(&format!("{}", drom.version())),
+        if drom.is_tb3_compatible() {
+            "Thunderbolt 3 Compatible"
+        } else {
+            "USB4"
+        }
+    );
+
+    let mut entries = drom.entries();
+
+    while let Some(entry) = entries.next() {
+        dump_bytes(entries.bytes(), entries.start(), args);
+
+        match entry {
+            // Adapter entries.
+            DromEntry::Adapter {
+                disabled,
+                adapter_num,
+            } => {
+                println!("  Adapter {}", color_adapter_num(adapter_num));
+                if disabled {
+                    println!("    Disabled");
+                }
+            }
+
+            DromEntry::UnusedAdapter { adapter_num } => {
+                println!("  Unused Adapter {}", color_adapter_num(adapter_num))
+            }
+
+            DromEntry::DisplayPortAdapter {
+                adapter_num,
+                preferred_lane_adapter_num,
+                preference_valid,
+            } => {
+                println!("  DisplayPort Adapter {}", color_adapter_num(adapter_num));
+                if preference_valid {
+                    println!(
+                        "    Preferred Lane adapter: {}",
+                        color_adapter_num(preferred_lane_adapter_num),
+                    );
+                }
+            }
+
+            DromEntry::LaneAdapter {
+                adapter_num,
+                lane_1_adapter,
+                dual_lane_adapter,
+                dual_lane_adapter_num,
+            } => {
+                println!(
+                    "  Lane {} Adapter {}",
+                    color_adapter_num(adapter_num),
+                    if lane_1_adapter { 1 } else { 0 }
+                );
+                if dual_lane_adapter {
+                    println!(
+                        "    Dual Lane Adapter: {}",
+                        color_adapter_num(dual_lane_adapter_num)
+                    );
+                }
+            }
+
+            DromEntry::PcieUpAdapter {
+                adapter_num,
+                function_num,
+                device_num,
+            } => {
+                println!("  PCIe Upstream Adapter {}", color_adapter_num(adapter_num));
+                println!(
+                    "    {}",
+                    color_value(&format!("{:02x}.{:x}", device_num, function_num))
+                );
+            }
+
+            DromEntry::PcieDownAdapter {
+                adapter_num,
+                function_num,
+                device_num,
+            } => {
+                println!(
+                    "  PCIe Downstream Adapter {}",
+                    color_adapter_num(adapter_num)
+                );
+                println!(
+                    "    {}",
+                    color_value(&format!("{:02x}.{:x}", device_num, function_num))
+                );
+            }
+
+            // Generic entries.
+            DromEntry::Generic { kind, .. } => {
+                println!("  Generic Entry: {}", color_value(&format!("{:#x}", kind)));
+            }
+
+            DromEntry::AsciiVendorName(vendor) => println!("  Vendor: {}", vendor),
+            DromEntry::AsciiModelName(model) => println!("  Model: {}", model),
+
+            DromEntry::Utf16VendorName(vendor) => println!("  Vendor: {}", vendor),
+            DromEntry::Utf16ModelName(model) => println!("  Model: {}", model),
+
+            DromEntry::Tmu { mode, rate } => {
+                println!(
+                    "  TMU: {}",
+                    match mode {
+                        TmuMode::Unknown => "Unknown",
+                        TmuMode::Off => "Off",
+                        TmuMode::Unidirectional => {
+                            if rate == TmuRate::HiFi {
+                                "Unidirectional, HiFi"
+                            } else if rate == TmuRate::LowRes {
+                                "Unidirectional, LowRes"
+                            } else {
+                                "Unidirectional"
+                            }
+                        }
+                        TmuMode::Bidirectional => {
+                            if rate == TmuRate::HiFi {
+                                "Bidirectional, HiFi"
+                            } else {
+                                "Bidirectional"
+                            }
+                        }
+                    }
+                );
+            }
+
+            DromEntry::ProductDescriptor {
+                usb4_version:
+                    Version {
+                        major: usb4_major,
+                        minor: usb4_minor,
+                    },
+                vendor,
+                product,
+                fw_version:
+                    Version {
+                        major: fw_major,
+                        minor: fw_minor,
+                    },
+                test_id,
+                hw_revision,
+            } => {
+                println!("  Product Descriptor:");
+                println!(
+                    "    bcdUSBSpec: {}",
+                    color_value(&format!("{:x}.{:x}", usb4_major, usb4_minor))
+                );
+                println!("    idVendor: {}", color_value(&format!("{:04x}", vendor)));
+                println!(
+                    "    idProduct: {}",
+                    color_value(&format!("{:04x}", product))
+                );
+                println!(
+                    "    bcdProductFWRevision: {}",
+                    color_value(&format!("{:x}.{:x}", fw_major, fw_minor))
+                );
+                println!("    TID: {}", color_value(&format!("{:04x}", test_id)));
+                println!(
+                    "    productHWRevision: {}",
+                    color_value(&format!("{}", hw_revision))
+                );
+            }
+
+            DromEntry::SerialNumber {
+                lang_id,
+                serial_number,
+            } => {
+                println!("  Serial Number:");
+                println!("    wLANGID: {}", color_value(&format!("{}", lang_id)));
+                println!(
+                    "    SerialNumber: {}",
+                    color_value(&serial_number.to_string())
+                );
+            }
+
+            DromEntry::Usb3PortMapping(mappings) => {
+                println!("  USB Port Mappings:");
+                for mapping in mappings {
+                    println!("    USB 3 Port {}", mapping.usb3_port_num);
+                    println!("      xHCI Index: {}", mapping.xhci_index);
+                    if mapping.usb_type_c {
+                        println!("      PD Port: {}", mapping.pd_port_num);
+                    }
+                    if mapping.tunneling {
+                        println!(
+                            "      USB 3 Downstream Adapter: {}",
+                            color_adapter_num(mapping.usb3_adapter_num)
+                        );
+                    }
+                }
+            }
+
+            DromEntry::Unknown(_) => println!("Unknown Entry"),
+        }
+    }
+}
+
 fn dump_router(device: &mut Device, args: &Args) -> io::Result<()> {
     device.read_registers()?;
 
-    if let Some(regs) = device.registers() {
+    if args.drom {
+        device.read_drom()?;
+
+        if let Some(drom) = device.drom() {
+            dump_drom(drom, args);
+        }
+    } else if let Some(regs) = device.registers() {
         dump_regs(regs, args);
     }
 
@@ -241,6 +527,9 @@ fn dump(args: &Args) -> io::Result<()> {
     if let Some(adapter) = args.adapter {
         if args.vs_cap_id.is_some() {
             eprintln!("Error: Adapters do not have vendor specific capabilities!");
+            process::exit(1);
+        } else if args.drom {
+            eprintln!("Error: Only routers have DROM!");
             process::exit(1);
         }
         dump_adapter(&mut device, adapter, args)?
