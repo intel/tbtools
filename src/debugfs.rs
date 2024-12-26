@@ -824,7 +824,7 @@ pub struct Adapter {
     adapter: u8,
     kind: Type,
     state: State,
-    debugfs_path: PathBuf,
+    debugfs_path: Option<PathBuf>,
     regs: Option<Vec<Register>>,
     path_regs: Option<Vec<Register>>,
     paths: Option<Vec<Path>>,
@@ -834,10 +834,16 @@ pub struct Adapter {
 }
 
 impl Adapter {
-    fn new(adapter: u8, debugfs_path: PathBuf, usb4: bool, upstream: bool) -> Self {
+    pub(crate) fn new(
+        adapter: u8,
+        kind: Type,
+        debugfs_path: Option<PathBuf>,
+        usb4: bool,
+        upstream: bool,
+    ) -> Self {
         Self {
             adapter,
-            kind: Type::Inactive,
+            kind,
             state: State::Unknown,
             debugfs_path,
             regs: None,
@@ -865,6 +871,10 @@ impl Adapter {
             usb4::ADP_CS_2_TYPE_USB3_GENT_UP => Type::Usb3GenTUp,
             _ => Type::Unknown,
         }
+    }
+
+    fn debugfs_path(&self) -> Option<&PathBuf> {
+        self.debugfs_path.as_ref()
     }
 
     fn parse_state(&self) -> State {
@@ -1091,7 +1101,7 @@ impl Adapter {
     ///
     /// Must be called before accessing any other register space.
     pub fn read_registers(&mut self) -> Result<()> {
-        let mut path_buf = PathBuf::from(&self.debugfs_path);
+        let mut path_buf = self.debugfs_path().unwrap().clone();
         path_buf.push(format!("port{}", self.adapter()));
         path_buf.push(DEBUGFS_REGS);
 
@@ -1173,7 +1183,7 @@ impl Adapter {
     ///
     /// This must be called before accessing path config space registers.
     pub fn read_paths(&mut self) -> Result<()> {
-        let mut path_buf = PathBuf::from(&self.debugfs_path);
+        let mut path_buf = self.debugfs_path().unwrap().clone();
         path_buf.push(format!("port{}", self.adapter()));
         path_buf.push(DEBUGFS_PATH);
 
@@ -1270,7 +1280,7 @@ impl Adapter {
     ///
     /// Must be called before accessing adapter counter registers.
     pub fn read_counters(&mut self) -> Result<()> {
-        let mut path_buf = PathBuf::from(&self.debugfs_path);
+        let mut path_buf = self.debugfs_path().unwrap().clone();
         path_buf.push(format!("port{}", self.adapter()));
         path_buf.push(DEBUGFS_COUNTERS);
 
@@ -1319,7 +1329,7 @@ impl Adapter {
 
     /// Clears all counters. This takes effect immediately.
     pub fn clear_counters(&mut self) -> Result<()> {
-        let mut path_buf = PathBuf::from(&self.debugfs_path);
+        let mut path_buf = self.debugfs_path().unwrap().clone();
         path_buf.push(format!("port{}", self.adapter()));
         path_buf.push(DEBUGFS_COUNTERS);
 
@@ -1337,7 +1347,7 @@ impl Adapter {
     /// [`read_paths()`](Self::read_paths()) and [`read_counters()`](Self::read_counters()) to
     /// re-read registers from the hardware.
     pub fn write_changed(&mut self) -> Result<()> {
-        let mut path_buf = PathBuf::from(&self.debugfs_path);
+        let mut path_buf = self.debugfs_path().unwrap().clone();
         path_buf.push(format!("port{}", self.adapter()));
 
         if let Some(regs) = &self.regs {
@@ -1475,7 +1485,8 @@ impl Device {
 
         Ok(Adapter::new(
             adapter,
-            path_buf,
+            Type::Inactive,
+            Some(path_buf),
             self.usb4_version().is_some(),
             upstream,
         ))
