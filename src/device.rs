@@ -108,7 +108,7 @@ impl From<&str> for SecurityLevel {
 }
 
 /// Encodes hardware and firmware version numbers.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Version {
     pub major: u8,
     pub minor: u8,
