@@ -16,6 +16,7 @@ mod device;
 pub use device::*;
 
 pub mod debugfs;
+pub mod drom;
 pub mod margining;
 pub mod monitor;
 pub mod trace;

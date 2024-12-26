@@ -15,6 +15,7 @@ use regex::Regex;
 
 use crate::{
     debugfs::{Adapter, Register},
+    drom::Drom,
     util,
 };
 
@@ -147,6 +148,7 @@ pub struct Device {
 
     pub(crate) regs: Option<Vec<Register>>,
     pub(crate) adapters: Option<Vec<Adapter>>,
+    pub(crate) drom: Option<Drom>,
 }
 
 impl Device {
@@ -455,6 +457,7 @@ impl Device {
             syspath,
             regs: None,
             adapters: None,
+            drom: None,
         }
     }
 

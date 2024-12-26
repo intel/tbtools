@@ -12,7 +12,7 @@
 //! Calling [`Device`]'s [`registers_writable()`](Device::registers_writable()) can be used to determine whether registers can be
 //! written to.
 
-use crate::{device::Device, genmask_t, usb4, util};
+use crate::{device::Device, drom::Drom, genmask_t, usb4, util};
 use include_dir::{include_dir, Dir};
 use lazy_static::lazy_static;
 use nix::{errno::Errno, mount};
@@ -22,7 +22,7 @@ use std::{
     collections::HashMap,
     fmt::{self, Display},
     fs::{File, OpenOptions},
-    io::{BufRead, BufReader, BufWriter, Error, ErrorKind, Result, Write},
+    io::{BufRead, BufReader, BufWriter, Error, ErrorKind, Read, Result, Write},
     ops::RangeInclusive,
     path::PathBuf,
 };
@@ -51,6 +51,7 @@ lazy_static! {
 }
 
 const DEBUGFS_ROOT: &str = "/sys/kernel/debug/thunderbolt";
+const DEBUGFS_DROM: &str = "drom";
 const DEBUGFS_REGS: &str = "regs";
 const DEBUGFS_PATH: &str = "path";
 const DEBUGFS_COUNTERS: &str = "counters";
@@ -1597,5 +1598,32 @@ impl Device {
         }
 
         Ok(())
+    }
+
+    /// Reads device DROM and makes it available through [`drom()`](Self::drom).
+    ///
+    /// This requires that the kernel supports exposing DROM contents via debugfs which was added
+    /// only recently.
+    pub fn read_drom(&mut self) -> Result<()> {
+        self.read_adapters()?;
+
+        let mut path_buf = path_buf()?;
+        path_buf.push(self.kernel_name());
+        path_buf.push(DEBUGFS_DROM);
+
+        let mut bytes = Vec::new();
+        let mut file = File::open(path_buf)?;
+        file.read_to_end(&mut bytes)?;
+
+        self.drom = Some(Drom::parse(&bytes, self.adapters().unwrap())?);
+
+        Ok(())
+    }
+
+    /// Returns device DROM if available.
+    ///
+    /// You must call [`read_drom()`](Self::read_drom) prior calling this.
+    pub fn drom(&self) -> Option<&Drom> {
+        self.drom.as_ref()
     }
 }
