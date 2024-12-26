@@ -21,15 +21,15 @@ use uuid;
 ///
 /// # Examples
 /// ```
-/// use tbtools::genmask;
+/// use tbtools::genmask_t;
 ///
-/// const TMU_RTR_CS_0_FREQ_WINDOW_MASK: u32 = genmask!(26, 16);
-/// const TMU_RTR_CS_3_TS_PACKET_INTERVAL_MASK: u32 = genmask!(31, 16);
+/// const TMU_RTR_CS_0_FREQ_WINDOW_MASK: u32 = genmask_t!(u32, 26, 16);
+/// const TMU_RTR_CS_3_TS_PACKET_INTERVAL_MASK: u32 = genmask_t!(u32, 31, 16);
 /// ```
 #[macro_export]
-macro_rules! genmask {
-    ($high:expr, $low:expr) => {{
-        u32::MAX - (1u32 << $low) + 1u32 & (u32::MAX >> (u32::BITS - 1 - $high))
+macro_rules! genmask_t {
+    ($t:ty, $high:expr, $low:expr) => {{
+        <$t>::MAX - (1 << $low) + 1 & (<$t>::MAX >> (<$t>::BITS - 1 - $high))
     }};
 }
 
@@ -222,7 +222,7 @@ impl<const DWORD_OFFSET: usize, const BIT: u32> RegBit<DWORD_OFFSET, BIT> {
 pub struct RegField<const DWORD_OFFSET: usize, const HIGH: u32, const LOW: u32>;
 
 impl<const DWORD_OFFSET: usize, const HIGH: u32, const LOW: u32> RegField<DWORD_OFFSET, HIGH, LOW> {
-    const MASK: u32 = genmask!(HIGH, LOW);
+    const MASK: u32 = genmask_t!(u32, HIGH, LOW);
     const SHIFT: u32 = LOW;
 
     pub fn get_field(raw: &[u32]) -> u32 {

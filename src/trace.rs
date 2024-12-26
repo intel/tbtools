@@ -48,7 +48,7 @@
 
 use crate::{
     debugfs::{BitField, BitFields, Name, DATA_DIR},
-    genmask, util, Address, ConfigSpace, Pdf,
+    genmask_t, util, Address, ConfigSpace, Pdf,
 };
 use lazy_static::lazy_static;
 use nix::sys::time::{self, TimeVal};
@@ -325,7 +325,11 @@ impl BitFields<u32> for Field<'_> {
 
     /// Returns value of the given field.
     fn field_value(&self, field: &BitField) -> u32 {
-        let mask = genmask!(*field.range().end() as u32, *field.range().start() as u32);
+        let mask = genmask_t!(
+            u32,
+            *field.range().end() as u32,
+            *field.range().start() as u32
+        );
         let shift = *field.range().start();
 
         (self.value & mask) >> shift

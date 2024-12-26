@@ -12,7 +12,7 @@
 //! Calling [`Device`]'s [`registers_writable()`](Device::registers_writable()) can be used to determine whether registers can be
 //! written to.
 
-use crate::{device::Device, genmask, usb4, util};
+use crate::{device::Device, genmask_t, usb4, util};
 use include_dir::{include_dir, Dir};
 use lazy_static::lazy_static;
 use nix::{errno::Errno, mount};
@@ -571,7 +571,7 @@ impl Register {
     /// Panics if field with given name (or short name) does not exist.
     pub fn set_field(&mut self, name: &str, value: u32) {
         if let Some(field) = self.field_by_name(name) {
-            let mask = genmask!(*field.range.end() as u32, *field.range.start() as u32);
+            let mask = genmask_t!(u32, *field.range.end() as u32, *field.range.start() as u32);
             let shift = *field.range.start();
 
             self.value &= !mask;
@@ -606,7 +606,7 @@ impl BitFields<u32> for Register {
     }
 
     fn field_value(&self, field: &BitField) -> u32 {
-        let mask = genmask!(*field.range.end() as u32, *field.range.start() as u32);
+        let mask = genmask_t!(u32, *field.range.end() as u32, *field.range.start() as u32);
         let shift = *field.range.start();
 
         (self.value & mask) >> shift
