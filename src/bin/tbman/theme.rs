@@ -150,3 +150,11 @@ pub fn field_value() -> Style {
 pub fn field_shortname() -> Style {
     Style::from(ColorStyle::new(BaseColor::Yellow, BaseColor::White)).combine(Effect::Bold)
 }
+
+pub fn drom_crc_ok() -> Style {
+    Style::from(ColorStyle::new(BaseColor::Green, BaseColor::White)).combine(Effect::Bold)
+}
+
+pub fn drom_crc_bad() -> Style {
+    Style::from(ColorStyle::new(BaseColor::Red, BaseColor::White)).combine(Effect::Bold)
+}

@@ -23,9 +23,10 @@ use cursive::{
 use std::{io, thread};
 use tbtools::{
     debugfs::{Adapter, BitField, BitFields, Name, Path, Register, Type},
+    drom::{DromEntry, TmuMode, TmuRate},
     monitor,
     trace::{self, Entry},
-    util, Device, Kind, Pdf, {self, ConfigSpace},
+    util, Device, Kind, Pdf, Version, {self, ConfigSpace},
 };
 
 struct Command<'a> {
@@ -47,6 +48,7 @@ const DIALOG_PATHS: &str = "dialog.paths";
 const DIALOG_REGISTERS: &str = "dialog.registers";
 const DIALOG_TMU: &str = "dialog.tmu";
 const DIALOG_TRACE: &str = "dialog.trace";
+const DIALOG_DROM: &str = "dialog.drom";
 
 const VIEW_ADAPTERS: &str = "view.adapters";
 const VIEW_PATHS: &str = "view.paths";
@@ -59,7 +61,7 @@ const VIEW_TMU: &str = "view.tmu";
 const VIEW_TRACE: &str = "view.trace";
 const VIEW_ENTRIES: &str = "view.entries";
 
-const MAIN_COMMANDS: [Command; 12] = [
+const MAIN_COMMANDS: [Command; 13] = [
     Command {
         key: "q/ESC",
         desc: "Quit",
@@ -132,6 +134,12 @@ const MAIN_COMMANDS: [Command; 12] = [
         help: "TMU configuration",
         menu: true,
     },
+    Command {
+        key: "F10",
+        desc: "DROM",
+        help: "Show device DROM",
+        menu: false,
+    },
 ];
 
 fn set_footer(siv: &mut Cursive, commands: &[Command]) {
@@ -198,6 +206,7 @@ fn close_any_dialog(siv: &mut Cursive) {
         DIALOG_PATHS,
         DIALOG_REGISTERS,
         DIALOG_TMU,
+        DIALOG_DROM,
     ];
 
     for dialog in dialogs {
@@ -205,6 +214,15 @@ fn close_any_dialog(siv: &mut Cursive) {
             break;
         }
     }
+}
+
+fn build_dialog_detail(label: &str, width: usize, value: &str) -> impl View {
+    let mut line = SpannedString::new();
+
+    line.append_styled(format!("{:>1$} ", label, width), theme::dialog_label());
+    line.append(value);
+
+    TextView::new(line)
 }
 
 fn authorize_device(siv: &mut Cursive) {
@@ -332,26 +350,17 @@ fn build_adapters(siv: &mut Cursive) {
     update_adapter_view(siv);
 }
 
-fn build_path_detail(label: &str, width: usize, value: &str) -> impl View {
-    let mut line = SpannedString::new();
-
-    line.append_styled(format!("{:<1$} ", label, width), theme::dialog_label());
-    line.append(value);
-
-    TextView::new(line)
-}
-
 macro_rules! add_field_if_exists {
     ($l:ident, $r:ident, $n:literal) => {{
         if let Some(field) = $r.field_by_name($n) {
             let v = $r.field_value(field);
-            $l.add_child(build_path_detail(&format!("{}:", $n), 25, &v.to_string()));
+            $l.add_child(build_dialog_detail(&format!("{}:", $n), 25, &v.to_string()));
         }
     }};
     ($l:ident, $r:ident, $n:literal, $p:literal) => {{
         if let Some(field) = $r.field_by_name($n) {
             let v = $r.field_value(field);
-            $l.add_child(build_path_detail($p, 25, &v.to_string()));
+            $l.add_child(build_dialog_detail($p, 25, &v.to_string()));
         }
     }};
 }
@@ -368,19 +377,19 @@ macro_rules! add_flag_if_exists {
     ($l:ident, $r:ident, $n:literal) => {{
         if let Some(field) = $r.field_by_name($n) {
             let v = yesno($r.field_value(field));
-            $l.add_child(build_path_detail(&format!("{}:", $n), 25, v));
+            $l.add_child(build_dialog_detail(&format!("{}:", $n), 25, v));
         }
     }};
     ($l:ident, $r:ident, $n:literal, $p:literal) => {{
         if let Some(field) = $r.field_by_name($n) {
             let v = yesno($r.field_value(field));
-            $l.add_child(build_path_detail($p, 25, v));
+            $l.add_child(build_dialog_detail($p, 25, v));
         }
     }};
     ($l:ident, $r:ident, $w:expr, $n:literal, $p:literal) => {{
         if let Some(field) = $r.field_by_name($n) {
             let v = yesno($r.field_value(field));
-            $l.add_child(build_path_detail($p, $w, v));
+            $l.add_child(build_dialog_detail($p, $w, v));
         }
     }};
 }
@@ -418,8 +427,8 @@ fn view_path(siv: &mut Cursive, path: &Path) {
         let in_hop = path.in_hop();
         let in_adapter = &adapters[(path.in_adapter() - 1) as usize];
         let s = format!("{} / {}", path.in_adapter(), in_adapter.kind());
-        left.add_child(build_path_detail("Adapter:", 25, &s));
-        left.add_child(build_path_detail("HopID:", 25, &in_hop.to_string()));
+        left.add_child(build_dialog_detail("Adapter:", 25, &s));
+        left.add_child(build_dialog_detail("HopID:", 25, &in_hop.to_string()));
 
         if let Some(reg) = in_adapter.register_by_name("ADP_CS_4") {
             add_field_if_exists!(left, reg, "Total Buffers");
@@ -438,8 +447,12 @@ fn view_path(siv: &mut Cursive, path: &Path) {
         let mut right = LinearLayout::vertical();
         let out_adapter = &adapters[(path.out_adapter() - 1) as usize];
         let s = format!("{} / {}", path.out_adapter(), out_adapter.kind());
-        right.add_child(build_path_detail("Adapter:", 15, &s));
-        right.add_child(build_path_detail("HopID:", 15, &path.out_hop().to_string()));
+        right.add_child(build_dialog_detail("Adapter:", 15, &s));
+        right.add_child(build_dialog_detail(
+            "HopID:",
+            15,
+            &path.out_hop().to_string(),
+        ));
 
         let panel = Panel::new(right).title("Out").title_position(HAlign::Left);
         header.add_child(panel);
@@ -895,15 +908,6 @@ fn write_registers(siv: &mut Cursive) {
     }
 }
 
-fn build_register_detail(label: &str, value: &str) -> impl View {
-    let mut line = SpannedString::new();
-
-    line.append_styled(format!("{:>16} ", label), theme::dialog_label());
-    line.append(value);
-
-    TextView::new(line)
-}
-
 fn build_field_detail(bitfields: &dyn BitFields<u32>, field: &BitField) -> impl View {
     let mut line = SpannedString::new();
 
@@ -937,8 +941,9 @@ fn populate_fields(siv: &mut Cursive, reg: &Register) {
     siv.call_on_name(VIEW_REGISTERS_FIELDS, |l: &mut LinearLayout| {
         l.clear();
 
-        l.add_child(build_register_detail(
+        l.add_child(build_dialog_detail(
             "Char:",
+            16,
             &util::bytes_to_ascii(&reg.value().to_be_bytes()),
         ));
 
@@ -1059,12 +1064,14 @@ fn update_register(siv: &mut Cursive) {
 fn view_register(siv: &mut Cursive, reg: &Register, writable: bool) {
     let mut l = LinearLayout::vertical();
 
-    l.add_child(build_register_detail(
+    l.add_child(build_dialog_detail(
         "Offset:",
+        16,
         &format!("0x{:04x}", reg.offset()),
     ));
-    l.add_child(build_register_detail(
+    l.add_child(build_dialog_detail(
         "Relative offset:",
+        16,
         &format!("{}", reg.relative_offset()),
     ));
     let value = reg.value();
@@ -1100,7 +1107,7 @@ fn view_register(siv: &mut Cursive, reg: &Register, writable: bool) {
         h.add_child(bin_edit);
         l.add_child(h);
     } else {
-        l.add_child(build_register_detail("Hex:", &format!("0x{:08x}", value)));
+        l.add_child(build_dialog_detail("Hex:", 16, &format!("0x{:08x}", value)));
 
         let values: [u8; 4] = [
             (value & 0xff) as u8,
@@ -1114,7 +1121,7 @@ fn view_register(siv: &mut Cursive, reg: &Register, writable: bool) {
         binary.push_str(&format!(" {:08b}", values[2]));
         binary.push_str(&format!(" {:08b}", values[1]));
         binary.push_str(&format!(" {:08b}", values[0]));
-        l.add_child(build_register_detail("Binary:", &binary));
+        l.add_child(build_dialog_detail("Binary:", 16, &binary));
     }
 
     l.add_child(LinearLayout::vertical().with_name(VIEW_REGISTERS_FIELDS));
@@ -1366,15 +1373,6 @@ fn adapter_tmu_is_unidirectional(adapter: &Adapter) -> bool {
     false
 }
 
-fn build_tmu_detail(label: &str, value: &str) -> impl View {
-    let mut line = SpannedString::new();
-
-    line.append_styled(format!("{:>25} ", label), theme::dialog_label());
-    line.append(value);
-
-    TextView::new(line)
-}
-
 fn read_tmu(siv: &mut Cursive) {
     let devices: &mut SelectView<Device> = &mut siv.find_name(DEVICES).unwrap();
     let index = devices.selected_id().unwrap();
@@ -1457,58 +1455,77 @@ fn read_tmu(siv: &mut Cursive) {
                         let reg = parent.register_by_name("TMU_RTR_CS_3").unwrap();
                         let parent_rate = reg.field("TSPacketInterval");
                         if enhanced && adapter_tmu_is_enhanced(upstream_adapter) {
-                            l.add_child(build_tmu_detail(
+                            l.add_child(build_dialog_detail(
                                 "TMU mode:",
+                                25,
                                 "Enhanced uni-directional, MedRes",
                             ));
                         } else if ucap && adapter_tmu_is_unidirectional(upstream_adapter) {
                             if parent_rate == 1000 {
-                                l.add_child(build_tmu_detail(
+                                l.add_child(build_dialog_detail(
                                     "TMU mode:",
+                                    25,
                                     "Uni-directional, LowRes",
                                 ));
                             } else if parent_rate == 16 {
-                                l.add_child(build_tmu_detail("TMU mode:", "Uni-directional, HiFi"));
+                                l.add_child(build_dialog_detail(
+                                    "TMU mode:",
+                                    25,
+                                    "Uni-directional, HiFi",
+                                ));
                             }
                         } else if rate > 0 {
-                            l.add_child(build_tmu_detail("TMU mode:", "Bi-directional, HiFi"));
+                            l.add_child(build_dialog_detail(
+                                "TMU mode:",
+                                25,
+                                "Bi-directional, HiFi",
+                            ));
                         } else {
-                            l.add_child(build_tmu_detail("TMU mode:", "Off"));
+                            l.add_child(build_dialog_detail("TMU mode:", 25, "Off"));
                         }
                     }
                 }
             }
         }
 
-        l.add_child(build_tmu_detail(
+        l.add_child(build_dialog_detail(
             "TSPacketInterval:",
+            25,
             &format!("{} μs", rate),
         ));
-        l.add_child(build_tmu_detail(
+        l.add_child(build_dialog_detail(
             "Freq measurement window:",
+            25,
             &format!("{}", freq),
         ));
 
         let reg = device.register_by_name("TMU_RTR_CS_15").unwrap();
 
         let freq_avg = reg.field("FreqAvgConst");
-        l.add_child(build_tmu_detail("FreqAvgConst:", &format!("{}", freq_avg)));
+        l.add_child(build_dialog_detail(
+            "FreqAvgConst:",
+            25,
+            &format!("{}", freq_avg),
+        ));
 
         let delay_avg = reg.field("DelayAvgConst");
-        l.add_child(build_tmu_detail(
+        l.add_child(build_dialog_detail(
             "DelayAvgConst:",
+            25,
             &format!("{}", delay_avg),
         ));
 
         let offset_avg = reg.field("OffsetAvgConst");
-        l.add_child(build_tmu_detail(
+        l.add_child(build_dialog_detail(
             "OffsetAvgConst:",
+            25,
             &format!("{}", offset_avg),
         ));
 
         let error_avg = reg.field("ErrorAvgConst");
-        l.add_child(build_tmu_detail(
+        l.add_child(build_dialog_detail(
             "ErrorAvgConst:",
+            25,
             &format!("{}", error_avg),
         ));
 
@@ -1516,8 +1533,9 @@ fn read_tmu(siv: &mut Cursive) {
             let reg = device.register_by_name("TMU_RTR_CS_18").unwrap();
             let delta_avg = reg.field("DeltaAvgConst");
 
-            l.add_child(build_tmu_detail(
+            l.add_child(build_dialog_detail(
                 "DeltaAvgConst:",
+                25,
                 &format!("{}", delta_avg),
             ));
         }
@@ -1617,15 +1635,6 @@ fn enable_trace(siv: &mut Cursive) {
     } else {
         update_title(siv);
     }
-}
-
-fn build_trace_detail(label: &str, value: &str) -> impl View {
-    let mut line = SpannedString::new();
-
-    line.append_styled(format!("{:<14} ", label), theme::dialog_label());
-    line.append(value);
-
-    TextView::new(line)
 }
 
 fn fetch_device_registers(entry: &trace::Entry, device: &mut Device) -> io::Result<()> {
@@ -1735,14 +1744,14 @@ fn view_packet(siv: &mut Cursive, entry: &Entry) {
     let mut header = LinearLayout::horizontal();
 
     let mut left = LinearLayout::vertical();
-    left.add_child(build_trace_detail("CPU:", &entry.cpu().to_string()));
-    left.add_child(build_trace_detail("Task:", entry.task()));
-    left.add_child(build_trace_detail("PID:", &entry.pid().to_string()));
-    left.add_child(build_trace_detail("Function:", entry.function()));
-    left.add_child(build_trace_detail("Size:", &entry.size().to_string()));
+    left.add_child(build_dialog_detail("CPU:", 14, &entry.cpu().to_string()));
+    left.add_child(build_dialog_detail("Task:", 14, entry.task()));
+    left.add_child(build_dialog_detail("PID:", 14, &entry.pid().to_string()));
+    left.add_child(build_dialog_detail("Function:", 14, entry.function()));
+    left.add_child(build_dialog_detail("Size:", 14, &entry.size().to_string()));
 
     let mut line = SpannedString::new();
-    line.append_styled(format!("{:<14} ", "Dropped:"), theme::dialog_label());
+    line.append_styled(format!("{:>14} ", "Dropped:"), theme::dialog_label());
     if entry.dropped() {
         line.append_styled("Yes", theme::trace_dropped());
     } else {
@@ -1755,16 +1764,18 @@ fn view_packet(siv: &mut Cursive, entry: &Entry) {
     header.add_child(DummyView);
 
     let mut right = LinearLayout::vertical();
-    right.add_child(build_trace_detail("PDF:", &entry.pdf().to_string()));
+    right.add_child(build_dialog_detail("PDF:", 14, &entry.pdf().to_string()));
     if let Some(cs) = entry.cs() {
-        right.add_child(build_trace_detail("Config space:", &cs.to_string()));
+        right.add_child(build_dialog_detail("Config space:", 14, &cs.to_string()));
     }
-    right.add_child(build_trace_detail(
+    right.add_child(build_dialog_detail(
         "Domain:",
+        14,
         &entry.domain_index().to_string(),
     ));
-    right.add_child(build_trace_detail(
+    right.add_child(build_dialog_detail(
         "Route:",
+        14,
         &format!("{:x}", entry.route()),
     ));
 
@@ -1775,7 +1786,7 @@ fn view_packet(siv: &mut Cursive, entry: &Entry) {
                 adapter_details.push_str(&format!(" / {}", adapter.kind()));
             }
         }
-        right.add_child(build_trace_detail("Adapter:", &adapter_details));
+        right.add_child(build_dialog_detail("Adapter:", 14, &adapter_details));
     }
 
     header.add_child(right);
@@ -2098,6 +2109,549 @@ fn build_trace(siv: &mut Cursive) {
     set_footer(siv, &COMMANDS);
 }
 
+struct DromField {
+    name: String,
+    value: String,
+}
+
+struct DromItem {
+    offset: usize,
+    name: String,
+    summary: String,
+    fields: Vec<DromField>,
+    bytes: Vec<u8>,
+}
+
+impl DromItem {
+    fn offset(&self) -> usize {
+        self.offset
+    }
+
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn summary(&self) -> &str {
+        &self.summary
+    }
+
+    fn fields(&self) -> &[DromField] {
+        &self.fields
+    }
+
+    fn new(offset: usize, bytes: &[u8], entry: &DromEntry) -> Self {
+        let mut summary = String::new();
+        let mut fields = Vec::new();
+        let name: &str;
+
+        summary.push_str(&format!("{:04x}   ", offset));
+        summary.push_str(if entry.is_adapter() {
+            "Adapter "
+        } else {
+            "Generic "
+        });
+
+        match entry {
+            DromEntry::Adapter {
+                disabled,
+                adapter_num,
+            } => {
+                name = "Adapter";
+                summary.push_str(&format!("{} {}", name, adapter_num));
+
+                fields.push(DromField {
+                    name: "Adapter Number".to_string(),
+                    value: adapter_num.to_string(),
+                });
+                fields.push(DromField {
+                    name: "Adapter Disabled".to_string(),
+                    value: yesno(if *disabled { 1 } else { 0 }).to_string(),
+                });
+            }
+
+            DromEntry::UnusedAdapter { adapter_num } => {
+                name = "Unused Adapter";
+                summary.push_str(&format!("{} {}", name, adapter_num));
+
+                fields.push(DromField {
+                    name: "Adapter Number".to_string(),
+                    value: adapter_num.to_string(),
+                });
+            }
+
+            DromEntry::DisplayPortAdapter {
+                adapter_num,
+                preferred_lane_adapter_num,
+                preference_valid,
+            } => {
+                name = "DisplayPort Adapter";
+                summary.push_str(&format!("{} {}", name, adapter_num));
+
+                fields.push(DromField {
+                    name: "Adapter Number".to_string(),
+                    value: format!("{}", adapter_num),
+                });
+                fields.push(DromField {
+                    name: "Preferred Lane Adapter".to_string(),
+                    value: format!("{}", preferred_lane_adapter_num),
+                });
+                fields.push(DromField {
+                    name: "Preference Valid".to_string(),
+                    value: yesno(if *preference_valid { 1 } else { 0 }).to_string(),
+                });
+            }
+
+            DromEntry::LaneAdapter {
+                adapter_num,
+                lane_1_adapter,
+                dual_lane_adapter,
+                dual_lane_adapter_num,
+            } => {
+                name = "Lane Adapter";
+                summary.push_str(&format!("{} {}", name, adapter_num,));
+
+                fields.push(DromField {
+                    name: "Adapter Number".to_string(),
+                    value: adapter_num.to_string(),
+                });
+                fields.push(DromField {
+                    name: "Lane 1 Adapter".to_string(),
+                    value: yesno(if *lane_1_adapter { 1 } else { 0 }).to_string(),
+                });
+                fields.push(DromField {
+                    name: "Dual Lane Link Capable".to_string(),
+                    value: yesno(if *dual_lane_adapter { 1 } else { 0 }).to_string(),
+                });
+                fields.push(DromField {
+                    name: "Sec Adapter Num".to_string(),
+                    value: format!("{}", dual_lane_adapter_num),
+                });
+            }
+
+            DromEntry::PcieUpAdapter {
+                adapter_num,
+                function_num,
+                device_num,
+            } => {
+                name = "PCIe Upstream Adapter";
+                summary.push_str(&format!("{} {}", name, adapter_num));
+
+                fields.push(DromField {
+                    name: "Adapter Number".to_string(),
+                    value: adapter_num.to_string(),
+                });
+                fields.push(DromField {
+                    name: "Device".to_string(),
+                    value: format!("{:02x}.{:x}", device_num, function_num),
+                });
+            }
+
+            DromEntry::PcieDownAdapter {
+                adapter_num,
+                function_num,
+                device_num,
+            } => {
+                name = "PCIe Downstream Adapter";
+                summary.push_str(&format!("{} {}", name, adapter_num));
+
+                fields.push(DromField {
+                    name: "Adapter Number".to_string(),
+                    value: adapter_num.to_string(),
+                });
+                fields.push(DromField {
+                    name: "Device".to_string(),
+                    value: format!("{:02x}.{:x}", device_num, function_num),
+                });
+            }
+
+            DromEntry::Generic { kind, .. } => {
+                name = "Generic Entry";
+                summary.push_str(&format!("{} {:#x}", name, kind));
+            }
+
+            DromEntry::AsciiVendorName(vendor) => {
+                name = "ASCII Vendor Name";
+                summary.push_str(name);
+
+                fields.push(DromField {
+                    name: "Vendor Name".to_string(),
+                    value: vendor.to_string(),
+                });
+            }
+
+            DromEntry::AsciiModelName(model) => {
+                name = "ASCII Model Name";
+                summary.push_str(name);
+
+                fields.push(DromField {
+                    name: "Model Name".to_string(),
+                    value: model.to_string(),
+                });
+            }
+
+            DromEntry::Utf16VendorName(vendor) => {
+                name = "UTF16 Vendor Name";
+                summary.push_str(name);
+
+                fields.push(DromField {
+                    name: "Vendor Name".to_string(),
+                    value: vendor.to_string(),
+                });
+            }
+
+            DromEntry::Utf16ModelName(model) => {
+                name = "UTF16 Model Name";
+                summary.push_str(name);
+
+                fields.push(DromField {
+                    name: "Model Name".to_string(),
+                    value: model.to_string(),
+                });
+            }
+
+            DromEntry::Tmu { mode, rate } => {
+                name = "TMU Minimum Requirement";
+                summary.push_str(name);
+
+                fields.push(DromField {
+                    name: "TMU Mode".to_string(),
+                    value: match mode {
+                        TmuMode::Unknown => "Unknown",
+                        TmuMode::Off => "Off",
+                        TmuMode::Unidirectional => "Unidirectional",
+                        TmuMode::Bidirectional => "Bidirectional",
+                    }
+                    .to_string(),
+                });
+                fields.push(DromField {
+                    name: "TMU Rate".to_string(),
+                    value: match rate {
+                        TmuRate::Unknown => "Unknown",
+                        TmuRate::HiFi => "HiFi",
+                        TmuRate::LowRes => "LowRes",
+                    }
+                    .to_string(),
+                });
+            }
+
+            DromEntry::ProductDescriptor {
+                usb4_version:
+                    Version {
+                        major: usb4_major,
+                        minor: usb4_minor,
+                    },
+                vendor,
+                product,
+                fw_version:
+                    Version {
+                        major: fw_major,
+                        minor: fw_minor,
+                    },
+                test_id,
+                hw_revision,
+            } => {
+                name = "Product Descriptor";
+                summary.push_str(name);
+
+                fields.push(DromField {
+                    name: "bcdUSBSpec".to_string(),
+                    value: format!("{:x}.{:x}", usb4_major, usb4_minor),
+                });
+                fields.push(DromField {
+                    name: "idVendor".to_string(),
+                    value: format!("{:04x}", vendor),
+                });
+                fields.push(DromField {
+                    name: "idProduct".to_string(),
+                    value: format!("{:04x}", product),
+                });
+                fields.push(DromField {
+                    name: "bcdProductFWRevision".to_string(),
+                    value: format!("{:x}.{:x}", fw_major, fw_minor),
+                });
+                fields.push(DromField {
+                    name: "TID".to_string(),
+                    value: format!("{:04x}", test_id),
+                });
+                fields.push(DromField {
+                    name: "productHWRevision".to_string(),
+                    value: format!("{}", hw_revision),
+                });
+            }
+
+            DromEntry::SerialNumber {
+                lang_id,
+                serial_number,
+            } => {
+                name = "Serial Number";
+                summary.push_str(name);
+
+                fields.push(DromField {
+                    name: "wLANGID".to_string(),
+                    value: format!("{}", lang_id),
+                });
+                fields.push(DromField {
+                    name: "SerialNumber".to_string(),
+                    value: serial_number.to_string(),
+                });
+            }
+
+            DromEntry::Usb3PortMapping(mappings) => {
+                name = "USB Port Mapping";
+                summary.push_str(name);
+
+                for mapping in mappings {
+                    fields.push(DromField {
+                        name: "USB 3 Port Number".to_string(),
+                        value: format!("{}", mapping.usb3_port_num),
+                    });
+                    fields.push(DromField {
+                        name: "xHCI Index".to_string(),
+                        value: format!("{}", mapping.xhci_index),
+                    });
+                    fields.push(DromField {
+                        name: "USB Type-C".to_string(),
+                        value: yesno(if mapping.usb_type_c { 1 } else { 0 }).to_string(),
+                    });
+                    fields.push(DromField {
+                        name: "PD Port Number".to_string(),
+                        value: format!("{}", mapping.pd_port_num),
+                    });
+                    fields.push(DromField {
+                        name: "Tunneling Support".to_string(),
+                        value: yesno(if mapping.tunneling { 1 } else { 0 }).to_string(),
+                    });
+                    fields.push(DromField {
+                        name: "USB3 Adapter Number".to_string(),
+                        value: format!("{}", mapping.usb3_adapter_num),
+                    });
+                }
+            }
+
+            DromEntry::Unknown(_) => {
+                name = "Unknown Entry";
+                summary.push_str(name);
+            }
+        }
+
+        Self {
+            name: name.to_string(),
+            offset,
+            summary,
+            fields,
+            bytes: bytes.to_vec(),
+        }
+    }
+}
+
+fn view_drom_item(siv: &mut Cursive, item: &DromItem) {
+    let mut content = LinearLayout::vertical();
+
+    let fields = item.fields();
+
+    if fields.is_empty() {
+        let mut data = SpannedString::new();
+
+        item.bytes.chunks(8).for_each(|chunk| {
+            for byte in chunk {
+                data.append(format!("{:02x} ", byte));
+            }
+            let fill = 8 * (2 + 1) - chunk.len() * 3;
+            data.append(" ".repeat(fill).to_string());
+            data.append(util::bytes_to_ascii(chunk));
+            data.append("\n");
+        });
+
+        content.add_child(TextView::new(data));
+    } else {
+        let mut l = LinearLayout::vertical();
+        let mut longest = 0;
+        fields.iter().for_each(|f| {
+            longest = std::cmp::max(f.name.len(), longest);
+        });
+        for DromField { name, value } in fields {
+            l.add_child(build_dialog_detail(
+                &format!("{}:", name),
+                longest + 2,
+                value,
+            ));
+        }
+
+        content.add_child(ScrollView::new(l).max_height(20));
+    }
+
+    siv.add_layer(ThemedView::new(
+        theme::dialog(),
+        Layer::new(
+            OnEventView::new(
+                Dialog::around(content)
+                    .button("Close", |s| {
+                        s.pop_layer();
+                    })
+                    .title(format!("{} @ {:#x}", item.name(), item.offset()))
+                    .title_position(HAlign::Left),
+            )
+            .on_event('q', |s| {
+                s.pop_layer();
+            })
+            .on_event(Key::Esc, |s| {
+                s.pop_layer();
+            }),
+        ),
+    ));
+}
+
+fn build_drom(siv: &mut Cursive) {
+    const COMMANDS: [Command; 3] = [
+        Command {
+            key: "q/ESC",
+            desc: "Close",
+            help: "Close the dialog",
+            menu: true,
+        },
+        Command {
+            key: "↵/ENTER",
+            desc: "View",
+            help: "View details of a selected DROM entry",
+            menu: true,
+        },
+        Command {
+            key: "F1",
+            desc: "Help",
+            help: "Show this help",
+            menu: true,
+        },
+    ];
+
+    if devices_empty(siv) {
+        return;
+    }
+
+    let devices: &mut SelectView<Device> = &mut siv.find_name(DEVICES).unwrap();
+    let index = devices.selected_id().unwrap();
+    let device = devices.get_item_mut(index).unwrap().1;
+
+    if let Err(err) = device.read_drom() {
+        siv.add_layer(ThemedView::new(
+            theme::dialog(),
+            Layer::new(Dialog::info(format!("Failed to read device DROM: {}", err))),
+        ));
+        return;
+    }
+
+    let drom = device.drom();
+    if drom.is_none() {
+        siv.add_layer(ThemedView::new(
+            theme::dialog(),
+            Layer::new(Dialog::info("No DROM found for device")),
+        ));
+        return;
+    }
+    let drom = drom.unwrap();
+
+    let mut header = LinearLayout::vertical();
+
+    if drom.is_tb3_compatible() {
+        let mut line = SpannedString::new();
+        line.append_styled(format!("{:>8} ", "CRC8:"), theme::dialog_label());
+        line.append(format!("{:#x} ", drom.crc8().unwrap()));
+        if drom.is_crc8_valid() {
+            line.append_styled("✔", theme::drom_crc_ok());
+        } else {
+            line.append_styled("✘", theme::drom_crc_bad());
+        }
+        header.add_child(TextView::new(line));
+
+        header.add_child(build_dialog_detail(
+            "UUID:",
+            8,
+            &format!("{:#x}", drom.uuid().unwrap()),
+        ));
+    }
+
+    let mut line = SpannedString::new();
+    line.append_styled(format!("{:>8} ", "CRC32:"), theme::dialog_label());
+    line.append(format!("{:#x} ", drom.crc32()));
+    if drom.is_crc32_valid() {
+        line.append_styled("✔", theme::drom_crc_ok());
+    } else {
+        line.append_styled("✘", theme::drom_crc_bad());
+    }
+    header.add_child(TextView::new(line));
+
+    header.add_child(build_dialog_detail(
+        "Version:",
+        8,
+        &format!(
+            "{} ({})",
+            drom.version(),
+            if drom.is_tb3_compatible() {
+                "Thunderbolt 3 Compatible"
+            } else {
+                "USB4"
+            }
+        ),
+    ));
+
+    let mut drom_entries = SelectView::new().on_submit(view_drom_item);
+    let mut entries = drom.entries();
+
+    while let Some(entry) = entries.next() {
+        let value = DromItem::new(entries.start(), entries.bytes(), &entry);
+        drom_entries.add_item(value.summary().to_string(), value);
+    }
+
+    let mut headers = SpannedString::new();
+    headers.append_styled("Offset Type    Entry", theme::dialog_label());
+    let headers = TextView::new(headers);
+
+    siv.add_layer(ThemedView::new(
+        theme::dialog(),
+        Layer::new(
+            OnEventView::new(
+                Dialog::around(
+                    LinearLayout::vertical()
+                        .child(header)
+                        .child(DummyView)
+                        .child(headers)
+                        .child(
+                            ScrollView::new(
+                                OnEventView::new(drom_entries)
+                                    .on_pre_event_inner('k', |e, _| {
+                                        let cb = e.select_up(1);
+                                        Some(EventResult::Consumed(Some(cb)))
+                                    })
+                                    .on_pre_event_inner('j', |e, _| {
+                                        let cb = e.select_down(1);
+                                        Some(EventResult::Consumed(Some(cb)))
+                                    }),
+                            )
+                            .max_height(20),
+                        ),
+                )
+                .button("Close", |s| {
+                    close_dialog(s, DIALOG_DROM);
+                })
+                .title("DROM")
+                .title_position(HAlign::Left)
+                .with_name(DIALOG_DROM),
+            )
+            .on_event(Key::F1, |s| {
+                build_help(s, "Show router DROM contents", &COMMANDS);
+            })
+            .on_event('q', |s| {
+                close_dialog(s, DIALOG_DROM);
+            })
+            .on_event(Key::Esc, |s| {
+                close_dialog(s, DIALOG_DROM);
+            })
+            .min_width(60),
+        ),
+    ));
+
+    set_footer(siv, &COMMANDS);
+}
+
 fn build_detail(label: &str, value: String) -> impl View {
     let mut line = SpannedString::new();
 
@@ -2239,7 +2793,8 @@ fn build_devices() -> impl View {
         .on_event(Key::F6, build_adapters)
         .on_event(Key::F7, build_paths)
         .on_event(Key::F8, build_registers)
-        .on_event(Key::F9, build_tmu);
+        .on_event(Key::F9, build_tmu)
+        .on_event(Key::F10, build_drom);
 
     ScrollView::new(event)
 }
