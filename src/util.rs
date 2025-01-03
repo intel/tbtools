@@ -132,7 +132,7 @@ pub fn bytes_to_ascii(bytes: &[u8]) -> String {
     let mut s = String::new();
 
     bytes.iter().for_each(|b| {
-        if b.is_ascii_alphanumeric() {
+        if b.is_ascii_graphic() {
             s.push_str(&format!("{}", *b as char));
         } else {
             s.push('.')
