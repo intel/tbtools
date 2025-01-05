@@ -35,6 +35,7 @@ uninstall-scripts:
 	-$(RMDIR) $(PREFIX)/share/tbtools/scripts
 
 install-completion:
+	$(INSTALL) -d $(PREFIX)/share/bash-completion/completions
 	$(INSTALL) -m 0644 scripts/tbtools-completion.bash $(PREFIX)/share/bash-completion/completions
 	$(foreach tool, $(TOOLS), $(LN) -sf tbtools-completion.bash $(PREFIX)/share/bash-completion/completions/$(tool);)
 
