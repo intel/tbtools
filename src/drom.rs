@@ -233,6 +233,7 @@ impl<'a> DromEntry<'a> {
         )
     }
 
+    /// Returns `true` if this is generic entry.
     pub fn is_generic(&self) -> bool {
         !self.is_adapter()
     }
