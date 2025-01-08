@@ -18,7 +18,7 @@ BR_HOME ?= $(HOME)/devel/buildroot
 PREFIX ?= $(BR_HOME)/output/target/usr
 
 TOOLS = tbadapters tbauth tbdump tbget tblist tbmargin tbset tbtrace
-SCRIPTS = nvm-version.sh reset-port.sh tb-bandwidth.sh
+SCRIPTS = nvm-version.sh pcie-downstream-mapping.sh reset-port.sh tb-bandwidth.sh
 
 build:
 	$(CARGO) build $(CFLAGS)
