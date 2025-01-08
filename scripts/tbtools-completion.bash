@@ -198,7 +198,7 @@ _tbdump()
 
     if [[ $cur == -* ]]; then
         COMPREPLY+=($(compgen -W '--domain --route --adapter --path --counters
-            --verbose --cap-id --vs-cap-id --nregs --help' -- "$cur"))
+            --verbose --cap-id --vs-cap-id --nregs --help --drom' -- "$cur"))
     else
         case $prev in
             --domain | -d)
@@ -215,7 +215,7 @@ _tbdump()
                 _tbtools_complete_all_adapters $route $domain
                 return
                 ;;
-            --cap-id | --vs-cap-id | --nregs | -[CVN])
+            --cap-id | --vs-cap-id | --nregs | --drom | -[CVND])
                 return
                 ;;
         esac
