@@ -747,7 +747,7 @@ impl Entry {
 
     fn parse_task(s: &str) -> Option<String> {
         lazy_static! {
-            static ref RE: Regex = Regex::new(r"^([^-]+)-").unwrap();
+            static ref RE: Regex = Regex::new(r"^([^ ]+)-").unwrap();
         }
         let caps = RE.captures(s)?;
         Some(String::from(&caps[1]))
@@ -755,7 +755,7 @@ impl Entry {
 
     fn parse_pid(s: &str) -> Option<u32> {
         lazy_static! {
-            static ref RE: Regex = Regex::new(r"^([^-]+)-(\d+)").unwrap();
+            static ref RE: Regex = Regex::new(r"^([^ ]+)-(\d+)").unwrap();
         }
         let caps = RE.captures(s)?;
         caps[2].parse::<u32>().ok()
@@ -1093,6 +1093,7 @@ mod test {
     kworker/12:1-134     [012] .....  5425.790705: tb_tx: type=TB_CFG_PKG_XDOMAIN_RESP, size=14, domain=1, route=1, data=[0x00000000, 0x00000001, 0x0000000b, 0x0ed738b6, 0xbb40ff42, 0xe290c297, 0x07ffb2c0, 0x00000002, 0x80877f49, 0x256a86f1, 0xffffffff, 0xffffffff, 0x00000000, 0x00000001]
    kworker/u28:0-11      [002] .....  5425.995295: tb_tx: type=TB_CFG_PKG_XDOMAIN_REQ, size=8, domain=1, route=1, data=[0x00000000, 0x00000001, 0x10000005, 0x0ed738b6, 0xbb40ff42, 0xe290c297, 0x07ffb2c0, 0x0000000c]
     kworker/12:1-134     [012] .....  5433.028883: tb_rx: type=TB_CFG_PKG_XDOMAIN_RESP, dropped=1, size=23, domain=1, route=1, data=[0x80000000, 0x00000001, 0x08000014, 0x9e588f79, 0x478a1636, 0x6456c697, 0xddc820a9, 0x000003d7, 0x186f7000, 0x4a0d7aa3, 0x1d925063, 0x80877f49, 0x256a86f1, 0xffffffff, 0xffffffff, 0x00000000, 0x00000002, 0x00000001, 0x00000008, 0x00000000, 0x00000000, 0x00000000, 0x00000000]
+ pool-/usr/libex-3015    [011] .....   762.147904: tb_tx: type=TB_CFG_PKG_WRITE, size=4, domain=0, route=0, offset=0x39, len=1, port=9, config=0x1, seq=0, data=[0x00000000, 0x00000000, 0x02482039, 0x80000000]
 ";
 
     #[test]
@@ -1266,6 +1267,36 @@ mod test {
         assert_eq!(data[0], 0x00000000);
         assert_eq!(data[1], 0x00000000);
         assert_eq!(data[2], 0x80000507);
+    }
+
+    #[test]
+    fn parse_task_with_hyphens_write_request() {
+        let line = lines().nth(11).unwrap();
+        let entry = Entry::parse(line);
+        assert!(entry.is_some());
+        let entry = entry.unwrap();
+        assert_eq!(entry.task(), "pool-/usr/libex");
+        assert_eq!(entry.pid(), 3015);
+        assert_eq!(entry.cpu(), 11);
+        assert_eq!(*entry.timestamp(), TimeVal::new(762, 147904));
+        assert_eq!(entry.function(), "tb_tx");
+        assert_eq!(entry.pdf(), Pdf::WriteRequest);
+        assert_eq!(entry.size(), 4);
+        assert_eq!(entry.dropped(), false);
+        assert_eq!(entry.domain_index(), 0);
+        assert_eq!(entry.route(), 0);
+        assert_eq!(entry.offset(), Some(0x39));
+        assert_eq!(entry.event(), None);
+        assert_eq!(entry.dwords(), Some(1));
+        assert_eq!(entry.adapter_num(), Some(9));
+        assert_eq!(entry.cs(), Some(ConfigSpace::Adapter));
+        assert_eq!(entry.sn(), Some(0));
+        let data = entry.data();
+        assert_eq!(data.len(), 4);
+        assert_eq!(data[0], 0x00000000);
+        assert_eq!(data[1], 0x00000000);
+        assert_eq!(data[2], 0x02482039);
+        assert_eq!(data[3], 0x80000000);
     }
 
     #[test]
