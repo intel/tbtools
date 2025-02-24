@@ -359,12 +359,12 @@ impl<'a> ControlPacket<'a> {
     /// This is unmodified route string that includes also the `CM` bit if it is set.
     pub fn route(&self) -> u64 {
         let values: Vec<u64> = self.fields[0..=1].iter().map(|f| f.value as u64).collect();
-        values[0] << 32 | values[1]
+        (values[0] << 32) | values[1]
     }
 
     /// Is the CM bit set in the route string?
     pub fn cm(&self) -> bool {
-        self.route() & 1 << 63 != 0
+        self.route() & (1 << 63) != 0
     }
 
     /// Returns `Adapter Num` from the packet.

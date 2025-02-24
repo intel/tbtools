@@ -272,7 +272,7 @@ impl<'a> DromEntry<'a> {
                         Type::PcieUp => {
                             let hi = (bytes[2] & DROM_PCIE_DEV_HI_MASK) >> DROM_PCIE_DEV_HI_SHIFT;
                             let lo = (bytes[2] & DROM_PCIE_DEV_LO_MASK) >> DROM_PCIE_DEV_LO_SHIFT;
-                            let device = hi << 3 | lo;
+                            let device = (hi << 3) | lo;
 
                             Self::PcieUpAdapter {
                                 adapter_num,
@@ -284,7 +284,7 @@ impl<'a> DromEntry<'a> {
                         Type::PcieDown => {
                             let hi = (bytes[2] & DROM_PCIE_DEV_HI_MASK) >> DROM_PCIE_DEV_HI_SHIFT;
                             let lo = (bytes[2] & DROM_PCIE_DEV_LO_MASK) >> DROM_PCIE_DEV_LO_SHIFT;
-                            let device = hi << 3 | lo;
+                            let device = (hi << 3) | lo;
 
                             Self::PcieDownAdapter {
                                 adapter_num,
