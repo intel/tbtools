@@ -97,6 +97,7 @@
         {"name": "DP Device Connected not Tunneled", "value": 5},
         {"name": "Inter-Domain Connected", "value": 6},
         {"name": "Inter-Domain Disconnected", "value": 7},
+        {"name": "DP Configuration Changed", "value": 8},
         {"name": "RTD3 Veto", "value": 10}
       ]},
       {"start_bit": 8, "end_bit": 15, "name": "Flags"},
