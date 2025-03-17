@@ -53,6 +53,7 @@ use crate::{
 use lazy_static::lazy_static;
 use nix::sys::time::{self, TimeVal};
 use regex::Regex;
+use serde::{Serialize, Serializer};
 use serde_json::Value;
 use std::{
     collections::HashMap,
@@ -177,6 +178,15 @@ impl From<u8> for Event {
             39 => Self::AsymLink,
             _ => Self::Unknown(ec),
         }
+    }
+}
+
+impl Serialize for Event {
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.collect_str(self)
     }
 }
 
@@ -620,14 +630,23 @@ impl<'a> ControlPacket<'a> {
     }
 }
 
+fn serialize_timeval<S>(tv: &TimeVal, serializer: S) -> std::result::Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    serializer.collect_str(&format_args!("{}.{:06}", tv.tv_sec(), tv.tv_usec()))
+}
+
 /// Single parsed trace line.
 ///
 /// Each parsed trace line returned by [`Buffer::iter()`] contains one [`Entry`] that holds the
 /// trace information.
+#[derive(Serialize)]
 pub struct Entry {
     task: String,
     pid: u32,
     cpu: u16,
+    #[serde(serialize_with = "serialize_timeval")]
     timestamp: TimeVal,
     function: String,
     pdf: Pdf,

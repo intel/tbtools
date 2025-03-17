@@ -893,6 +893,7 @@ dependencies = [
  "num-traits",
  "rand",
  "regex",
+ "serde",
  "serde_json",
  "udev",
  "uuid",

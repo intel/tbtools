@@ -5,6 +5,7 @@
 
 use lazy_static::lazy_static;
 
+use serde::{Serialize, Serializer};
 use std::cmp::Ordering;
 use std::ffi::OsStr;
 use std::fmt::{self, Display};
@@ -652,7 +653,7 @@ pub enum Address {
 ///
 /// These are the possible configuration spaces defined in the USB4 specification. If the
 /// configuration space is not known, it is set to [`ConfigSpace::Unknown`].
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize)]
 pub enum ConfigSpace {
     /// Config space is not known.
     Unknown,
@@ -768,6 +769,15 @@ impl Display for Pdf {
             _ => "Unknown",
         };
         write!(f, "{}", s)
+    }
+}
+
+impl Serialize for Pdf {
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.collect_str(self)
     }
 }
 
