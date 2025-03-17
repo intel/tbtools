@@ -7,7 +7,9 @@ use ansi_term::Colour::{Cyan, Green, Purple, Red, White, Yellow};
 use clap::{self, Parser, Subcommand};
 use csv::Writer;
 use nix::{sys::time::TimeVal, unistd::Uid};
+use serde_json::{json, Value};
 use std::{
+    collections::HashSet,
     io::{self, IsTerminal, Write},
     path::Path,
     process,
@@ -16,6 +18,321 @@ use tbtools::{
     debugfs::{self, BitFields, Name},
     trace, util, Address, ConfigSpace, Device, Kind, Pdf,
 };
+
+const HTML_HEADER: &str = r#"<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thunderbolt/USB4 Trace</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            height: 100vh;
+            color: #004080;
+            overflow: hidden;
+        }
+        .header {
+            padding-left: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            top: 0;
+            left: 0;
+            width: 100%;
+            color: #000;
+            position: fixed;
+        }
+        .header img {
+            height: 40px;
+            margin-right: 10px;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+        .header-right {
+            font-size: 14px;
+            color: #000;
+            margin-right: 20px;
+            padding-right: 20px;
+        }
+        .content {
+            display: flex;
+            flex-direction: row;
+            margin-top: 70px;
+            height: calc(100vh - 70px);
+        }
+        .table-container {
+            width: 60%;
+            overflow-y: auto;
+            height: 100%;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 12px;
+            text-align: left;
+            white-space: pre-wrap;
+            cursor: pointer;
+        }
+        th {
+            background-color: #dcdcdc;
+            cursor: pointer;
+            position: relative;
+            color: #000;
+        }
+        th:hover {
+            background-color: #b0b0b0;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #e0e0e0;
+        }
+        tr.selected {
+            background-color: #a0c4ff !important;
+        }
+        tr.dropped {
+            color: #000;
+            background-color: #ff0000;
+        }
+        #sidebar {
+            width: 40%;
+            padding: 0px 15px 15px 15px;
+            background-color: #f9f9f9;
+            color: #000;
+            overflow-y: auto;
+        }
+        h3 {
+            color: #000;
+        }
+        .filter-name {
+          display: inline-block;
+          width: 15%;
+        }
+        pre {
+            background-color: #eee;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            color: #000;
+            font-size: large;
+        }
+        pre h4 {
+            background-color: cyan;
+        }
+        pre .task {
+          font-weight: bold;
+        }
+        pre .value {
+          color: magenta;
+        }
+        pre .short {
+          color: olive;
+          font-weight: bold;
+        }
+        pre .value-name {
+          color: magenta;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/9/97/ThunderboltFulmine.svg" alt="Thunderbolt Logo">
+            <h1>Thunderbolt/USB4 Trace</h1>
+        </div>
+        <div class="header-right">tbtools {VERSION}</div>
+    </div>
+    <div class="content">
+        <div class="table-container">
+            <table id="trace_table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Function</th>
+                        <th>PDF / CS</th>
+                        <th>Domain</th>
+                        <th>Route</th>
+                        <th>Adapter</th>
+                        <th>Address</th>
+                        <th>Size</th>
+                    </tr>
+                </thead>
+                <tbody>
+"#;
+
+const HTML_FOOTER: &str = r##"                </tbody>
+            </table>
+        </div>
+        <div id="sidebar">
+            <div id="filter">
+                <h3>Filters</h3>
+                <div class="domain-filter">
+                    <label class="filter-name">Domain:</label>
+{DOMAINS}
+                </div>
+                <div class="route-filter">
+                    <label class="filter-name">Route:</label>
+{ROUTES}
+                </div>
+            </div>
+            <div id="details">
+                <h3>Packet Contents</h3>
+                <pre id="entry_details">Select row to see details</pre>
+            </div>
+        </div>
+    </div>
+    <script>
+        function showEntry(row, entry, fields) {
+            function formatDec(value, width) {
+                return value.toString().padStart(width, '0');
+            }
+
+            function formatHex(value, width, fill) {
+                return "0x" + value.toString(16).padStart(width, '0');
+            }
+
+            function formatBin(value, width) {
+                let binaryString = value.toString(2).padStart(width, '0');
+                let formatted = binaryString.match(/.{1,8}/g).join(' ');
+                return "0b" + formatted;
+            }
+
+            function hexdump(value) {
+                let buffer = new ArrayBuffer(4);
+                let data = new DataView(buffer).setUint32(0, value);
+                let bytes = new Uint8Array(buffer);
+
+                let s = "";
+                for (let i = 0; i < bytes.length; i++) {
+                    if (bytes[i] >= 32 && bytes[i] <= 126) {
+                        s += String.fromCharCode(bytes[i]);
+                    } else {
+                        s += ".";
+                    }
+                }
+
+                return s;
+            }
+
+            let html = "";
+
+            html += `<h4>Packet @ ${entry["timestamp"]}</h4>`;
+            html += "<pre>";
+            html += `         CPU: ${entry["cpu"]}\n`;
+            html += `        Task: <span class='task'>${entry["task"]}</span>\n`;
+            html += `         PID: ${entry["pid"]}\n`;
+            html += `    Function: ${entry["function"]}\n`;
+            html += `     Dropped: ${entry["dropped"]}\n`;
+            html += `        Size: ${entry["size"]}\n`;
+            html += `         PDF: ${entry["pdf"]}\n`;
+            if (entry["cs"] != null) {
+                html += `Config Space: ${entry["cs"]}\n`;
+            }
+            html += `      Domain: ${entry["domain_index"]}\n`;
+            html += `       Route: ${entry["route"]}\n`;
+            if (entry["adapter"] != null) {
+                html += `     Adapter: ${entry["adapter"]}\n`;
+            }
+            html += "</pre>";
+
+            html += `<h4>Fields</h4>`;
+            html += "<pre>";
+            for (let i = 0; i < fields.length; i++) {
+                let field = fields[i];
+
+                html += formatHex(field.address, 2);
+                html += " ";
+                html += formatHex(field.value, 8);
+                html += " ";
+                html += formatBin(field.value, 32);
+                html += " ";
+                html += hexdump(field.value);
+                html += " ";
+                if (field.name != null) {
+                    html += field.name;
+                }
+
+                if (field.bitfields != null && field.bitfields.length > 0) {
+                    let bf = field.bitfields;
+                    html += "\n";
+
+                    for (j = 0; j < bf.length; j++) {
+                        let bitfield = bf[j];
+
+                        html += "  [";
+                        html += formatDec(bitfield.start, 2);
+                        html += ":";
+                        html += formatDec(bitfield.end, 2);
+                        html += "]";
+
+                        html += " <span class='value'>";
+                        let v = "0x" + bitfield.value.toString(16);
+                        html += v.padStart(5, ' ');
+                        html += "</span>";
+
+                        html += " ";
+                        html += bitfield.name;
+
+                        if (bitfield.short_name != null) {
+                            html += ` (<span class='short'>${bitfield.short_name}</span>)`;
+                        }
+                        if (bitfield.value_name != null) {
+                            html += ` → (<span class='value-name'>${bitfield.value_name}</span>)`;
+                        }
+
+                        html += "\n";
+                    }
+                } else {
+                    html += "\n";
+                }
+            }
+            html += "</pre>";
+
+            document.getElementById("entry_details").innerHTML = html;
+
+            // Toggle selection.
+            document.querySelectorAll("tr").forEach(tr => tr.classList.remove("selected"));
+            row.classList.add("selected");
+        }
+
+        function updateDomainFilter() {
+            let selectedDomains =
+                Array.from(document.querySelectorAll('.domain-filter input:checked'))
+                .map(input => input.value);
+
+            document.querySelectorAll('#trace_table tbody tr').forEach(row => {
+                let domain = row.getAttribute('data-domain');
+                row.style.display = selectedDomains.includes(domain) ? '' : 'none';
+            });
+        }
+
+        function updateRouteFilter() {
+            let selectedRoutes =
+                Array.from(document.querySelectorAll('.route-filter input:checked'))
+                .map(input => input.value);
+
+            document.querySelectorAll('#trace_table tbody tr').forEach(row => {
+                let domain = row.getAttribute('data-route');
+                row.style.display = selectedRoutes.includes(domain) ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>
+"##;
 
 #[derive(Parser, Debug)]
 #[command(version)]
@@ -45,6 +362,9 @@ enum Commands {
         /// Output suitable for scripting
         #[arg(short = 'S', long, group = "output")]
         script: bool,
+        /// HTML output
+        #[arg(short = 'H', long, group = "output")]
+        html: bool,
         /// Timestamp as system wall clock time instead of seconds from boot
         #[arg(short = 'T', long)]
         time: bool,
@@ -249,6 +569,7 @@ fn dump_fields(verbose: u8, bitfields: &dyn BitFields<u32>) {
         }
     }
 }
+
 fn extract_register_info(
     entry: &trace::Entry,
     device: Option<&Device>,
@@ -406,7 +727,154 @@ fn dump_script_packet<W: Write>(
     Ok(())
 }
 
-fn dump(input: Option<String>, script: bool, time: bool, verbose: u8) -> io::Result<()> {
+fn dump_html_bitfields(bitfields: &dyn BitFields<u32>, verbose: u8) -> Vec<Value> {
+    let mut bf = Vec::new();
+
+    if verbose > 1 {
+        if let Some(fields) = bitfields.fields() {
+            for field in fields {
+                let value = bitfields.field(field.name());
+                bf.push(json!({
+                    "start": field.range().start(),
+                    "end": field.range().end(),
+                    "value": value,
+                    "name": field.name(),
+                    "short_name": field.short_name(),
+                    "value_name": field.value_name(value),
+                }));
+            }
+        }
+    }
+
+    bf
+}
+
+fn dump_html(
+    entry: &trace::Entry,
+    packet: &trace::ControlPacket,
+    verbose: u8,
+    device: Option<&Device>,
+    boot_time: Option<TimeVal>,
+) {
+    let ts = timestamp(entry.timestamp(), boot_time);
+    let mut data_address = packet.data_address().unwrap_or(0);
+    let data_start = packet.data_start().unwrap_or(0);
+
+    let mut fields = Vec::new();
+
+    for (i, f) in packet
+        .fields()
+        .iter()
+        .enumerate()
+        .map(|(i, f)| (i as u16, f))
+    {
+        let value = f.value();
+
+        if packet.data().is_some() && i >= data_start {
+            data_address += 1;
+
+            if verbose > 0 {
+                if let Some(register) =
+                    extract_register_info(entry, device, data_address - 1, value)
+                {
+                    fields.push(json!({
+                        "address": i,
+                        "name": register.name(),
+                        "value": value,
+                        "bitfields": dump_html_bitfields(&register, verbose),
+                    }));
+                    continue;
+                }
+            }
+        }
+
+        fields.push(json!({
+            "address": i,
+            "name": if verbose > 0 { f.name() } else { None },
+            "value": value,
+            "bitfields": dump_html_bitfields(f, verbose),
+        }));
+    }
+
+    let mut details = json!(entry);
+    if let Some(adapter_num) = packet.adapter_num() {
+        if let Some(device) = device {
+            if let Some(adapter) = device.adapter(adapter_num) {
+                details["adapter"] = format!("{} / {}", adapter_num, adapter.kind()).into();
+            }
+        } else {
+            details["adapter"] = adapter_num.into();
+        }
+    }
+    let mut indent = 5;
+
+    if entry.dropped() {
+        println!(
+            r#"{}<tr data-domain='{}' data-route='{}' class='dropped' onClick='showEntry(this, {}, {})'>"#,
+            "    ".repeat(indent),
+            entry.domain_index(),
+            entry.route(),
+            details,
+            json!(fields)
+        );
+    } else {
+        println!(
+            r#"{}<tr data-domain='{}' data-route='{}' onClick='showEntry(this, {}, {})'>"#,
+            "    ".repeat(indent),
+            entry.domain_index(),
+            entry.route(),
+            details,
+            json!(fields)
+        );
+    }
+
+    indent += 1;
+
+    println!(
+        "{}<td>{}.{:06}</td>",
+        "    ".repeat(indent),
+        ts.tv_sec(),
+        ts.tv_usec()
+    );
+    println!(
+        "{}<td><code>{}</code></td>",
+        "    ".repeat(indent),
+        entry.function()
+    );
+    if let Some(cs) = entry.cs() {
+        println!("{}<td>{} / {}</td>", "    ".repeat(indent), entry.pdf(), cs);
+    } else {
+        println!("{}<td>{}</td>", "    ".repeat(indent), entry.pdf());
+    }
+    println!("{}<td>{}</td>", "    ".repeat(indent), entry.domain_index());
+    println!("{}<td>{:x}</td>", "    ".repeat(indent), entry.route());
+    if let Some(adapter) = details["adapter"].as_str() {
+        println!("{}<td>{}</td>", "    ".repeat(indent), adapter);
+    } else {
+        println!("{}<td></td>", "    ".repeat(indent));
+    }
+    if let Some(data_address) = packet.data_address() {
+        println!("{}<td>{:#x}</td>", "    ".repeat(indent), data_address);
+    } else {
+        println!("{}<td></td>", "    ".repeat(indent));
+    }
+    if let Some(data_size) = packet.data_size() {
+        println!("{}<td>{}</td>", "    ".repeat(indent), data_size);
+    } else {
+        println!("{}<td></td>", "    ".repeat(indent));
+    }
+
+    indent -= 1;
+    println!("{}</tr>", "    ".repeat(indent));
+}
+
+fn dump(
+    input: Option<String>,
+    script: bool,
+    html: bool,
+    time: bool,
+    verbose: u8,
+) -> io::Result<()> {
     let mut devices: Vec<Device> = Vec::new();
     let trace_buf;
 
@@ -460,12 +928,24 @@ fn dump(input: Option<String>, script: bool, time: bool, verbose: u8) -> io::Res
         None
     };
 
+    let mut domains = HashSet::new();
+    let mut routes = HashSet::new();
+
+    if html {
+        let header = HTML_HEADER.replace("{VERSION}", env!("CARGO_PKG_VERSION"));
+        print!("{}", header);
+    }
+
     let mut line = 0;
 
     for entry in trace_buf {
         let mut device = devices
             .iter_mut()
             .find(|d| d.domain_index() == entry.domain_index() && d.route() == entry.route());
+
+        domains.insert(entry.domain_index());
+        routes.insert(entry.route());
+
         if let Some(ref mut device) = device {
             device.read_registers_cached()?;
             device.read_adapters_cached()?;
@@ -495,11 +975,31 @@ fn dump(input: Option<String>, script: bool, time: bool, verbose: u8) -> io::Res
                 );
                 dump_script_packet(&entry, &packet, &header, writer, verbose, device.as_deref())?;
                 line += 1;
+            } else if html {
+                dump_html(&entry, &packet, verbose, device.as_deref(), boot_time);
             } else {
                 dump_header(&entry, &packet, None, device.as_deref(), boot_time);
                 dump_packet(&entry, &packet, verbose, device.as_deref());
             }
         }
+    }
+
+    if html {
+        let mut domains: Vec<_> = domains.iter().collect();
+        domains.sort();
+        let mut routes: Vec<_> = routes.iter().collect();
+        routes.sort();
+        let domain_filters = domains
+            .iter()
+            .map(|d| format!(r#"{}<label><input type="checkbox" value="{}" checked onchange="updateDomainFilter()">{}</label>"#, " ".repeat(20), d, d))
+            .collect::<Vec<_>>();
+        let header = HTML_FOOTER.replace("{DOMAINS}", &domain_filters.join("\n"));
+        let route_filters = routes
+            .iter()
+            .map(|d| format!(r#"{}<label><input type="checkbox" value="{}" checked onchange="updateRouteFilter()">{}</label>"#, " ".repeat(20), d, d))
+            .collect::<Vec<_>>();
+        let header = header.replace("{ROUTES}", &route_filters.join("\n"));
+        print!("{}", header);
     }
 
     Ok(())
@@ -553,6 +1053,7 @@ fn main() -> io::Result<()> {
         Commands::Dump {
             input,
             script,
+            html,
             time,
             verbose,
         } => {
@@ -575,7 +1076,7 @@ fn main() -> io::Result<()> {
                 eprintln!("Note you should run on the same system you took the trace to get accurate times");
             }
 
-            dump(input, script, time, verbose)?;
+            dump(input, script, html, time, verbose)?;
         }
 
         Commands::Clear => {
