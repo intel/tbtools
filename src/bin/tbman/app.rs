@@ -2918,18 +2918,28 @@ fn update_device_list(siv: &mut Cursive, device: Device) {
     }
 }
 
-fn update_device(siv: &mut Cursive, device: Device) {
-    update_device_list(siv, device);
-    // Make sure to update the open adapter or path views to reflect the changed device.
-    update_adapter_view(siv);
-    update_path_view(siv);
-}
-
 fn handle_event(siv: &mut Cursive, event: monitor::Event) {
+    // Handle device events only if it is a router. If domain change events appear, also update
+    // adapter and path views to reflect change in tunneling.
     match event {
-        monitor::Event::Add(device) => add_device(siv, device),
-        monitor::Event::Change(device) => update_device(siv, device),
-        monitor::Event::Remove(device) => remove_device(siv, device),
+        monitor::Event::Add(device) => {
+            if device.is_router() {
+                add_device(siv, device);
+            }
+        }
+        monitor::Event::Remove(device) => {
+            if device.is_router() {
+                remove_device(siv, device);
+            }
+        }
+        monitor::Event::Change(device) => {
+            if device.is_router() {
+                update_device_list(siv, device);
+            }
+            // Make sure to update the open adapter or path views to reflect the changed device.
+            update_adapter_view(siv);
+            update_path_view(siv);
+        }
     }
 }
 
@@ -2940,6 +2950,8 @@ fn start_monitor(siv: &mut Cursive) {
         let mut monitor = monitor::Builder::new()
             .unwrap()
             .kind(Kind::Router)
+            .unwrap()
+            .kind(Kind::Domain)
             .unwrap()
             .build()
             .unwrap();
