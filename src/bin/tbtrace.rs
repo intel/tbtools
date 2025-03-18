@@ -88,8 +88,10 @@ const HTML_HEADER: &str = r#"<!DOCTYPE html>
         th {
             background-color: #dcdcdc;
             cursor: pointer;
-            position: relative;
+            position: sticky;
             color: #000;
+            z-index: 1;
+            top: 0;
         }
         th:hover {
             background-color: #b0b0b0;
