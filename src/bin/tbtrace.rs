@@ -805,7 +805,7 @@ fn dump_html(
                 details["adapter"] = format!("{} / {}", adapter_num, adapter.kind()).into();
             }
         } else {
-            details["adapter"] = adapter_num.into();
+            details["adapter"] = adapter_num.to_string().into();
         }
     }
     let mut indent = 5;
