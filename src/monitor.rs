@@ -36,7 +36,7 @@ impl Monitor {
     /// Poll for a new event.
     ///
     /// * `duration` - Timeout how long to wait until the function returns. Passing
-    ///                [None][`Option::None`] blocks forever.
+    ///   [None][`Option::None`] blocks forever.
     ///
     /// Returns `true` if there was an event, `false` otherwise.
     pub fn poll(&mut self, duration: Option<Duration>) -> Result<bool> {
