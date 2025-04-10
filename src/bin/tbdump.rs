@@ -548,16 +548,16 @@ fn main() {
         process::exit(1);
     }
 
-    if let Err(err) = debugfs::mount() {
-        eprintln!("Error: failed to mount debugfs: {}", err);
+    debugfs::mount().unwrap_or_else(|e| {
+        eprintln!("Error: failed to mount debugfs: {}", e);
         process::exit(1);
-    }
+    });
 
-    if let Err(err) = dump(&args) {
-        eprintln!("Error: {}", err);
-        if err.kind() == ErrorKind::Unsupported {
+    dump(&args).unwrap_or_else(|e| {
+        eprintln!("Error: {}", e);
+        if e.kind() == ErrorKind::Unsupported {
             eprintln!("Device does not support register access");
         }
         process::exit(1);
-    }
+    });
 }
