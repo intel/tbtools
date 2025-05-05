@@ -2932,7 +2932,7 @@ fn handle_event(siv: &mut Cursive, event: monitor::Event) {
                 remove_device(siv, device);
             }
         }
-        monitor::Event::Change(device) => {
+        monitor::Event::Change(device, _) => {
             if device.is_router() {
                 update_device_list(siv, device);
             }

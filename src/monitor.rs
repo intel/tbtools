@@ -5,12 +5,70 @@
 
 //! Monitor events on the Thunderbolt/USB4 bus.
 
-use nix::sys::{select, time};
-use std::io::Result;
-use std::os::fd::AsRawFd;
-use std::time::Duration;
+use nix::sys::{select, time::TimeVal};
+use std::{
+    fmt::{self, Display},
+    io::Result,
+    os::fd::AsRawFd,
+    time::Duration,
+};
 
 use crate::{Device, Kind};
+
+/// Tunneling event in the domain.
+#[derive(Debug, Clone)]
+pub enum TunnelEvent {
+    /// Tunnel was activated.
+    Activated,
+    /// Tunnel was changed somehow.
+    Changed,
+    /// Tunnel was torn down.
+    Deactivated,
+    /// Sub-optimal bandwidth available for the tunnel.
+    LowBandwidth,
+    /// Not enough bandwitdh available for the tunnel.
+    NoBandwidth,
+}
+
+impl From<&str> for TunnelEvent {
+    fn from(s: &str) -> Self {
+        match s {
+            "activated" => Self::Activated,
+            "changed" => Self::Changed,
+            "deactivated" => Self::Deactivated,
+            "low bandwidth" => Self::LowBandwidth,
+            "insufficient bandwidth" => Self::NoBandwidth,
+            _ => panic!("unknown tunneling event"),
+        }
+    }
+}
+
+impl Display for TunnelEvent {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = match *self {
+            Self::Activated => "activated",
+            Self::Changed => "changed",
+            Self::Deactivated => "deactivated",
+            Self::LowBandwidth => "low bandwidth",
+            Self::NoBandwidth => "insufficient bandwidth",
+        };
+        write!(f, "{}", s)
+    }
+}
+
+/// Describes the type of the change event.
+#[derive(Debug, Clone)]
+pub enum ChangeEvent {
+    /// Router was authorized or de-authorized.
+    Router { authorized: u8 },
+    /// Tunneling related change.
+    Tunnel {
+        /// Type of the tunnel event.
+        event: TunnelEvent,
+        /// Details of the tunneling event if available.
+        details: Option<String>,
+    },
+}
 
 /// Possible events the monitor can emit.
 pub enum Event {
@@ -19,7 +77,18 @@ pub enum Event {
     /// Device has been removed from the domain.
     Remove(Device),
     /// Device has changes.
-    Change(Device),
+    Change(Device, Option<ChangeEvent>),
+}
+
+impl Display for Event {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = match *self {
+            Self::Add(_) => "add",
+            Self::Remove(_) => "remove",
+            Self::Change(..) => "change",
+        };
+        write!(f, "{}", s)
+    }
 }
 
 /// Monitors the bus for changes
@@ -43,8 +112,8 @@ impl Monitor {
         let mut readfds = select::FdSet::new();
         readfds.insert(self.socket.as_raw_fd());
 
-        let mut tv: Option<time::TimeVal> = duration.map(|duration| {
-            time::TimeVal::new(
+        let mut tv: Option<TimeVal> = duration.map(|duration| {
+            TimeVal::new(
                 duration.as_secs().try_into().unwrap(),
                 #[allow(clippy::unnecessary_fallible_conversions)]
                 duration.subsec_micros().try_into().unwrap(),
@@ -72,11 +141,48 @@ impl Iterator for Monitor {
     fn next(&mut self) -> Option<Self::Item> {
         let e = self.socket.iter().next()?;
 
-        let device = Device::parse(e.device())?;
         match e.event_type() {
-            udev::EventType::Add => Some(Event::Add(device)),
-            udev::EventType::Change => Some(Event::Change(device)),
-            udev::EventType::Remove => Some(Event::Remove(device)),
+            udev::EventType::Add => Some(Event::Add(Device::parse(e.device())?)),
+            udev::EventType::Remove => Some(Event::Remove(Device::parse(e.device())?)),
+            udev::EventType::Change => {
+                let udev = e.device();
+                let kind = Kind::from(udev.devtype()?.to_str()?);
+
+                let change_event = match kind {
+                    Kind::Domain => {
+                        if let Some(tunnel_event) =
+                            udev.property_value("TUNNEL_EVENT").and_then(|e| e.to_str())
+                        {
+                            let details = udev
+                                .property_value("TUNNEL_DETAILS")
+                                .and_then(|d| d.to_str())
+                                .map(|s| s.to_string());
+                            Some(ChangeEvent::Tunnel {
+                                event: TunnelEvent::from(tunnel_event),
+                                details,
+                            })
+                        } else {
+                            None
+                        }
+                    }
+                    Kind::Router => {
+                        if let Some(authorized) = udev
+                            .property_value("AUTHORIZED")
+                            .and_then(|a| a.to_str())
+                            .map(|s| s.parse::<u8>().ok())
+                        {
+                            Some(ChangeEvent::Router {
+                                authorized: authorized?,
+                            })
+                        } else {
+                            None
+                        }
+                    }
+                    _ => None,
+                };
+
+                Some(Event::Change(Device::parse(udev)?, change_event))
+            }
             _ => None,
         }
     }
