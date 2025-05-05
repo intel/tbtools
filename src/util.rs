@@ -12,7 +12,10 @@ use std::{
 };
 
 use lazy_static::lazy_static;
-use nix::sys::time::{self, TimeVal};
+use nix::{
+    sys::time::{self, TimeVal},
+    time::{clock_gettime, ClockId},
+};
 use num_traits::Num;
 use regex::Regex;
 use uuid;
@@ -188,6 +191,17 @@ pub fn system_boot_time() -> io::Result<TimeVal> {
     }
 
     Err(Error::from(ErrorKind::Unsupported))
+}
+
+/// Returns timestamp of now since system boot.
+pub fn system_current_timestamp() -> TimeVal {
+    let current_timestamp =
+        clock_gettime(ClockId::CLOCK_MONOTONIC).expect("Failed to get current system time");
+
+    TimeVal::new(
+        current_timestamp.tv_sec(),
+        current_timestamp.tv_nsec() / 1000,
+    )
 }
 
 /// Define a single bit within a register
