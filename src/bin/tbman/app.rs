@@ -20,11 +20,12 @@ use cursive::{
     },
     Cursive, View,
 };
+use nix::sys::time::TimeVal;
 use std::{io, thread};
 use tbtools::{
     debugfs::{Adapter, BitField, BitFields, Name, Path, Register, Type},
     drom::{DromEntry, TmuMode, TmuRate},
-    monitor,
+    monitor::{self, ChangeEvent},
     trace::{self, Entry},
     util, Device, Kind, Pdf, Version, {self, ConfigSpace},
 };
@@ -49,6 +50,7 @@ const DIALOG_REGISTERS: &str = "dialog.registers";
 const DIALOG_TMU: &str = "dialog.tmu";
 const DIALOG_TRACE: &str = "dialog.trace";
 const DIALOG_DROM: &str = "dialog.drom";
+const DIALOG_EVENTS: &str = "dialog.events";
 
 const VIEW_ADAPTERS: &str = "view.adapters";
 const VIEW_PATHS: &str = "view.paths";
@@ -60,8 +62,9 @@ const VIEW_REGISTERS_DIALOG: &str = "view.registers.dialog";
 const VIEW_TMU: &str = "view.tmu";
 const VIEW_TRACE: &str = "view.trace";
 const VIEW_ENTRIES: &str = "view.entries";
+const VIEW_EVENTS: &str = "view.events";
 
-const MAIN_COMMANDS: [Command; 13] = [
+const MAIN_COMMANDS: [Command; 14] = [
     Command {
         key: "q/ESC",
         desc: "Quit",
@@ -138,6 +141,12 @@ const MAIN_COMMANDS: [Command; 13] = [
         key: "F10",
         desc: "DROM",
         help: "Show device DROM",
+        menu: false,
+    },
+    Command {
+        key: "F11",
+        desc: "Events",
+        help: "Show router and tunneling events",
         menu: false,
     },
 ];
@@ -2652,6 +2661,187 @@ fn build_drom(siv: &mut Cursive) {
     set_footer(siv, &COMMANDS);
 }
 
+struct EventEntry {
+    timestamp: TimeVal,
+    r#type: String,
+    name: String,
+    change_event: Option<ChangeEvent>,
+}
+
+fn view_event(siv: &mut Cursive, entry: &EventEntry) {
+    let mut content = LinearLayout::vertical();
+    content.add_child(build_dialog_detail("Type:", 16, &entry.r#type));
+    content.add_child(build_dialog_detail("Device:", 16, &entry.name));
+
+    if let Some(ref change_event) = entry.change_event {
+        match change_event {
+            ChangeEvent::Router { authorized } => content.add_child(build_dialog_detail(
+                "Authorized:",
+                16,
+                &format!("{}", authorized),
+            )),
+            ChangeEvent::Tunnel { event, details } => {
+                content.add_child(build_dialog_detail("Tunnel event:", 16, &event.to_string()));
+                if let Some(details) = details {
+                    content.add_child(build_dialog_detail("Tunnel details:", 16, details));
+                }
+            }
+        }
+    }
+
+    let title = format!(
+        "Event @{}.{:06} ",
+        entry.timestamp.tv_sec(),
+        entry.timestamp.tv_usec()
+    );
+
+    siv.add_layer(ThemedView::new(
+        theme::dialog(),
+        Layer::new(
+            OnEventView::new(
+                Dialog::around(LinearLayout::vertical().child(content))
+                    .button("Close", |s| {
+                        s.pop_layer();
+                    })
+                    .title(title),
+            )
+            .on_event('q', |s| {
+                s.pop_layer();
+            })
+            .on_event(Key::Esc, |s| {
+                s.pop_layer();
+            }),
+        ),
+    ));
+}
+
+fn clear_events(siv: &mut Cursive) {
+    let entries: &mut SelectView<EventEntry> = &mut siv.find_name(VIEW_EVENTS).unwrap();
+    entries.clear();
+}
+
+fn build_events(siv: &mut Cursive) {
+    const COMMANDS: [Command; 3] = [
+        Command {
+            key: "q/ESC",
+            desc: "Close",
+            help: "Close the dialog",
+            menu: true,
+        },
+        Command {
+            key: "F1",
+            desc: "Help",
+            help: "Show this help",
+            menu: true,
+        },
+        Command {
+            key: "F2",
+            desc: "Clear",
+            help: "Clear all events",
+            menu: true,
+        },
+    ];
+
+    let mut header = SpannedString::new();
+    header.append_styled("Timestamp     Event  Device", theme::dialog_label());
+
+    let entries = OnEventView::new(
+        SelectView::<EventEntry>::new()
+            .on_submit(view_event)
+            .with_name(VIEW_EVENTS),
+    )
+    .on_pre_event_inner('k', |e, _| {
+        let cb = e.get_mut().select_up(1);
+        Some(EventResult::Consumed(Some(cb)))
+    })
+    .on_pre_event_inner('j', |o, _| {
+        let cb = o.get_mut().select_down(1);
+        Some(EventResult::Consumed(Some(cb)))
+    });
+
+    siv.add_layer(ThemedView::new(
+        theme::dialog(),
+        Layer::new(
+            OnEventView::new(
+                Dialog::around(
+                    LinearLayout::vertical()
+                        .child(TextView::new(header))
+                        .child(ScrollView::new(entries).max_height(20)),
+                )
+                .title("Events")
+                .title_position(HAlign::Left)
+                .button("Ok", |s| {
+                    close_dialog(s, DIALOG_EVENTS);
+                })
+                .with_name(DIALOG_EVENTS),
+            )
+            .on_event(Key::F1, |s| {
+                build_help(s, "View driver reported events", &COMMANDS);
+            })
+            .on_event(Key::F2, clear_events)
+            .on_event(Key::Esc, |s| {
+                close_dialog(s, DIALOG_EVENTS);
+            })
+            .on_event('q', |s| {
+                close_dialog(s, DIALOG_EVENTS);
+            })
+            .min_width(60),
+        ),
+    ));
+
+    set_footer(siv, &COMMANDS);
+}
+
+fn event_entry(event_entry: &EventEntry) -> SpannedString<Style> {
+    let mut entry = SpannedString::new();
+
+    entry.append(format!(
+        "{:6}.{:06} {:6} {}",
+        event_entry.timestamp.tv_sec(),
+        event_entry.timestamp.tv_usec(),
+        event_entry.r#type,
+        event_entry.name,
+    ));
+
+    entry
+}
+
+fn update_event_view(siv: &mut Cursive, event: &monitor::Event) {
+    let Some(mut events) = siv.find_name::<SelectView<EventEntry>>(VIEW_EVENTS) else {
+        return;
+    };
+
+    let timestamp = util::system_current_timestamp();
+
+    let entry = match *event {
+        monitor::Event::Add(ref device) | monitor::Event::Remove(ref device) => EventEntry {
+            timestamp,
+            r#type: format!("{}", event),
+            name: device.name(),
+            change_event: None,
+        },
+        monitor::Event::Change(ref device, ref change_event) => EventEntry {
+            timestamp,
+            r#type: format!("{}", event),
+            name: device.name(),
+            change_event: change_event.clone(),
+        },
+    };
+
+    let was_empty = events.is_empty();
+    events.add_item(event_entry(&entry), entry);
+
+    // If the event list was empty (e.g user never selected anything) move the focus to the
+    // list to allow user to scroll the items immediately. Without this pressing enter closes
+    // the dialog losing the event.
+    if was_empty {
+        siv.call_on_name(DIALOG_EVENTS, |d: &mut Dialog| {
+            d.set_focus(DialogFocus::Content);
+        });
+        let _ = siv.focus_name(VIEW_EVENTS);
+    }
+}
+
 fn build_detail(label: &str, value: String) -> impl View {
     let mut line = SpannedString::new();
 
@@ -2794,7 +2984,8 @@ fn build_devices() -> impl View {
         .on_event(Key::F7, build_paths)
         .on_event(Key::F8, build_registers)
         .on_event(Key::F9, build_tmu)
-        .on_event(Key::F10, build_drom);
+        .on_event(Key::F10, build_drom)
+        .on_event(Key::F11, build_events);
 
     ScrollView::new(event)
 }
@@ -2919,18 +3110,14 @@ fn update_device_list(siv: &mut Cursive, device: Device) {
 }
 
 fn handle_event(siv: &mut Cursive, event: monitor::Event) {
-    // Handle device events only if it is a router. If domain change events appear, also update
-    // adapter and path views to reflect change in tunneling.
+    update_event_view(siv, &event);
+
     match event {
-        monitor::Event::Add(device) => {
-            if device.is_router() {
-                add_device(siv, device);
-            }
+        monitor::Event::Add(device) if device.is_router() => {
+            add_device(siv, device);
         }
-        monitor::Event::Remove(device) => {
-            if device.is_router() {
-                remove_device(siv, device);
-            }
+        monitor::Event::Remove(device) if device.is_router() => {
+            remove_device(siv, device);
         }
         monitor::Event::Change(device, _) => {
             if device.is_router() {
@@ -2940,6 +3127,7 @@ fn handle_event(siv: &mut Cursive, event: monitor::Event) {
             update_adapter_view(siv);
             update_path_view(siv);
         }
+        _ => (),
     }
 }
 
