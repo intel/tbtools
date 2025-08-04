@@ -1097,7 +1097,7 @@ impl Adapter {
     }
 
     /// Returns minimum input `HopID` of this adapter.
-    pub fn min_hop(&self) -> Option<u8> {
+    pub fn min_hop(&self) -> Option<u16> {
         match self.kind {
             Type::HostInterface => Some(1),
 
@@ -1113,6 +1113,14 @@ impl Adapter {
 
             _ => None,
         }
+    }
+
+    /// Returns maximum input `HopID` of this adapter.
+    pub fn max_hop(&self) -> Option<u16> {
+        self.register_by_name("ADP_CS_5")?
+            .field("Max Input HopID")
+            .try_into()
+            .ok()
     }
 
     /// Returns upstream route from this lane adapter.
@@ -1270,7 +1278,7 @@ impl Adapter {
                 .as_ref()
                 .unwrap()
                 .iter()
-                .filter(|p| p.offset >= (in_min_hop * 2).into() && p.offset % 2 == 0)
+                .filter(|p| p.offset >= (in_min_hop * 2) && p.offset % 2 == 0)
             {
                 let in_hop = p.offset / 2;
 
