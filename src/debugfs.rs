@@ -704,11 +704,10 @@ pub struct PathEntry {
 
 impl PathEntry {
     /// Creates a new path entry from `PATH_CS_0` register.
-    fn new(in_adapter: u8, in_hop: u16, path_cs_0: u32) -> Option<Self> {
-        if (path_cs_0 & usb4::PATH_CS_0_VALID) == usb4::PATH_CS_0_VALID {
-            let out_hop = path_cs_0 & usb4::PATH_CS_0_OUT_HOP_MASK;
-            let out_adapter =
-                (path_cs_0 & usb4::PATH_CS_0_OUT_ADAPTER_MASK) >> usb4::PATH_CS_0_OUT_ADAPTER_SHIFT;
+    fn new(in_adapter: u8, in_hop: u16, path_cs_0: &Register) -> Option<Self> {
+        if path_cs_0.flag("Valid") {
+            let out_hop = path_cs_0.field("Output HopID");
+            let out_adapter = path_cs_0.field("Output Adapter");
             return Some(Self {
                 in_adapter,
                 in_hop,
@@ -1226,7 +1225,7 @@ impl Adapter {
             {
                 let in_hop = p.offset / 2;
 
-                if let Some(path) = PathEntry::new(self.adapter, in_hop, p.value) {
+                if let Some(path) = PathEntry::new(self.adapter, in_hop, p) {
                     paths.push(path);
                 }
             }
