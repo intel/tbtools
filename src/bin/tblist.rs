@@ -157,7 +157,7 @@ fn print_domain(args: &Args, mut record: Option<&mut Vec<String>>, tb: &Device) 
                 Some(SecurityLevel::NoPcie) => "PCIe tunneling disabled",
                 _ => "Unknown",
             };
-            println!("{}  Security Level: {}", indent, security_level);
+            println!("{indent}  Security Level: {security_level}");
             println!(
                 "{}  Deauthorization: {}",
                 indent,
@@ -193,7 +193,7 @@ fn print_router(args: &Args, mut record: Option<&mut Vec<String>>, sw: &Device) 
         record.push(kind(sw));
         if args.verbose {
             match sw.generation() {
-                Some(generation @ 1..=3) => record.push(format!("Thunderbolt {}", generation)),
+                Some(generation @ 1..=3) => record.push(format!("Thunderbolt {generation}")),
                 Some(4) => record.push(String::from("USB4")),
                 _ => record.push(String::new()),
             }
@@ -204,7 +204,7 @@ fn print_router(args: &Args, mut record: Option<&mut Vec<String>>, sw: &Device) 
         let indent = indent(args, sw);
 
         if args.tree {
-            print!("{}", indent);
+            print!("{indent}");
         }
 
         print!(
@@ -215,10 +215,10 @@ fn print_router(args: &Args, mut record: Option<&mut Vec<String>>, sw: &Device) 
         );
 
         if let Some(vendor_name) = sw.vendor_name() {
-            print!(" {}", vendor_name);
+            print!(" {vendor_name}");
         }
         if let Some(device_name) = sw.device_name() {
-            print!(" {}", device_name);
+            print!(" {device_name}");
         }
 
         println!();
@@ -227,7 +227,7 @@ fn print_router(args: &Args, mut record: Option<&mut Vec<String>>, sw: &Device) 
             println!("{}  Type: {}", indent, color_kind(sw));
 
             if sw.is_device_router() || sw.is_xdomain() {
-                print!("{}  Speed (Rx/Tx): ", indent);
+                print!("{indent}  Speed (Rx/Tx): ");
 
                 if let Some(rx_speed) = sw.rx_speed() {
                     if let Some(rx_lanes) = sw.rx_lanes() {
@@ -255,13 +255,13 @@ fn print_router(args: &Args, mut record: Option<&mut Vec<String>>, sw: &Device) 
             }
 
             if let Some(unique_id) = sw.unique_id() {
-                println!("{}  UUID: {}", indent, unique_id);
+                println!("{indent}  UUID: {unique_id}");
             }
 
             if let Some(generation) = sw.generation() {
-                print!("{}  Generation: ", indent);
+                print!("{indent}  Generation: ");
                 match generation {
-                    1..=3 => println!("Thunderbolt {}", generation),
+                    1..=3 => println!("Thunderbolt {generation}"),
                     4 => println!("USB4"),
                     _ => println!("Unknown"),
                 }
@@ -293,7 +293,7 @@ fn print_retimer(args: &Args, mut record: Option<&mut Vec<String>>, rt: &Device)
         let indent = indent(args, rt);
 
         if args.tree {
-            print!("{}", indent);
+            print!("{indent}");
         }
         println!(
             "{}: {:04x}:{:04x}",
