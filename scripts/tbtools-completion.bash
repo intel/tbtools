@@ -364,6 +364,24 @@ _tbset()
 } &&
     complete -F _tbset tbset
 
+_tbtunnels()
+{
+    local cur prev words cword domain
+    _init_completion || return
+
+    if [[ $cur == -* ]]; then
+        COMPREPLY+=($(compgen -W '--domain --verbose --help --version' -- "$cur"))
+    else
+        case $prev in
+            --domain | -d)
+                _tbtools_complete_domains
+                return
+                ;;
+        esac
+    fi
+} &&
+    complete -F _tbtunnels tbtunnels
+
 _tbtrace()
 {
     local cur prev words cword
