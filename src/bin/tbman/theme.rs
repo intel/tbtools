@@ -4,8 +4,8 @@
 // Author: Mika Westerberg <mika.westerberg@linux.intel.com>
 
 use cursive::{
-    theme::{BaseColor, BorderStyle, ColorStyle, Effect, Palette, PaletteColor, Style, Theme},
     With,
+    theme::{BaseColor, BorderStyle, ColorStyle, Effect, Palette, PaletteColor, Style, Theme},
 };
 
 pub fn device_list() -> Theme {

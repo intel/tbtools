@@ -13,7 +13,7 @@
 //! written to.
 
 use crate::{device::Device, drom::Drom, genmask_t, usb4, util};
-use include_dir::{include_dir, Dir};
+use include_dir::{Dir, include_dir};
 use lazy_static::lazy_static;
 use nix::{errno::Errno, mount};
 use num_traits::Num;

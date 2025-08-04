@@ -10,14 +10,14 @@
 use lazy_static::lazy_static;
 
 use std::fmt;
-use std::fs::{read_to_string, OpenOptions};
+use std::fs::{OpenOptions, read_to_string};
 use std::io::{BufWriter, Error, ErrorKind, Result, Write};
 use std::path::{Path, PathBuf};
 
 use regex::Regex;
 
 use crate::debugfs::{self, Speed};
-use crate::device::{find_device, Address};
+use crate::device::{Address, find_device};
 use crate::usb4;
 use crate::util;
 

@@ -7,7 +7,7 @@ use ansi_term::Colour::{Cyan, Green, Purple, Red, White, Yellow};
 use clap::{self, Parser, Subcommand};
 use csv::Writer;
 use nix::{sys::time::TimeVal, unistd::Uid};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::{
     collections::HashSet,
     io::{self, IsTerminal, Write},
@@ -15,8 +15,9 @@ use std::{
     process,
 };
 use tbtools::{
+    Address, ConfigSpace, Device, Kind, Pdf,
     debugfs::{self, BitFields, Name},
-    trace, util, Address, ConfigSpace, Device, Kind, Pdf,
+    trace, util,
 };
 
 const HTML_HEADER: &str = r#"<!DOCTYPE html>
@@ -1075,7 +1076,9 @@ fn main() -> io::Result<()> {
             }
 
             if time && input.is_some() {
-                eprintln!("Note you should run on the same system you took the trace to get accurate times");
+                eprintln!(
+                    "Note you should run on the same system you took the trace to get accurate times"
+                );
             }
 
             dump(input, script, html, time, verbose)?;

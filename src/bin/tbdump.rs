@@ -12,10 +12,10 @@ use std::{
 };
 
 use tbtools::{
-    self,
+    self, Address, Device, Version,
     debugfs::{self, BitFields, Name, Register},
     drom::{Drom, DromEntry, TmuMode, TmuRate},
-    usb4, util, Address, Device, Version,
+    usb4, util,
 };
 
 #[derive(Parser, Debug)]

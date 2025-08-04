@@ -14,7 +14,7 @@ use std::io::{self, ErrorKind, Result};
 // Use here ValueEnum for AltMode to avoid duplicating the enum in tbpd.rs.
 use clap::ValueEnum;
 
-use crate::{cros, Address};
+use crate::{Address, cros};
 
 /// Alternate modes. Even though `Safe`, `Usb` and `Usb4` are not alternate modes in USB Power
 /// Delivery specification we specify them as such. This allows the caller to pass desired mode to

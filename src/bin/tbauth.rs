@@ -11,7 +11,7 @@ use std::process;
 use clap::Parser;
 use rand::prelude::*;
 
-use tbtools::{util, Address, Device, Kind, SecurityLevel};
+use tbtools::{Address, Device, Kind, SecurityLevel, util};
 
 #[derive(Parser, Debug)]
 #[command(version)]

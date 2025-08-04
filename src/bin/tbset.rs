@@ -10,8 +10,9 @@ use clap::Parser;
 use nix::unistd::Uid;
 
 use tbtools::{
+    Address, Device,
     debugfs::{self, BitFields},
-    util, Address, Device,
+    util,
 };
 
 #[derive(Parser, Debug)]

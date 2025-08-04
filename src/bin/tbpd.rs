@@ -8,8 +8,9 @@ use std::process;
 use clap::{self, Parser};
 
 use tbtools::{
+    Address,
     typec::{self, AltMode, AltModeControl},
-    util, Address,
+    util,
 };
 
 /// Control USB4 Type-C port alternate modes

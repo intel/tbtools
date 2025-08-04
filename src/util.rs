@@ -14,7 +14,7 @@ use std::{
 use lazy_static::lazy_static;
 use nix::{
     sys::time::{self, TimeVal},
-    time::{clock_gettime, ClockId},
+    time::{ClockId, clock_gettime},
 };
 use num_traits::Num;
 use regex::Regex;
@@ -31,9 +31,7 @@ use uuid;
 /// ```
 #[macro_export]
 macro_rules! genmask_t {
-    ($t:ty, $high:expr, $low:expr) => {{
-        <$t>::MAX - (1 << $low) + 1 & (<$t>::MAX >> (<$t>::BITS - 1 - $high))
-    }};
+    ($t:ty, $high:expr, $low:expr) => {{ <$t>::MAX - (1 << $low) + 1 & (<$t>::MAX >> (<$t>::BITS - 1 - $high)) }};
 }
 
 /// Parse hexadecimal from string.

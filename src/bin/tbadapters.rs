@@ -14,9 +14,9 @@ use std::io::{self, ErrorKind, IsTerminal, Write};
 use std::process;
 
 use tbtools::{
-    self,
+    self, Address, Device,
     debugfs::{self, Adapter, BitFields, State, Type},
-    util, Address, Device,
+    util,
 };
 
 #[derive(Parser, Debug)]

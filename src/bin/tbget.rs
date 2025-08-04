@@ -14,8 +14,9 @@ use csv::Writer;
 use nix::unistd::Uid;
 
 use tbtools::{
+    Address, Device,
     debugfs::{self, BitFields, Name, Register},
-    util, Address, Device,
+    util,
 };
 
 #[derive(Parser, Debug)]

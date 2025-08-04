@@ -33,8 +33,9 @@
 //! # }
 
 use crate::{
+    Version,
     debugfs::{Adapter, Type},
-    genmask_t, util, Version,
+    genmask_t, util,
 };
 use std::{
     ffi::CStr,
@@ -673,7 +674,9 @@ mod test {
         assert_eq!(entries.length(), 15);
         assert_eq!(
             entries.bytes(),
-            [0xf, 0x9, 0x10, 0x4, 0x87, 0x80, 0xb2, 0x7e, 1, 9, 0, 0, 0, 0, 0]
+            [
+                0xf, 0x9, 0x10, 0x4, 0x87, 0x80, 0xb2, 0x7e, 1, 9, 0, 0, 0, 0, 0
+            ]
         );
     }
 

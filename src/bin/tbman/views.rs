@@ -5,12 +5,12 @@
 
 use crate::theme;
 use cursive::{
+    Cursive, Printer, Vec2, With, XY,
     direction::Direction,
     event::{Callback, Event, EventResult, Key},
     theme::Style,
     utils::span::SpannedString,
     view::{CannotFocus, View},
-    Cursive, Printer, Vec2, With, XY,
 };
 use std::sync::Arc;
 use tbtools::debugfs::{Adapter, BitFields, State, Type};

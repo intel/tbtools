@@ -8,6 +8,7 @@ use crate::{
     views::{AdapterView, NumberEditView},
 };
 use cursive::{
+    Cursive, View,
     align::HAlign,
     direction::Orientation,
     event::{Event, EventResult, Key},
@@ -18,16 +19,16 @@ use cursive::{
         Dialog, DialogFocus, DummyView, EditView, HideableView, Layer, LinearLayout, ListView,
         NamedView, OnEventView, Panel, ScrollView, SelectView, TextView, ThemedView,
     },
-    Cursive, View,
 };
 use nix::sys::time::TimeVal;
 use std::{io, thread};
 use tbtools::{
+    Device, Kind, Pdf, Version,
     debugfs::{Adapter, BitField, BitFields, Name, Path, Register, Type},
     drom::{DromEntry, TmuMode, TmuRate},
     monitor::{self, ChangeEvent},
     trace::{self, Entry},
-    util, Device, Kind, Pdf, Version, {self, ConfigSpace},
+    util, {self, ConfigSpace},
 };
 
 struct Command<'a> {
@@ -370,11 +371,7 @@ macro_rules! add_field_if_exists {
 }
 
 fn yesno(value: u32) -> &'static str {
-    if value > 0 {
-        "Yes"
-    } else {
-        "No"
-    }
+    if value > 0 { "Yes" } else { "No" }
 }
 
 macro_rules! add_flag_if_exists {

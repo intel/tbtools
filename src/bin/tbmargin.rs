@@ -11,13 +11,13 @@ use clap::{self, Parser};
 use nix::unistd::Uid;
 
 use tbtools::{
-    debugfs,
+    Address, debugfs,
     margining::{
         Caps, IndependentTiming, IndependentVoltage, LaneResult, LaneResultGen4Both,
         LaneTimingResult, LaneVoltageResult, Lanes, Margin, Margining, Mode, ResultValue, Results,
         Test,
     },
-    util, Address,
+    util,
 };
 
 #[derive(Parser, Debug)]

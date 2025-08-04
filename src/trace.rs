@@ -47,8 +47,9 @@
 //! [tracepoints]: https://docs.kernel.org/trace/events.html
 
 use crate::{
-    debugfs::{BitField, BitFields, Name, DATA_DIR},
-    genmask_t, util, Address, ConfigSpace, Pdf,
+    Address, ConfigSpace, Pdf,
+    debugfs::{BitField, BitFields, DATA_DIR, Name},
+    genmask_t, util,
 };
 use lazy_static::lazy_static;
 use nix::sys::time::{self, TimeVal};
