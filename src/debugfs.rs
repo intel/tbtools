@@ -126,7 +126,7 @@ impl Display for Type {
             Self::Usb3GenTUp => "USB 3 Gen T Up",
             _ => "Unknown",
         };
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }
 
@@ -196,10 +196,7 @@ impl BitField {
         let value_names = Self::parse_enum(value);
 
         if start_bit > end_bit {
-            eprintln!(
-                "Warning: invalid range {} > {} in {}",
-                start_bit, end_bit, name
-            );
+            eprintln!("Warning: invalid range {start_bit} > {end_bit} in {name}");
             return None;
         }
 
@@ -243,7 +240,7 @@ impl Metadata {
     /// `adapter_type` it is treated as match.
     fn match_type(&self, adapter_type: Type) -> bool {
         if let Some(ref adapter_types) = self.adapter_types {
-            return adapter_types.iter().any(|t| *t == adapter_type);
+            return adapter_types.contains(&adapter_type);
         }
         true
     }
@@ -251,7 +248,7 @@ impl Metadata {
     fn match_vendor(&self, vendor_id: u16) -> bool {
         self.vendor_id
             .as_ref()
-            .is_some_and(|v| v.iter().any(|v| *v == vendor_id))
+            .is_some_and(|v| v.contains(&vendor_id))
     }
 
     fn parse(value: &Value) -> Option<Self> {
@@ -409,7 +406,7 @@ pub trait BitFields<T: PartialOrd + Num> {
         if let Some(field) = self.field_by_name(name) {
             return self.field_value(field);
         }
-        panic!("BitField {} does not exist\n", name);
+        panic!("BitField {name} does not exist\n");
     }
 
     /// Returns field value as bit flag by name or short name.
@@ -432,11 +429,11 @@ pub trait BitFields<T: PartialOrd + Num> {
     fn flag(&self, name: &str) -> bool {
         if let Some(field) = self.field_by_name(name) {
             if field.range.len() != 1 {
-                panic!("BitField {} is not bit flag\n", name);
+                panic!("BitField {name} is not bit flag\n");
             }
             return !self.field_value(field).is_zero();
         }
-        panic!("BitField {} does not exist\n", name);
+        panic!("BitField {name} does not exist\n");
     }
 }
 
@@ -581,7 +578,7 @@ impl Register {
             self.changed = true;
             return;
         }
-        panic!("Bit Field {} does not exit\n", name);
+        panic!("Bit Field {name} does not exit\n");
     }
 
     /// Returns true if the register value has been changed.
@@ -619,7 +616,7 @@ pub(crate) fn path_buf() -> Result<PathBuf> {
     let path_buf = PathBuf::from(DEBUGFS_ROOT);
 
     if !path_buf.exists() {
-        eprintln!("{}", DEBUGFS_HELP);
+        eprintln!("{DEBUGFS_HELP}");
         return Err(Error::from(ErrorKind::NotFound));
     }
 
