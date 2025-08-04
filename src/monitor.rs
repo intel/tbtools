@@ -52,7 +52,7 @@ impl Display for TunnelEvent {
             Self::LowBandwidth => "low bandwidth",
             Self::NoBandwidth => "insufficient bandwidth",
         };
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }
 
@@ -87,7 +87,7 @@ impl Display for Event {
             Self::Remove(_) => "remove",
             Self::Change(..) => "change",
         };
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }
 
