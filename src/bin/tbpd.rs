@@ -41,7 +41,7 @@ fn main() {
     let ac = match typec::controller() {
         Ok(ac) => ac,
         Err(err) => {
-            eprintln!("Error: failed to open Type-C controller: {}", err);
+            eprintln!("Error: failed to open Type-C controller: {err}");
             process::exit(1);
         }
     };
@@ -65,7 +65,7 @@ fn main() {
         let mode = match ac.current_mode(&address) {
             Ok(mode) => mode,
             Err(err) => {
-                eprintln!("Error: failed to read current mode: {}", err);
+                eprintln!("Error: failed to read current mode: {err}");
                 process::exit(1);
             }
         };
