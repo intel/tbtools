@@ -163,7 +163,7 @@ pub fn bytes_to_utf16_ascii(bytes: &[u8]) -> String {
     char::decode_utf16(chunks).for_each(|b| {
         if let Ok(b) = b {
             if b.is_ascii_graphic() {
-                s.push_str(&format!("{}", b));
+                s.push_str(&format!("{b}"));
             }
         } else {
             s.push('.')
