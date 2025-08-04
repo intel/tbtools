@@ -81,7 +81,7 @@ fn offset(regs: &[Register], args: &Args) -> u16 {
 
 fn dump_value(reg: &Register, args: &Args) {
     let value = reg.value();
-    print!("0x{:08x}", value);
+    print!("0x{value:08x}");
 
     if args.verbose > 1 {
         print!(" 0b{:08b}", (value >> 24) & 0xff);
@@ -95,9 +95,9 @@ fn dump_value(reg: &Register, args: &Args) {
 
 fn color_field_value(value: &str) -> String {
     if io::stdout().is_terminal() {
-        Cyan.paint(format!("{:>10}", value)).to_string()
+        Cyan.paint(format!("{value:>10}")).to_string()
     } else {
-        format!("{:>10}", value)
+        format!("{value:>10}")
     }
 }
 
@@ -141,9 +141,9 @@ fn color_value(value: &str) -> String {
 
 fn color_adapter_num(adapter_num: u8) -> String {
     if io::stdout().is_terminal() {
-        White.bold().paint(format!("{}", adapter_num)).to_string()
+        White.bold().paint(format!("{adapter_num}")).to_string()
     } else {
-        format!("{}", adapter_num).to_string()
+        format!("{adapter_num}").to_string()
     }
 }
 
@@ -189,7 +189,7 @@ fn dump_regs(regs: &Vec<Register>, args: &Args) {
 
         if args.verbose > 0 {
             if let Some(name) = reg.name() {
-                print!(" {:<15}", name);
+                print!(" {name:<15}");
             }
         }
 
@@ -199,7 +199,7 @@ fn dump_regs(regs: &Vec<Register>, args: &Args) {
             if let Some(fields) = reg.fields() {
                 for field in fields {
                     let v = reg.field(field.name());
-                    let value = color_field_value(&format!("{:#x}", v));
+                    let value = color_field_value(&format!("{v:#x}"));
                     let value_name = if let Some(value_name) = field.value_name(v) {
                         format!(" → {}", color_field_value_name(value_name))
                     } else {
@@ -230,11 +230,11 @@ fn dump_bytes(bytes: &[u8], offset: usize, args: &Args) {
 
     for chunks in bytes.chunks(8) {
         if args.verbose > 0 {
-            print!("0x{:04x} ", offset);
+            print!("0x{offset:04x} ");
         }
 
         for byte in chunks {
-            print!("0x{:02x} ", byte);
+            print!("0x{byte:02x} ");
         }
 
         if args.verbose > 0 {
@@ -344,7 +344,7 @@ fn dump_drom(drom: &Drom, args: &Args) {
                 println!("  PCIe Upstream Adapter {}", color_adapter_num(adapter_num));
                 println!(
                     "    {}",
-                    color_value(&format!("{:02x}.{:x}", device_num, function_num))
+                    color_value(&format!("{device_num:02x}.{function_num:x}"))
                 );
             }
 
@@ -359,20 +359,20 @@ fn dump_drom(drom: &Drom, args: &Args) {
                 );
                 println!(
                     "    {}",
-                    color_value(&format!("{:02x}.{:x}", device_num, function_num))
+                    color_value(&format!("{device_num:02x}.{function_num:x}"))
                 );
             }
 
             // Generic entries.
             DromEntry::Generic { kind, .. } => {
-                println!("  Generic Entry: {}", color_value(&format!("{:#x}", kind)));
+                println!("  Generic Entry: {}", color_value(&format!("{kind:#x}")));
             }
 
-            DromEntry::AsciiVendorName(vendor) => println!("  Vendor: {}", vendor),
-            DromEntry::AsciiModelName(model) => println!("  Model: {}", model),
+            DromEntry::AsciiVendorName(vendor) => println!("  Vendor: {vendor}"),
+            DromEntry::AsciiModelName(model) => println!("  Model: {model}"),
 
-            DromEntry::Utf16VendorName(vendor) => println!("  Vendor: {}", vendor),
-            DromEntry::Utf16ModelName(model) => println!("  Model: {}", model),
+            DromEntry::Utf16VendorName(vendor) => println!("  Vendor: {vendor}"),
+            DromEntry::Utf16ModelName(model) => println!("  Model: {model}"),
 
             DromEntry::Tmu { mode, rate } => {
                 println!(
@@ -419,21 +419,18 @@ fn dump_drom(drom: &Drom, args: &Args) {
                 println!("  Product Descriptor:");
                 println!(
                     "    bcdUSBSpec: {}",
-                    color_value(&format!("{:x}.{:x}", usb4_major, usb4_minor))
+                    color_value(&format!("{usb4_major:x}.{usb4_minor:x}"))
                 );
-                println!("    idVendor: {}", color_value(&format!("{:04x}", vendor)));
-                println!(
-                    "    idProduct: {}",
-                    color_value(&format!("{:04x}", product))
-                );
+                println!("    idVendor: {}", color_value(&format!("{vendor:04x}")));
+                println!("    idProduct: {}", color_value(&format!("{product:04x}")));
                 println!(
                     "    bcdProductFWRevision: {}",
-                    color_value(&format!("{:x}.{:x}", fw_major, fw_minor))
+                    color_value(&format!("{fw_major:x}.{fw_minor:x}"))
                 );
-                println!("    TID: {}", color_value(&format!("{:04x}", test_id)));
+                println!("    TID: {}", color_value(&format!("{test_id:04x}")));
                 println!(
                     "    productHWRevision: {}",
-                    color_value(&format!("{}", hw_revision))
+                    color_value(&format!("{hw_revision}"))
                 );
             }
 
@@ -442,7 +439,7 @@ fn dump_drom(drom: &Drom, args: &Args) {
                 serial_number,
             } => {
                 println!("  Serial Number:");
-                println!("    wLANGID: {}", color_value(&format!("{}", lang_id)));
+                println!("    wLANGID: {}", color_value(&format!("{lang_id}")));
                 println!(
                     "    SerialNumber: {}",
                     color_value(&serial_number.to_string())
@@ -549,12 +546,12 @@ fn main() {
     }
 
     debugfs::mount().unwrap_or_else(|e| {
-        eprintln!("Error: failed to mount debugfs: {}", e);
+        eprintln!("Error: failed to mount debugfs: {e}");
         process::exit(1);
     });
 
     dump(&args).unwrap_or_else(|e| {
-        eprintln!("Error: {}", e);
+        eprintln!("Error: {e}");
         if e.kind() == ErrorKind::Unsupported {
             eprintln!("Device does not support register access");
         }
