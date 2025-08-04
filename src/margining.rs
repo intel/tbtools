@@ -312,7 +312,7 @@ impl fmt::Display for Margin {
             Self::Left => "left",
             Self::Right => "right",
         };
-        write!(f, "{}", val)
+        write!(f, "{val}")
     }
 }
 
@@ -341,7 +341,7 @@ impl fmt::Display for Mode {
             Self::Hardware => "hardware",
             Self::Software => "software",
         };
-        write!(f, "{}", val)
+        write!(f, "{val}")
     }
 }
 
@@ -387,7 +387,7 @@ impl fmt::Display for Lanes {
             Self::Lane2 => "2",
             Self::All => "all",
         };
-        write!(f, "{}", val)
+        write!(f, "{val}")
     }
 }
 
@@ -418,7 +418,7 @@ impl fmt::Display for Test {
             Self::Voltage => "voltage",
             Self::Time => "time",
         };
-        write!(f, "{}", val)
+        write!(f, "{val}")
     }
 }
 
@@ -580,7 +580,7 @@ impl Results {
             1 => Lanes::Lane1,
             2 => Lanes::Lane2,
             7 => Lanes::All,
-            lanes => panic!("Error: Unsupported lanes: {:#x}", lanes),
+            lanes => panic!("Error: Unsupported lanes: {lanes:#x}"),
         };
 
         let time_ratio = if let Some(time) = caps.time {
@@ -826,8 +826,8 @@ impl Margining {
                 route,
                 adapter,
             } => {
-                path_buf.push(format!("{}-{:x}", domain, route));
-                path_buf.push(format!("port{}", adapter));
+                path_buf.push(format!("{domain}-{route:x}"));
+                path_buf.push(format!("port{adapter}"));
 
                 device.read_adapters()?;
 
@@ -843,7 +843,7 @@ impl Margining {
                 adapter,
                 index,
             } => {
-                path_buf.push(format!("{}-{:x}:{}.{}", domain, route, adapter, index));
+                path_buf.push(format!("{domain}-{route:x}:{adapter}.{index}"));
 
                 let mut parent = find_device(&Address::Router {
                     domain: *domain,
@@ -867,7 +867,7 @@ impl Margining {
         let path = path_buf.as_path();
         let caps = match Caps::with_path(path, speed) {
             Err(err) if err.kind() == ErrorKind::NotFound => {
-                eprintln!("{}", MARGINING_HELP);
+                eprintln!("{MARGINING_HELP}");
                 Err(err)
             }
             Err(err) => Err(err),
