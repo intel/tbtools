@@ -1446,6 +1446,29 @@ impl Device {
         false
     }
 
+    /// Returns parent device of this, or `None` if no such device is found.
+    pub fn parent(&self) -> Option<Self> {
+        let parent = self.udev().ok()?.parent()?;
+        Self::parse(parent)
+    }
+
+    /// Returns parent device from `devices`.
+    pub fn parent_from<'a>(&self, devices: &'a [Device]) -> Option<&'a Device> {
+        if self.is_router() {
+            self.adapter(self.upstream_adapter()?)?
+                .upstream_device(devices)
+        } else if self.is_xdomain() {
+            let parent_route = self.route() & ((1 << ((self.depth() - 1) * usb4::ROUTE_SHIFT)) - 1);
+            devices.iter().find(|d| {
+                d.is_router()
+                    && d.domain_index() == self.domain_index()
+                    && d.route() == parent_route
+            })
+        } else {
+            None
+        }
+    }
+
     fn set_vendor_metadata(&mut self, vendor_id: u16, regs: &mut Vec<Register>) {
         for reg in regs {
             let cap_id = reg.cap_id();
@@ -1571,6 +1594,17 @@ impl Device {
 
         let reg = self.register_by_name("ROUTER_CS_1")?;
         Some(reg.field("Upstream Adapter") as u8)
+    }
+
+    /// Returns downstream adapter connected to `device`.
+    pub fn downstream_adapter(&self, device: &Device) -> Option<u8> {
+        if device.domain_index() == self.domain_index() && device.depth() == self.depth() + 1 {
+            let route_mask = (1 << (self.depth() * usb4::ROUTE_SHIFT)) - 1;
+            if self.route() == device.route() & route_mask {
+                return Some(((device.route() >> (self.depth() * usb4::ROUTE_SHIFT)) & 0xff) as u8);
+            }
+        }
+        None
     }
 
     /// Reads device adapters from `debugfs`.

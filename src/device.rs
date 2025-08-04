@@ -151,14 +151,8 @@ pub struct Device {
 }
 
 impl Device {
-    fn udev(&self) -> io::Result<udev::Device> {
+    pub(crate) fn udev(&self) -> io::Result<udev::Device> {
         udev::Device::from_syspath(&self.syspath)
-    }
-
-    /// Returns parent device of this, or `None` if no such device is found.
-    pub fn parent(&self) -> Option<Self> {
-        let parent = self.udev().ok()?.parent()?;
-        Self::parse(parent)
     }
 
     /// Returns kernel name of the device.
