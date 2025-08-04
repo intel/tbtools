@@ -41,9 +41,9 @@ fn dump_adapter_num(adapter_num: u8, mut record: Option<&mut Vec<String>>) {
     if let Some(ref mut record) = record {
         record.push(adapter_num.to_string());
     } else if io::stdout().is_terminal() {
-        print!("{}: ", White.bold().paint(format!("{:>2}", adapter_num)));
+        print!("{}: ", White.bold().paint(format!("{adapter_num:>2}")));
     } else {
-        print!("{:>2}: ", adapter_num);
+        print!("{adapter_num:>2}: ");
     }
 }
 
@@ -63,7 +63,7 @@ fn dump_adapter_type(adapter: &Adapter, mut record: Option<&mut Vec<String>>) {
     if let Some(ref mut record) = record {
         record.push(kind);
     } else {
-        print!("{:<30}", kind);
+        print!("{kind:<30}");
     }
 }
 
@@ -126,9 +126,9 @@ fn dump_adapter_state(adapter: &Adapter, mut record: Option<&mut Vec<String>>) {
     if let Some(ref mut record) = record {
         record.push(name.to_string());
     } else if io::stdout().is_terminal() {
-        print!("{}", style.paint(format!("{:<10}", name)));
+        print!("{}", style.paint(format!("{name:<10}")));
     } else {
-        print!("{:<10}", name);
+        print!("{name:<10}");
     }
 }
 
@@ -221,12 +221,12 @@ fn main() {
     }
 
     if let Err(err) = debugfs::mount() {
-        eprintln!("Error: failed to mount debugfs: {}", err);
+        eprintln!("Error: failed to mount debugfs: {err}");
         process::exit(1);
     }
 
     if let Err(err) = dump(&args) {
-        eprintln!("Error: {}", err);
+        eprintln!("Error: {err}");
         if err.kind() == ErrorKind::Unsupported {
             eprintln!("Error: device does not support register access");
         }
