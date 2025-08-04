@@ -136,7 +136,7 @@ impl AdapterView {
                 kind.push_str(" (upstream)");
             }
 
-            line.append(format!("{:<28}", kind));
+            line.append(format!("{kind:<28}"));
 
             match adapter.state() {
                 State::Disabled => {
@@ -280,7 +280,7 @@ impl NumberEditView {
     pub fn set_content(&mut self, content: String) {
         for ch in content.chars() {
             if !self.is_valid(ch) {
-                panic!("Only numbers expected, got {}", ch);
+                panic!("Only numbers expected, got {ch}");
             }
         }
 
@@ -384,7 +384,7 @@ impl View for NumberEditView {
                     } else {
                         style
                     };
-                    line.append_styled(format!("{}", ch), style);
+                    line.append_styled(format!("{ch}"), style);
                     offset += 1;
                 }
 
@@ -397,7 +397,7 @@ impl View for NumberEditView {
                 } else {
                     style
                 };
-                line.append_styled(format!("{}", ch), style);
+                line.append_styled(format!("{ch}"), style);
             }
         }
 

@@ -18,7 +18,7 @@ fn main() {
     }
 
     if let Err(err) = debugfs::mount() {
-        eprintln!("Error: failed to mount debugfs: {}", err);
+        eprintln!("Error: failed to mount debugfs: {err}");
         process::exit(1);
     }
 

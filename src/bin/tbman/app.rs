@@ -228,7 +228,7 @@ fn close_any_dialog(siv: &mut Cursive) {
 fn build_dialog_detail(label: &str, width: usize, value: &str) -> impl View {
     let mut line = SpannedString::new();
 
-    line.append_styled(format!("{:>1$} ", label, width), theme::dialog_label());
+    line.append_styled(format!("{label:>width$} "), theme::dialog_label());
     line.append(value);
 
     TextView::new(line)
@@ -250,8 +250,7 @@ fn authorize_device(siv: &mut Cursive) {
                     siv.add_layer(ThemedView::new(
                         theme::dialog(),
                         Layer::new(Dialog::info(format!(
-                            "Device de-authorization failed: {}",
-                            err
+                            "Device de-authorization failed: {err}"
                         ))),
                     ));
                 }
@@ -259,10 +258,7 @@ fn authorize_device(siv: &mut Cursive) {
                 if let Err(err) = tbtools::authorize_device(device, 1) {
                     siv.add_layer(ThemedView::new(
                         theme::dialog(),
-                        Layer::new(Dialog::info(format!(
-                            "Device authorization failed: {}",
-                            err
-                        ))),
+                        Layer::new(Dialog::info(format!("Device authorization failed: {err}"))),
                     ));
                 }
             }
@@ -288,8 +284,7 @@ fn update_adapter_view(siv: &mut Cursive) {
                     s.add_layer(ThemedView::new(
                         theme::dialog(),
                         Layer::new(Dialog::info(format!(
-                            "Failed to read device adapters: {}",
-                            err
+                            "Failed to read device adapters: {err}"
                         ))),
                     ));
                 }))
@@ -526,14 +521,14 @@ fn path_entry(path: &Path, types: &[String]) -> SpannedString<Style> {
 
     let kind = &types[(path.in_adapter() - 1) as usize];
     let s = format!("{} / {}", path.in_adapter(), kind);
-    line.append(format!("{:<20} ", s));
+    line.append(format!("{s:<20} "));
     line.append(format!("{:<8}", path.in_hop()));
 
     line.append("     ");
 
     let kind = &types[(path.out_adapter() - 1) as usize];
     let s = format!("{} / {}", path.out_adapter(), kind);
-    line.append(format!("{:<20} ", s));
+    line.append(format!("{s:<20} "));
     line.append(format!("{:<8}", path.out_hop()));
 
     line
@@ -552,8 +547,7 @@ fn update_path_view(siv: &mut Cursive) {
                     s.add_layer(ThemedView::new(
                         theme::dialog(),
                         Layer::new(Dialog::info(format!(
-                            "Failed to read device adapters: {}",
-                            err
+                            "Failed to read device adapters: {err}"
                         ))),
                     ));
                 }))
@@ -685,7 +679,7 @@ fn list_entry(space: &ConfigSpace, reg: &Register) -> SpannedString<Style> {
     let vs_cap_id = format!("{:x}", reg.vs_cap_id());
     let value = format!("{:08x}", reg.value());
     let name = if let Some(name) = reg.name() {
-        format!(" {}", name)
+        format!(" {name}")
     } else {
         String::from("")
     };
@@ -693,27 +687,18 @@ fn list_entry(space: &ConfigSpace, reg: &Register) -> SpannedString<Style> {
     let line = match *space {
         ConfigSpace::Unknown => panic!(),
         ConfigSpace::Router | ConfigSpace::Adapter => {
-            format!(
-                "{:<6} {:<8} {:<5} {:<4} {}{}",
-                offset, relative_offset, cap_id, vs_cap_id, value, name
-            )
+            format!("{offset:<6} {relative_offset:<8} {cap_id:<5} {vs_cap_id:<4} {value}{name}")
         }
         ConfigSpace::Path => {
-            format!(
-                "{:<6} {:<8} {:<5} {}{}",
-                offset, relative_offset, cap_id, value, name
-            )
+            format!("{offset:<6} {relative_offset:<8} {cap_id:<5} {value}{name}")
         }
         ConfigSpace::Counters => {
-            format!(
-                "{:<6} {:<8} {:<9} {}",
-                offset, relative_offset, cap_id, value,
-            )
+            format!("{offset:<6} {relative_offset:<8} {cap_id:<9} {value}",)
         }
     };
 
     if reg.is_changed() {
-        entry.append_styled(format!("{}*", line), theme::register_changed());
+        entry.append_styled(format!("{line}*"), theme::register_changed());
     } else {
         entry.append(line);
     }
@@ -750,8 +735,7 @@ fn read_registers(siv: &mut Cursive) {
                     siv.add_layer(ThemedView::new(
                         theme::dialog(),
                         Layer::new(Dialog::info(format!(
-                            "Failed to read device registers: {}",
-                            err
+                            "Failed to read device registers: {err}"
                         ))),
                     ));
                     return;
@@ -765,8 +749,7 @@ fn read_registers(siv: &mut Cursive) {
                     siv.add_layer(ThemedView::new(
                         theme::dialog(),
                         Layer::new(Dialog::info(format!(
-                            "Failed to read adapter registers: {}",
-                            err
+                            "Failed to read adapter registers: {err}"
                         ))),
                     ));
                     return;
@@ -780,8 +763,7 @@ fn read_registers(siv: &mut Cursive) {
                     siv.add_layer(ThemedView::new(
                         theme::dialog(),
                         Layer::new(Dialog::info(format!(
-                            "Failed to read adapter paths : {}",
-                            err
+                            "Failed to read adapter paths : {err}"
                         ))),
                     ));
                     return;
@@ -795,8 +777,7 @@ fn read_registers(siv: &mut Cursive) {
                     siv.add_layer(ThemedView::new(
                         theme::dialog(),
                         Layer::new(Dialog::info(format!(
-                            "Failed to read adapter counters : {}",
-                            err
+                            "Failed to read adapter counters : {err}"
                         ))),
                     ));
                     return;
@@ -889,7 +870,7 @@ fn write_changed(siv: &mut Cursive) -> bool {
         if let Err(err) = device.write_changed() {
             siv.add_layer(ThemedView::new(
                 theme::dialog(),
-                Layer::new(Dialog::info(format!("Failed to write registers: {}", err,))),
+                Layer::new(Dialog::info(format!("Failed to write registers: {err}",))),
             ));
             return false;
         }
@@ -900,8 +881,7 @@ fn write_changed(siv: &mut Cursive) -> bool {
             siv.add_layer(ThemedView::new(
                 theme::dialog(),
                 Layer::new(Dialog::info(format!(
-                    "Failed to write adapter registers: {}",
-                    err,
+                    "Failed to write adapter registers: {err}",
                 ))),
             ));
             return false;
@@ -929,7 +909,7 @@ fn build_field_detail(bitfields: &dyn BitFields<u32>, field: &BitField) -> impl 
 
     let value = bitfields.field(field.name());
 
-    line.append_styled(format!("{:>#10x} ", value), theme::field_value());
+    line.append_styled(format!("{value:>#10x} "), theme::field_value());
 
     line.append_styled(field.name().to_string(), theme::dialog_label());
     if let Some(short_name) = field.short_name() {
@@ -982,7 +962,7 @@ fn enable_update_button(d: &mut Dialog, enable: bool) {
 fn update_dialog_title(d: &mut Dialog, r: &Register) {
     let mut title = String::from("Register");
     if let Some(name) = r.name() {
-        title.push_str(&format!(": {}", name));
+        title.push_str(&format!(": {name}"));
     }
     if r.is_changed() {
         title.push('*');
@@ -1007,11 +987,11 @@ fn edit_register(siv: &mut Cursive, text: &str, base: usize) {
                 // Now update the other edit field as well.
                 if base == 2 {
                     siv.call_on_name(VIEW_REGISTERS_HEX_EDIT, |e: &mut NumberEditView| {
-                        e.set_content(format!("{:08x}", value));
+                        e.set_content(format!("{value:08x}"));
                     });
                 } else {
                     siv.call_on_name(VIEW_REGISTERS_BIN_EDIT, |e: &mut NumberEditView| {
-                        e.set_content(format!("{:032b}", value));
+                        e.set_content(format!("{value:032b}"));
                     });
                 }
             } else {
@@ -1095,7 +1075,7 @@ fn view_register(siv: &mut Cursive, reg: &Register, writable: bool) {
         h.add_child(TextView::new("0x"));
 
         let hex_edit = NumberEditView::hex()
-            .content(format!("{:08x}", value))
+            .content(format!("{value:08x}"))
             .on_edit(edit_register)
             .max_content_width(8)
             .with_name(VIEW_REGISTERS_HEX_EDIT);
@@ -1109,14 +1089,14 @@ fn view_register(siv: &mut Cursive, reg: &Register, writable: bool) {
         h.add_child(TextView::new("0b"));
 
         let bin_edit = NumberEditView::bin()
-            .content(format!("{:032b}", value))
+            .content(format!("{value:032b}"))
             .on_edit(edit_register)
             .max_content_width(8 * 4)
             .with_name(VIEW_REGISTERS_BIN_EDIT);
         h.add_child(bin_edit);
         l.add_child(h);
     } else {
-        l.add_child(build_dialog_detail("Hex:", 16, &format!("0x{:08x}", value)));
+        l.add_child(build_dialog_detail("Hex:", 16, &format!("0x{value:08x}")));
 
         let values: [u8; 4] = [
             (value & 0xff) as u8,
@@ -1248,10 +1228,7 @@ fn build_registers(siv: &mut Cursive) {
     if let Err(err) = device.read_adapters() {
         siv.add_layer(ThemedView::new(
             theme::dialog(),
-            Layer::new(Dialog::info(format!(
-                "Device adapters read failed: {}",
-                err,
-            ))),
+            Layer::new(Dialog::info(format!("Device adapters read failed: {err}",))),
         ));
         return;
     };
@@ -1391,8 +1368,7 @@ fn read_tmu(siv: &mut Cursive) {
         siv.add_layer(ThemedView::new(
             theme::dialog(),
             Layer::new(Dialog::info(format!(
-                "Failed to read device TMU registers: {}",
-                err
+                "Failed to read device TMU registers: {err}"
             ))),
         ));
         return;
@@ -1402,8 +1378,7 @@ fn read_tmu(siv: &mut Cursive) {
         siv.add_layer(ThemedView::new(
             theme::dialog(),
             Layer::new(Dialog::info(format!(
-                "Failed to read device adapters: {}",
-                err
+                "Failed to read device adapters: {err}"
             ))),
         ));
         return;
@@ -1416,10 +1391,7 @@ fn read_tmu(siv: &mut Cursive) {
             if let Err(err) = parent.read_registers() {
                 siv.add_layer(ThemedView::new(
                     theme::dialog(),
-                    Layer::new(Dialog::info(format!(
-                        "Failed to read parent device: {}",
-                        err
-                    ))),
+                    Layer::new(Dialog::info(format!("Failed to read parent device: {err}"))),
                 ));
                 return;
             }
@@ -1427,8 +1399,7 @@ fn read_tmu(siv: &mut Cursive) {
                 siv.add_layer(ThemedView::new(
                     theme::dialog(),
                     Layer::new(Dialog::info(format!(
-                        "Failed to read parent device adapters: {}",
-                        err
+                        "Failed to read parent device adapters: {err}"
                     ))),
                 ));
                 return;
@@ -1500,12 +1471,12 @@ fn read_tmu(siv: &mut Cursive) {
         l.add_child(build_dialog_detail(
             "TSPacketInterval:",
             25,
-            &format!("{} μs", rate),
+            &format!("{rate} μs"),
         ));
         l.add_child(build_dialog_detail(
             "Freq measurement window:",
             25,
-            &format!("{}", freq),
+            &format!("{freq}"),
         ));
 
         let reg = device.register_by_name("TMU_RTR_CS_15").unwrap();
@@ -1514,28 +1485,28 @@ fn read_tmu(siv: &mut Cursive) {
         l.add_child(build_dialog_detail(
             "FreqAvgConst:",
             25,
-            &format!("{}", freq_avg),
+            &format!("{freq_avg}"),
         ));
 
         let delay_avg = reg.field("DelayAvgConst");
         l.add_child(build_dialog_detail(
             "DelayAvgConst:",
             25,
-            &format!("{}", delay_avg),
+            &format!("{delay_avg}"),
         ));
 
         let offset_avg = reg.field("OffsetAvgConst");
         l.add_child(build_dialog_detail(
             "OffsetAvgConst:",
             25,
-            &format!("{}", offset_avg),
+            &format!("{offset_avg}"),
         ));
 
         let error_avg = reg.field("ErrorAvgConst");
         l.add_child(build_dialog_detail(
             "ErrorAvgConst:",
             25,
-            &format!("{}", error_avg),
+            &format!("{error_avg}"),
         ));
 
         if enhanced {
@@ -1545,7 +1516,7 @@ fn read_tmu(siv: &mut Cursive) {
             l.add_child(build_dialog_detail(
                 "DeltaAvgConst:",
                 25,
-                &format!("{}", delta_avg),
+                &format!("{delta_avg}"),
             ));
         }
     });
@@ -1631,7 +1602,7 @@ fn enable_trace(siv: &mut Cursive) {
         if let Err(err) = trace::disable() {
             siv.add_layer(ThemedView::new(
                 theme::dialog(),
-                Layer::new(Dialog::info(format!("Failed to disable tracing: {}", err))),
+                Layer::new(Dialog::info(format!("Failed to disable tracing: {err}"))),
             ));
         } else {
             update_title(siv);
@@ -1639,7 +1610,7 @@ fn enable_trace(siv: &mut Cursive) {
     } else if let Err(err) = trace::enable() {
         siv.add_layer(ThemedView::new(
             theme::dialog(),
-            Layer::new(Dialog::info(format!("Failed to enable tracing: {}", err))),
+            Layer::new(Dialog::info(format!("Failed to enable tracing: {err}"))),
         ));
     } else {
         update_title(siv);
@@ -1789,7 +1760,7 @@ fn view_packet(siv: &mut Cursive, entry: &Entry) {
     ));
 
     if let Some(adapter_num) = entry.adapter_num() {
-        let mut adapter_details = format!("{}", adapter_num);
+        let mut adapter_details = format!("{adapter_num}");
         if let Some(ref device) = device {
             if let Some(adapter) = device.adapter(adapter_num) {
                 adapter_details.push_str(&format!(" / {}", adapter.kind()));
@@ -1814,18 +1785,18 @@ fn view_packet(siv: &mut Cursive, entry: &Entry) {
         {
             let mut line = SpannedString::new();
 
-            line.append(format!("0x{:02x}", i));
+            line.append(format!("0x{i:02x}"));
             // Add the offset inside packet if known.
             if packet.data().is_some() && i >= data_start {
                 line.append("/");
-                line.append_styled(format!("{:04x} ", data_address), theme::field_offset());
+                line.append_styled(format!("{data_address:04x} "), theme::field_offset());
             } else {
                 line.append("      ");
             }
 
             let d = f.value();
 
-            line.append(format!("0x{:08x} ", d));
+            line.append(format!("0x{d:08x} "));
 
             line.append(format!("0b{:08b}", (d >> 24) & 0xff));
             line.append(format!(" {:08b}", (d >> 16) & 0xff));
@@ -1933,12 +1904,12 @@ fn trace_entry(entry: &Entry) -> SpannedString<Style> {
 
         _ => (),
     }
-    line.append(format!("{:25} ", pdf));
+    line.append(format!("{pdf:25} "));
     line.append(format!("{:<6} ", entry.domain_index()));
     line.append(format!("{:<10x} ", entry.route()));
 
     if let Some(adapter_num) = entry.adapter_num() {
-        line.append(format!("{:<2} ", adapter_num));
+        line.append(format!("{adapter_num:<2} "));
     }
 
     line
@@ -2153,7 +2124,7 @@ impl DromItem {
         let mut fields = Vec::new();
         let name: &str;
 
-        summary.push_str(&format!("{:04x}   ", offset));
+        summary.push_str(&format!("{offset:04x}   "));
         summary.push_str(if entry.is_adapter() {
             "Adapter "
         } else {
@@ -2166,7 +2137,7 @@ impl DromItem {
                 adapter_num,
             } => {
                 name = "Adapter";
-                summary.push_str(&format!("{} {}", name, adapter_num));
+                summary.push_str(&format!("{name} {adapter_num}"));
 
                 fields.push(DromField {
                     name: "Adapter Number".to_string(),
@@ -2180,7 +2151,7 @@ impl DromItem {
 
             DromEntry::UnusedAdapter { adapter_num } => {
                 name = "Unused Adapter";
-                summary.push_str(&format!("{} {}", name, adapter_num));
+                summary.push_str(&format!("{name} {adapter_num}"));
 
                 fields.push(DromField {
                     name: "Adapter Number".to_string(),
@@ -2194,15 +2165,15 @@ impl DromItem {
                 preference_valid,
             } => {
                 name = "DisplayPort Adapter";
-                summary.push_str(&format!("{} {}", name, adapter_num));
+                summary.push_str(&format!("{name} {adapter_num}"));
 
                 fields.push(DromField {
                     name: "Adapter Number".to_string(),
-                    value: format!("{}", adapter_num),
+                    value: format!("{adapter_num}"),
                 });
                 fields.push(DromField {
                     name: "Preferred Lane Adapter".to_string(),
-                    value: format!("{}", preferred_lane_adapter_num),
+                    value: format!("{preferred_lane_adapter_num}"),
                 });
                 fields.push(DromField {
                     name: "Preference Valid".to_string(),
@@ -2217,7 +2188,7 @@ impl DromItem {
                 dual_lane_adapter_num,
             } => {
                 name = "Lane Adapter";
-                summary.push_str(&format!("{} {}", name, adapter_num,));
+                summary.push_str(&format!("{name} {adapter_num}",));
 
                 fields.push(DromField {
                     name: "Adapter Number".to_string(),
@@ -2233,7 +2204,7 @@ impl DromItem {
                 });
                 fields.push(DromField {
                     name: "Sec Adapter Num".to_string(),
-                    value: format!("{}", dual_lane_adapter_num),
+                    value: format!("{dual_lane_adapter_num}"),
                 });
             }
 
@@ -2243,7 +2214,7 @@ impl DromItem {
                 device_num,
             } => {
                 name = "PCIe Upstream Adapter";
-                summary.push_str(&format!("{} {}", name, adapter_num));
+                summary.push_str(&format!("{name} {adapter_num}"));
 
                 fields.push(DromField {
                     name: "Adapter Number".to_string(),
@@ -2251,7 +2222,7 @@ impl DromItem {
                 });
                 fields.push(DromField {
                     name: "Device".to_string(),
-                    value: format!("{:02x}.{:x}", device_num, function_num),
+                    value: format!("{device_num:02x}.{function_num:x}"),
                 });
             }
 
@@ -2261,7 +2232,7 @@ impl DromItem {
                 device_num,
             } => {
                 name = "PCIe Downstream Adapter";
-                summary.push_str(&format!("{} {}", name, adapter_num));
+                summary.push_str(&format!("{name} {adapter_num}"));
 
                 fields.push(DromField {
                     name: "Adapter Number".to_string(),
@@ -2269,13 +2240,13 @@ impl DromItem {
                 });
                 fields.push(DromField {
                     name: "Device".to_string(),
-                    value: format!("{:02x}.{:x}", device_num, function_num),
+                    value: format!("{device_num:02x}.{function_num:x}"),
                 });
             }
 
             DromEntry::Generic { kind, .. } => {
                 name = "Generic Entry";
-                summary.push_str(&format!("{} {:#x}", name, kind));
+                summary.push_str(&format!("{name} {kind:#x}"));
             }
 
             DromEntry::AsciiVendorName(vendor) => {
@@ -2364,27 +2335,27 @@ impl DromItem {
 
                 fields.push(DromField {
                     name: "bcdUSBSpec".to_string(),
-                    value: format!("{:x}.{:x}", usb4_major, usb4_minor),
+                    value: format!("{usb4_major:x}.{usb4_minor:x}"),
                 });
                 fields.push(DromField {
                     name: "idVendor".to_string(),
-                    value: format!("{:04x}", vendor),
+                    value: format!("{vendor:04x}"),
                 });
                 fields.push(DromField {
                     name: "idProduct".to_string(),
-                    value: format!("{:04x}", product),
+                    value: format!("{product:04x}"),
                 });
                 fields.push(DromField {
                     name: "bcdProductFWRevision".to_string(),
-                    value: format!("{:x}.{:x}", fw_major, fw_minor),
+                    value: format!("{fw_major:x}.{fw_minor:x}"),
                 });
                 fields.push(DromField {
                     name: "TID".to_string(),
-                    value: format!("{:04x}", test_id),
+                    value: format!("{test_id:04x}"),
                 });
                 fields.push(DromField {
                     name: "productHWRevision".to_string(),
-                    value: format!("{}", hw_revision),
+                    value: format!("{hw_revision}"),
                 });
             }
 
@@ -2397,7 +2368,7 @@ impl DromItem {
 
                 fields.push(DromField {
                     name: "wLANGID".to_string(),
-                    value: format!("{}", lang_id),
+                    value: format!("{lang_id}"),
                 });
                 fields.push(DromField {
                     name: "SerialNumber".to_string(),
@@ -2463,7 +2434,7 @@ fn view_drom_item(siv: &mut Cursive, item: &DromItem) {
 
         item.bytes.chunks(8).for_each(|chunk| {
             for byte in chunk {
-                data.append(format!("{:02x} ", byte));
+                data.append(format!("{byte:02x} "));
             }
             let fill = 8 * (2 + 1) - chunk.len() * 3;
             data.append(" ".repeat(fill).to_string());
@@ -2479,11 +2450,7 @@ fn view_drom_item(siv: &mut Cursive, item: &DromItem) {
             longest = std::cmp::max(f.name.len(), longest);
         });
         for DromField { name, value } in fields {
-            l.add_child(build_dialog_detail(
-                &format!("{}:", name),
-                longest + 2,
-                value,
-            ));
+            l.add_child(build_dialog_detail(&format!("{name}:"), longest + 2, value));
         }
 
         content.add_child(ScrollView::new(l).max_height(20));
@@ -2543,7 +2510,7 @@ fn build_drom(siv: &mut Cursive) {
     if let Err(err) = device.read_drom() {
         siv.add_layer(ThemedView::new(
             theme::dialog(),
-            Layer::new(Dialog::info(format!("Failed to read device DROM: {}", err))),
+            Layer::new(Dialog::info(format!("Failed to read device DROM: {err}"))),
         ));
         return;
     }
@@ -2678,7 +2645,7 @@ fn view_event(siv: &mut Cursive, entry: &EventEntry) {
             ChangeEvent::Router { authorized } => content.add_child(build_dialog_detail(
                 "Authorized:",
                 16,
-                &format!("{}", authorized),
+                &format!("{authorized}"),
             )),
             ChangeEvent::Tunnel { event, details } => {
                 content.add_child(build_dialog_detail("Tunnel event:", 16, &event.to_string()));
@@ -2816,13 +2783,13 @@ fn update_event_view(siv: &mut Cursive, event: &monitor::Event) {
     let entry = match *event {
         monitor::Event::Add(ref device) | monitor::Event::Remove(ref device) => EventEntry {
             timestamp,
-            r#type: format!("{}", event),
+            r#type: format!("{event}"),
             name: device.name(),
             change_event: None,
         },
         monitor::Event::Change(ref device, ref change_event) => EventEntry {
             timestamp,
-            r#type: format!("{}", event),
+            r#type: format!("{event}"),
             name: device.name(),
             change_event: change_event.clone(),
         },
@@ -2845,7 +2812,7 @@ fn update_event_view(siv: &mut Cursive, event: &monitor::Event) {
 fn build_detail(label: &str, value: String) -> impl View {
     let mut line = SpannedString::new();
 
-    line.append_styled(format!("{:>14} ", label), theme::label());
+    line.append_styled(format!("{label:>14} "), theme::label());
     line.append(value);
 
     TextView::new(line)
@@ -2879,7 +2846,7 @@ fn build_details(siv: &mut Cursive, device: &Device) {
 
         if let Some(generation) = device.generation() {
             let generation = match generation {
-                1..=3 => format!("Thunderbolt {}", generation),
+                1..=3 => format!("Thunderbolt {generation}"),
                 4 => {
                     let version = device.usb4_version().unwrap();
                     format!("USB4 {}.{}", version.major, version.minor)
@@ -3040,7 +3007,7 @@ fn device_name(device: &Device) -> String {
     let mut name = device.name();
 
     if let Some(device_name) = device.device_name() {
-        name.push_str(&format!(" {}", device_name));
+        name.push_str(&format!(" {device_name}"));
     }
 
     name
