@@ -44,13 +44,13 @@ struct Args {
 fn color_result(res: &ResultValue) -> String {
     if io::stdout().is_terminal() {
         match res {
-            ResultValue::Ok(value) => Green.paint(format!("{:6.2}", value)).to_string(),
-            ResultValue::Exceeds(value) => Red.paint(format!("{:6.2}", value)).to_string(),
+            ResultValue::Ok(value) => Green.paint(format!("{value:6.2}")).to_string(),
+            ResultValue::Exceeds(value) => Red.paint(format!("{value:6.2}")).to_string(),
         }
     } else {
         match res {
-            ResultValue::Ok(value) => format!("{:6.2}", value),
-            ResultValue::Exceeds(value) => format!("{:6.2}!", value),
+            ResultValue::Ok(value) => format!("{value:6.2}"),
+            ResultValue::Exceeds(value) => format!("{value:6.2}!"),
         }
     }
 }
@@ -58,14 +58,14 @@ fn color_result(res: &ResultValue) -> String {
 fn color_counter(counter: u32) -> String {
     if io::stdout().is_terminal() {
         if counter > 0 {
-            Red.paint(format!("{}", counter)).to_string()
+            Red.paint(format!("{counter}")).to_string()
         } else {
-            Green.paint(format!("{}", counter)).to_string()
+            Green.paint(format!("{counter}")).to_string()
         }
     } else if counter > 0 {
-        format!("{}!", counter)
+        format!("{counter}!")
     } else {
-        format!("{}", counter)
+        format!("{counter}")
     }
 }
 
@@ -312,7 +312,7 @@ fn main() {
     }
 
     if let Err(err) = debugfs::mount() {
-        eprintln!("Error: failed to mount debugfs: {}", err);
+        eprintln!("Error: failed to mount debugfs: {err}");
         process::exit(1);
     }
 
@@ -333,14 +333,14 @@ fn main() {
 
     let mut margining = match Margining::new(&address) {
         Err(err) => {
-            eprintln!("Error: failed to initialize margining: {}", err);
+            eprintln!("Error: failed to initialize margining: {err}");
             process::exit(1);
         }
         Ok(margining) => margining,
     };
 
     if let Err(err) = run_margining(&args, &mut margining) {
-        eprintln!("Error: failed to run margining {}", err);
+        eprintln!("Error: failed to run margining {err}");
         process::exit(1);
     }
 }
