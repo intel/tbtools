@@ -24,7 +24,7 @@ use nix::sys::time::TimeVal;
 use std::{io, thread};
 use tbtools::{
     Device, Kind, Pdf, Version,
-    debugfs::{Adapter, BitField, BitFields, Name, Path, Register, Type},
+    debugfs::{Adapter, BitField, BitFields, Name, PathEntry, Register, Type},
     drom::{DromEntry, TmuMode, TmuRate},
     monitor::{self, ChangeEvent},
     trace::{self, Entry},
@@ -411,7 +411,7 @@ fn add_adapter_specific(layout: &mut LinearLayout, width: usize, adapter: &Adapt
     }
 }
 
-fn view_path(siv: &mut Cursive, path: &Path) {
+fn view_path(siv: &mut Cursive, path: &PathEntry) {
     let devices: &mut SelectView<Device> = &mut siv.find_name(DEVICES).unwrap();
     let index = devices.selected_id();
     if index.is_none() {
@@ -513,7 +513,7 @@ fn view_path(siv: &mut Cursive, path: &Path) {
     ));
 }
 
-fn path_entry(path: &Path, types: &[String]) -> SpannedString<Style> {
+fn path_entry(path: &PathEntry, types: &[String]) -> SpannedString<Style> {
     let mut line = SpannedString::new();
 
     let kind = &types[(path.in_adapter() - 1) as usize];
@@ -538,7 +538,7 @@ fn update_path_view(siv: &mut Cursive) {
         let device = devices.get_item_mut(index).unwrap().1;
         let sink = siv.cb_sink().clone();
 
-        siv.call_on_name(VIEW_PATHS, |paths: &mut SelectView<Path>| {
+        siv.call_on_name(VIEW_PATHS, |paths: &mut SelectView<PathEntry>| {
             if let Err(err) = device.read_adapters() {
                 sink.send(Box::new(move |s: &mut Cursive| {
                     s.add_layer(ThemedView::new(
@@ -610,7 +610,7 @@ fn build_paths(siv: &mut Cursive) {
     let headers = TextView::new(header);
 
     let paths = OnEventView::new(
-        SelectView::<Path>::new()
+        SelectView::<PathEntry>::new()
             .on_submit(view_path)
             .with_name(VIEW_PATHS),
     )

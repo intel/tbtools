@@ -691,18 +691,18 @@ fn write_changed(path_buf: &PathBuf, regs: &[Register]) -> Result<()> {
 
 /// Parsed enabled path configuration space entry.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-pub struct Path {
-    /// Input adapter number
+pub struct PathEntry {
+    /// Input adapter number.
     in_adapter: u8,
-    /// Input HopID
+    /// Input HopID.
     in_hop: u16,
-    /// Output adapter number
+    /// Output adapter number.
     out_adapter: u8,
-    /// Output HopID
+    /// Output HopID.
     out_hop: u16,
 }
 
-impl Path {
+impl PathEntry {
     /// Creates a new path entry from `PATH_CS_0` register.
     fn new(in_adapter: u8, in_hop: u16, path_cs_0: u32) -> Option<Self> {
         if (path_cs_0 & usb4::PATH_CS_0_VALID) == usb4::PATH_CS_0_VALID {
@@ -825,7 +825,7 @@ pub struct Adapter {
     debugfs_path: Option<PathBuf>,
     regs: Option<Vec<Register>>,
     path_regs: Option<Vec<Register>>,
-    paths: Option<Vec<Path>>,
+    paths: Option<Vec<PathEntry>>,
     counter_regs: Option<Vec<Register>>,
     usb4: bool,
     upstream: bool,
@@ -1226,7 +1226,7 @@ impl Adapter {
             {
                 let in_hop = p.offset / 2;
 
-                if let Some(path) = Path::new(self.adapter, in_hop, p.value) {
+                if let Some(path) = PathEntry::new(self.adapter, in_hop, p.value) {
                     paths.push(path);
                 }
             }
@@ -1271,14 +1271,14 @@ impl Adapter {
     }
 
     /// Returns enabled path in `in_hop`.
-    pub fn path(&self, in_hop: u16) -> Option<&Path> {
+    pub fn path(&self, in_hop: u16) -> Option<&PathEntry> {
         self.paths
             .as_ref()
             .and_then(|paths| paths.iter().find(|p| p.in_hop == in_hop))
     }
 
     /// Returns all enabled paths of this adapter.
-    pub fn paths(&self) -> Option<&Vec<Path>> {
+    pub fn paths(&self) -> Option<&Vec<PathEntry>> {
         self.paths.as_ref()
     }
 
