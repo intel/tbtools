@@ -407,9 +407,9 @@ fn color_pdf(pdf: &Pdf) -> String {
 
 fn color_field_value(value: &str) -> String {
     if io::stdout().is_terminal() {
-        Cyan.paint(format!("{:>10}", value)).to_string()
+        Cyan.paint(format!("{value:>10}")).to_string()
     } else {
-        format!("{:>10}", value)
+        format!("{value:>10}")
     }
 }
 
@@ -431,9 +431,9 @@ fn color_field_short_name(short_name: &str) -> String {
 
 fn color_address(address: u16) -> String {
     if io::stdout().is_terminal() {
-        Purple.bold().paint(format!("{:04x}", address)).to_string()
+        Purple.bold().paint(format!("{address:04x}")).to_string()
     } else {
-        format!("{:04x}", address)
+        format!("{address:04x}")
     }
 }
 
@@ -510,7 +510,7 @@ fn dump_header(
         print!("Route {:x} ", entry.route());
 
         if let Some(adapter_num) = packet.adapter_num() {
-            print!("Adapter {} ", adapter_num);
+            print!("Adapter {adapter_num} ");
             if let Some(device) = device {
                 if let Some(adapter) = device.adapter(adapter_num) {
                     print!("/ {}", adapter.kind());
@@ -531,7 +531,7 @@ fn dump_name(verbose: u8, record: Option<&mut Vec<String>>, name: &dyn Name) {
         if let Some(record) = record {
             record.push(name.to_string());
         } else {
-            println!("{}", name);
+            println!("{name}");
         }
     } else if let Some(record) = record {
         record.push(String::new());
@@ -547,7 +547,7 @@ fn dump_fields(verbose: u8, bitfields: &dyn BitFields<u32>) {
     if let Some(fields) = bitfields.fields() {
         for field in fields {
             let v = bitfields.field(field.name());
-            let value = color_field_value(&format!("{:#x}", v));
+            let value = color_field_value(&format!("{v:#x}"));
             let value_name = if let Some(value_name) = field.value_name(v) {
                 format!(" → {}", color_field_value_name(value_name))
             } else {
@@ -635,7 +635,7 @@ fn dump_packet(
     {
         print!("{:15}", "");
 
-        print!("0x{:02x}", i);
+        print!("0x{i:02x}");
         if verbose > 1 {
             if packet.data().is_some() && i >= data_start {
                 print!("/{}", color_address(data_address));
@@ -646,7 +646,7 @@ fn dump_packet(
 
         let d = f.value();
 
-        print!(" 0x{:08x} ", d);
+        print!(" 0x{d:08x} ");
 
         print!("0b{:08b}", (d >> 24) & 0xff);
         print!(" {:08b}", (d >> 16) & 0xff);
@@ -693,10 +693,10 @@ fn dump_script_packet<W: Write>(
     {
         let mut record = header.to_owned();
 
-        record.push(format!("0x{:02x}", i));
+        record.push(format!("0x{i:02x}"));
         if verbose > 1 {
             if packet.data().is_some() && i >= data_start {
-                record.push(format!("0x{:04x}", data_address));
+                record.push(format!("0x{data_address:04x}"));
             } else {
                 record.push(String::new());
             }
@@ -882,7 +882,7 @@ fn dump(
 
     if let Some(input) = input {
         trace_buf = trace::buffer(Path::new(&input)).unwrap_or_else(|e| {
-            eprintln!("Error: failed open trace input file: {}", e);
+            eprintln!("Error: failed open trace input file: {e}");
             process::exit(1);
         });
     } else {
@@ -935,7 +935,7 @@ fn dump(
 
     if html {
         let header = HTML_HEADER.replace("{VERSION}", env!("CARGO_PKG_VERSION"));
-        print!("{}", header);
+        print!("{header}");
     }
 
     let mut line = 0;
@@ -1001,7 +1001,7 @@ fn dump(
             .map(|d| format!(r#"{}<label><input type="checkbox" value="{}" checked onchange="updateRouteFilter()">{}</label>"#, " ".repeat(20), d, d))
             .collect::<Vec<_>>();
         let header = header.replace("{ROUTES}", &route_filters.join("\n"));
-        print!("{}", header);
+        print!("{header}");
     }
 
     Ok(())
@@ -1014,7 +1014,7 @@ fn check_access() {
     }
 
     if let Err(err) = debugfs::mount() {
-        eprintln!("Error: failed to mount debugfs: {}", err);
+        eprintln!("Error: failed to mount debugfs: {err}");
         process::exit(1);
     }
 
