@@ -52,7 +52,7 @@ fn gen_key() -> Result<String, fmt::Error> {
 
     let mut key = String::new();
     for b in data {
-        write!(key, "{:02x}", b)?;
+        write!(key, "{b:02x}")?;
     }
 
     Ok(key)
@@ -98,7 +98,7 @@ fn main() -> io::Result<()> {
 
         let key = match gen_key() {
             Err(err) => {
-                eprintln!("Error: Key generation failed {}", err);
+                eprintln!("Error: Key generation failed {err}");
                 process::exit(1);
             }
             Ok(key) => key,
@@ -111,7 +111,7 @@ fn main() -> io::Result<()> {
             .write(true)
             .truncate(true)
             .open(path);
-        write!(file?, "{}", key)?;
+        write!(file?, "{key}")?;
 
         authorized = 1;
     } else if let Some(path) = &args.challenge_key_path {
