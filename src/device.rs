@@ -17,10 +17,8 @@ use regex::Regex;
 use crate::{
     debugfs::{Adapter, Register},
     drom::Drom,
-    util,
+    usb4, util,
 };
-
-const ROUTE_SHIFT: u32 = 8;
 
 lazy_static! {
     static ref USB4_VERSION_RE: Regex = Regex::new(r"^(\d+)\.(\d+)").unwrap();
@@ -285,7 +283,7 @@ impl Device {
 
     /// Returns depth of the device in topology.
     pub fn depth(&self) -> u32 {
-        (u64::BITS - self.route.leading_zeros()).div_ceil(ROUTE_SHIFT)
+        (u64::BITS - self.route.leading_zeros()).div_ceil(usb4::ROUTE_SHIFT)
     }
 
     /// Returns Rx speed of the device in Mb/s.

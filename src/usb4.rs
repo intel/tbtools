@@ -7,6 +7,8 @@
 
 use crate::genmask_t;
 
+pub(crate) const ROUTE_SHIFT: u32 = 8;
+
 pub const TMU_RTR_CS_0_UCAP: u32 = 1 << 30;
 pub const TMU_RTR_CS_0_FREQ_WINDOW_MASK: u32 = genmask_t!(u32, 26, 16);
 pub const TMU_RTR_CS_0_FREQ_WINDOW_SHIFT: u32 = 16;

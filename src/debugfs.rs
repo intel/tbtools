@@ -818,6 +818,9 @@ pub enum Speed {
 /// ```
 #[derive(Clone, Debug)]
 pub struct Adapter {
+    domain: u32,
+    route: u64,
+    depth: u32,
     adapter: u8,
     kind: Type,
     state: State,
@@ -831,7 +834,14 @@ pub struct Adapter {
 }
 
 impl Adapter {
+    // Ideally we would have just a reference to the owning device but that would require adding
+    // explicit lifetimes to most of the structures. For now we just silence clippy. In future that
+    // change should be done.
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn new(
+        domain: u32,
+        route: u64,
+        depth: u32,
         adapter: u8,
         kind: Type,
         debugfs_path: Option<PathBuf>,
@@ -839,6 +849,9 @@ impl Adapter {
         upstream: bool,
     ) -> Self {
         Self {
+            domain,
+            route,
+            depth,
             adapter,
             kind,
             state: State::Unknown,
@@ -1100,6 +1113,42 @@ impl Adapter {
 
             _ => None,
         }
+    }
+
+    /// Returns upstream route from this lane adapter.
+    ///
+    /// Only works for upstream adapters. For example if `route` is `0x30301` this returns `0x301`.
+    pub fn upstream_route(&self) -> Option<u64> {
+        if self.is_lane() && self.is_upstream() {
+            Some(self.route & ((1 << ((self.depth - 1) * usb4::ROUTE_SHIFT)) - 1))
+        } else {
+            None
+        }
+    }
+
+    /// Finds upstream device from `devices`.
+    pub fn upstream_device<'a>(&self, devices: &'a [Device]) -> Option<&'a Device> {
+        let upstream_route = self.upstream_route()?;
+        devices.iter().find(|d| {
+            d.is_router() && d.domain_index() == self.domain && d.route() == upstream_route
+        })
+    }
+
+    /// Returns downstream route from this lane adapter.
+    pub fn downstream_route(&self) -> Option<u64> {
+        if self.is_lane() {
+            Some(self.route | (self.adapter as u64) << (self.depth * usb4::ROUTE_SHIFT))
+        } else {
+            None
+        }
+    }
+
+    /// Finds downstream device from `devices`.
+    pub fn downstream_device<'a>(&self, devices: &'a [Device]) -> Option<&'a Device> {
+        let downstream_route = self.downstream_route()?;
+        devices.iter().find(|d| {
+            d.is_router() && d.domain_index() == self.domain && d.route() == downstream_route
+        })
     }
 
     /// Reads the adapter register space.
@@ -1489,6 +1538,9 @@ impl Device {
         path_buf.push(self.kernel_name());
 
         Ok(Adapter::new(
+            self.domain_index(),
+            self.route(),
+            self.depth(),
             adapter,
             Type::Inactive,
             Some(path_buf),

@@ -613,8 +613,8 @@ mod test {
     #[test]
     fn parse_host_drom() {
         let adapters = vec![
-            Adapter::new(5, Type::DisplayPortIn, None, true, false),
-            Adapter::new(6, Type::DisplayPortIn, None, true, false),
+            Adapter::new(0, 0, 0, 5, Type::DisplayPortIn, None, true, false),
+            Adapter::new(0, 0, 0, 6, Type::DisplayPortIn, None, true, false),
         ];
         let drom = Drom::parse(&HOST_DROM, &adapters);
         assert!(drom.is_ok());
@@ -683,20 +683,20 @@ mod test {
     #[test]
     fn parse_device_drom() {
         let adapters = vec![
-            Adapter::new(1, Type::Lane, None, true, false),
-            Adapter::new(2, Type::Lane, None, true, false),
-            Adapter::new(3, Type::Lane, None, true, false),
-            Adapter::new(4, Type::Lane, None, true, false),
-            Adapter::new(5, Type::Lane, None, true, false),
-            Adapter::new(6, Type::Lane, None, true, false),
-            Adapter::new(7, Type::Lane, None, true, false),
-            Adapter::new(8, Type::Lane, None, true, false),
-            Adapter::new(9, Type::PcieUp, None, true, false),
-            Adapter::new(10, Type::PcieDown, None, true, false),
-            Adapter::new(11, Type::PcieDown, None, true, false),
-            Adapter::new(12, Type::PcieDown, None, true, false),
-            Adapter::new(13, Type::DisplayPortOut, None, true, false),
-            Adapter::new(14, Type::DisplayPortOut, None, true, false),
+            Adapter::new(0, 1, 1, 1, Type::Lane, None, true, false),
+            Adapter::new(0, 1, 1, 2, Type::Lane, None, true, false),
+            Adapter::new(0, 1, 1, 3, Type::Lane, None, true, false),
+            Adapter::new(0, 1, 1, 4, Type::Lane, None, true, false),
+            Adapter::new(0, 1, 1, 5, Type::Lane, None, true, false),
+            Adapter::new(0, 1, 1, 6, Type::Lane, None, true, false),
+            Adapter::new(0, 1, 1, 7, Type::Lane, None, true, false),
+            Adapter::new(0, 1, 1, 8, Type::Lane, None, true, false),
+            Adapter::new(0, 1, 1, 9, Type::PcieUp, None, true, false),
+            Adapter::new(0, 1, 1, 10, Type::PcieDown, None, true, false),
+            Adapter::new(0, 1, 1, 11, Type::PcieDown, None, true, false),
+            Adapter::new(0, 1, 1, 12, Type::PcieDown, None, true, false),
+            Adapter::new(0, 1, 1, 13, Type::DisplayPortOut, None, true, false),
+            Adapter::new(0, 1, 1, 14, Type::DisplayPortOut, None, true, false),
         ];
         let drom = Drom::parse(&DEVICE_DROM, &adapters);
         assert!(drom.is_ok());
