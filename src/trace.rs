@@ -146,10 +146,10 @@ impl Display for Event {
             Self::DpBw => "DP_BW",
             Self::DptxDiscovery => "DPTX_DISCOVERY",
             Self::Unknown(code) => {
-                return write!(f, "{}", code);
+                return write!(f, "{code}");
             }
         };
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }
 
@@ -959,7 +959,7 @@ pub fn add_filter(address: &Address) -> Result<()> {
         let file = OpenOptions::new().append(true).open(path_buf)?;
         let mut writer = BufWriter::new(file);
 
-        writeln!(&mut writer, "index == {}", domain)?;
+        writeln!(&mut writer, "index == {domain}")?;
 
         return writer.flush();
     }
@@ -987,7 +987,7 @@ fn set_trace_attribute(attribute: &str, value: &str) -> Result<()> {
     let file = OpenOptions::new().write(true).open(path_buf)?;
     let mut writer = BufWriter::new(file);
 
-    writeln!(&mut writer, "{}", value)?;
+    writeln!(&mut writer, "{value}")?;
 
     writer.flush()
 }
