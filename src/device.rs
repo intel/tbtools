@@ -67,7 +67,7 @@ impl Display for Kind {
             Self::Retimer => "thunderbolt_retimer",
             Self::Unknown => "unknown",
         };
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }
 
@@ -345,7 +345,7 @@ impl Device {
             Err(Error::from(ErrorKind::InvalidData))
         } else {
             self.udev()?
-                .set_attribute_value("authorized", format!("{}", authorize))
+                .set_attribute_value("authorized", format!("{authorize}"))
         }
     }
 
@@ -688,7 +688,7 @@ impl Display for ConfigSpace {
             Self::Counters => "Counters",
             _ => panic!("unknown config space"),
         };
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }
 
@@ -768,7 +768,7 @@ impl Display for Pdf {
             Self::IcmResponse => "ICM Response",
             _ => "Unknown",
         };
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }
 
@@ -817,15 +817,15 @@ pub fn find_devices(address: Option<&Address>) -> io::Result<Vec<Device>> {
 
     match address {
         Some(Address::Domain { domain }) => {
-            enumerator.match_sysname(format!("domain{}", domain))?;
+            enumerator.match_sysname(format!("domain{domain}"))?;
         }
         Some(Address::Router { domain, route }) => {
             enumerator.match_property("DEVTYPE", Kind::Router.to_string())?;
-            enumerator.match_sysname(format!("{}-{:x}", domain, route))?;
+            enumerator.match_sysname(format!("{domain}-{route:x}"))?;
         }
         Some(Address::Xdomain { domain, route }) => {
             enumerator.match_property("DEVTYPE", Kind::Xdomain.to_string())?;
-            enumerator.match_sysname(format!("{}-{:x}", domain, route))?;
+            enumerator.match_sysname(format!("{domain}-{route:x}"))?;
         }
         Some(Address::Retimer {
             domain,
@@ -833,7 +833,7 @@ pub fn find_devices(address: Option<&Address>) -> io::Result<Vec<Device>> {
             adapter,
             index,
         }) => {
-            enumerator.match_sysname(format!("{}-{:x}:{}.{}", domain, route, adapter, index))?;
+            enumerator.match_sysname(format!("{domain}-{route:x}:{adapter}.{index}"))?;
         }
         _ => (),
     }
