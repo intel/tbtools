@@ -44,6 +44,9 @@ Following tools are currently available:
   the kernel command line. All this also requires that you have
   `CONFIG_TRACING=y` in your kernel config.
 
+`tbtunnels`
+: Utility that dumps all tunnels in the domain.
+
 `tbman`
 : Live device manager tool. This can be used to view the device topology
   in more visual manner. This too requires `debugfs` access but mounts

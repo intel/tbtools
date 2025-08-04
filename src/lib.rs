@@ -20,6 +20,7 @@ pub mod drom;
 pub mod margining;
 pub mod monitor;
 pub mod trace;
+pub mod tunnel;
 pub mod typec;
 pub mod usb4;
 pub mod util;
