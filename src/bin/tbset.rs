@@ -46,7 +46,7 @@ fn write_router(device: &mut Device, values: &Vec<(String, u32)>) -> io::Result<
                 if let Some(reg) = device.register_by_offset_mut(offset) {
                     reg.set_value(value.1);
                 } else {
-                    eprintln!("Warning: invalid offset {}!", offset);
+                    eprintln!("Warning: invalid offset {offset}!");
                 }
             }
             None => {
@@ -102,7 +102,7 @@ fn write_adapter(
                         if let Some(reg) = reg {
                             reg.set_value(value.1);
                         } else {
-                            eprintln!("Warning: invalid offset {}!", offset);
+                            eprintln!("Warning: invalid offset {offset}!");
                         }
                     }
 
@@ -133,7 +133,7 @@ fn write_adapter(
 
         adapter.write_changed()?;
     } else {
-        eprintln!("Error: adapter {} not found!", adapter);
+        eprintln!("Error: adapter {adapter} not found!");
         process::exit(1);
     }
 
@@ -205,12 +205,12 @@ fn main() {
     }
 
     if let Err(err) = debugfs::mount() {
-        eprintln!("Error: failed to mount debugfs: {}", err);
+        eprintln!("Error: failed to mount debugfs: {err}");
         process::exit(1);
     }
 
     if let Err(err) = write(&args) {
-        eprintln!("Error: {}", err);
+        eprintln!("Error: {err}");
         if err.kind() == ErrorKind::Unsupported {
             eprintln!("Device does not support register access");
         }
