@@ -954,6 +954,8 @@ impl Adapter {
                 }
             }
 
+            Type::HostInterface => State::Enabled,
+
             _ => State::Unknown,
         }
     }
@@ -1050,9 +1052,15 @@ impl Adapter {
         Speed::Unknown
     }
 
-    /// If the protocol adapter is enabled
+    /// If the protocol adapter is enabled.
+    ///
+    /// For Host Interface this returns always `true`.
     pub fn is_enabled(&self) -> bool {
-        self.is_protocol() && self.state == State::Enabled
+        if self.kind == Type::HostInterface {
+            true
+        } else {
+            self.is_protocol() && self.state == State::Enabled
+        }
     }
 
     /// Returns `true` if this is protocol adapter.
