@@ -58,11 +58,11 @@ struct Args {
 
 fn dump_value(value: u32, args: &Args) {
     if args.binary {
-        println!("{:#b}", value);
+        println!("{value:#b}");
     } else if args.decimal {
-        println!("{}", value);
+        println!("{value}");
     } else {
-        println!("{:#x}", value);
+        println!("{value:#x}");
     }
 }
 
@@ -150,7 +150,7 @@ fn query_register(registers: &[Register], args: &Args) -> io::Result<()> {
             record.push(format!("{}", args.domain));
             record.push(format!("{:x}", args.route));
             if let Some(adapter) = &args.adapter {
-                record.push(format!("{}", adapter));
+                record.push(format!("{adapter}"));
             } else {
                 record.push(String::new());
             }
@@ -166,7 +166,7 @@ fn query_register(registers: &[Register], args: &Args) -> io::Result<()> {
 
             if args.verbose {
                 if let Some(offset) = name.offset {
-                    record.push(format!("0x{:04x}", offset))
+                    record.push(format!("0x{offset:04x}"))
                 } else {
                     record.push(String::new());
                 }
@@ -185,11 +185,11 @@ fn query_register(registers: &[Register], args: &Args) -> io::Result<()> {
         for name in &names {
             print!("{}", name.name);
             if let Some(field) = &name.field {
-                print!(".{}", field);
+                print!(".{field}");
             }
             if args.verbose {
                 if let Some(offset) = name.offset {
-                    print!(" 0x{:04x}", offset);
+                    print!(" 0x{offset:04x}");
                 }
                 if let Some(range) = &name.range {
                     print!(" [{:>02}:{:>02}]", range.start(), range.end());
@@ -215,7 +215,7 @@ fn read_router(device: &mut Device, args: &Args) -> io::Result<()> {
                 if let Some(reg) = device.register_by_offset_mut(offset) {
                     dump_value(reg.value(), args);
                 } else {
-                    eprintln!("Warning: invalid offset {}!", offset);
+                    eprintln!("Warning: invalid offset {offset}!");
                 }
             }
             None => {
@@ -285,7 +285,7 @@ fn read_adapter(device: &mut Device, adapter: u8, args: &Args) -> io::Result<()>
                     if let Some(reg) = reg {
                         dump_value(reg.value(), args);
                     } else {
-                        eprintln!("Warning: invalid offset {}!", offset);
+                        eprintln!("Warning: invalid offset {offset}!");
                     }
                 }
 
@@ -313,7 +313,7 @@ fn read_adapter(device: &mut Device, adapter: u8, args: &Args) -> io::Result<()>
             }
         }
     } else {
-        eprintln!("Error: adapter {} not found!", adapter);
+        eprintln!("Error: adapter {adapter} not found!");
         process::exit(1);
     }
 
@@ -359,12 +359,12 @@ fn main() {
     }
 
     if let Err(err) = debugfs::mount() {
-        eprintln!("Error: failed to mount debugfs: {}", err);
+        eprintln!("Error: failed to mount debugfs: {err}");
         process::exit(1);
     }
 
     if let Err(err) = read(&args) {
-        eprintln!("Error: {}", err);
+        eprintln!("Error: {err}");
         if err.kind() == ErrorKind::Unsupported {
             eprintln!("Device does not support register access");
         }
