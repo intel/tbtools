@@ -555,7 +555,7 @@ impl Device {
             }
 
             _ => {
-                let caps = ROUTER_RE.captures(&kernel_name).unwrap();
+                let caps = ROUTER_RE.captures(&kernel_name)?;
                 domain = caps[1].parse().unwrap_or(0);
                 route = util::parse_hex::<u64>(&caps[2]).unwrap_or(0);
             }
