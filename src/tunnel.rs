@@ -71,6 +71,15 @@ impl Display for Type {
     }
 }
 
+/// Direction of the tunnel (from host router perspective).
+#[derive(Copy, Clone, PartialEq)]
+pub enum Direction {
+    /// Tunnel flows downstream from the host router.
+    Downstream,
+    /// Tunnel flows upstream towards the host router.
+    Upstream,
+}
+
 /// Single extracted `Path` segment.
 ///
 /// This holds the actual path register entry along with the actual routers and adapters involved.
@@ -417,5 +426,21 @@ impl<'a> Tunnel<'a> {
     /// Returns the individual paths that make up this tunnel.
     pub fn paths(&self) -> &[Path] {
         &self.paths
+    }
+
+    /// Returns direction of this tunnel.
+    pub fn direction(&self) -> Direction {
+        if self.src_device().depth() < self.dst_device().depth() {
+            Direction::Downstream
+        } else {
+            Direction::Upstream
+        }
+    }
+
+    /// If this tunnel is bi-directional.
+    ///
+    /// All other tunnels except [`Dma`](Type::Dma) are always bi-directional.
+    pub fn bidirectional(&self) -> bool {
+        self.paths.len() > 1
     }
 }

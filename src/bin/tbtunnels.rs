@@ -17,7 +17,7 @@ use std::{
 use tbtools::{
     Device,
     debugfs::{self, BitFields},
-    tunnel::{Hop, Path, Tunnel, Type},
+    tunnel::{Direction, Hop, Path, Tunnel, Type},
 };
 
 #[derive(Parser, Debug)]
@@ -232,8 +232,14 @@ fn dump_tunnel(tunnel: &Tunnel, args: &Args) -> io::Result<()> {
     let dst_route = format!("{:x}", tunnel.dst_device().route());
     let dst_adapter = format!("{}", tunnel.dst_adapter().adapter());
 
+    let arrow = match tunnel.direction() {
+        Direction::Downstream if !tunnel.bidirectional() => "⇒",
+        Direction::Upstream if !tunnel.bidirectional() => "⇐",
+        _ => "⇔ ",
+    };
+
     println!(
-        "Domain {} Route {} Adapter {} ⇔  Domain {} Route {} Adapter {}: {}",
+        "Domain {} Route {} Adapter {} {arrow} Domain {} Route {} Adapter {}: {}",
         bold.map_or(src_domain.clone(), |b| b.paint(src_domain).to_string()),
         bold.map_or(src_route.clone(), |b| b.paint(src_route).to_string()),
         bold.map_or(src_adapter.clone(), |b| b.paint(src_adapter).to_string()),
