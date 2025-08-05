@@ -16,9 +16,11 @@
 # ln -s tbtools-completion.bash tbget
 # ln -s tbtools-completion.bash tblist
 # ln -s tbtools-completion.bash tbmargin
+# ln -s tbtools-completion.bash tbmonitor
 # ln -s tbtools-completion.bash tbpd
 # ln -s tbtools-completion.bash tbset
 # ln -s tbtools-completion.bash tbtrace
+# ln -s tbtools-completion.bash tbtunnels
 #
 
 _tbtools_domain_route_adapter()
@@ -298,6 +300,24 @@ _tbmargin()
     fi
 } &&
     complete -F _tbmargin tbmargin
+
+_tbmonitor()
+{
+    local cur prev words cword domain
+    _init_completion || return
+
+    if [[ $cur == -* ]]; then
+        COMPREPLY+=($(compgen -W '--domain --help --version' -- "$cur"))
+    else
+        case $prev in
+            --domain | -d)
+                _tbtools_complete_domains
+                return
+                ;;
+        esac
+    fi
+} &&
+    complete -F _tbmonitor tbmonitor
 
 _tbpd()
 {
