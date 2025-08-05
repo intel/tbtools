@@ -173,10 +173,10 @@ pub struct Tunnel<'a> {
 }
 
 impl<'a> Tunnel<'a> {
-    /// Discovers a tunnel starting from source adapter `adapter`.
+    /// Discovers all tunnels starting from source adapter `adapter`.
     ///
     /// The `adapter` must be enabled belong to `device` and `devices` must contain all the devices
-    /// in the domain or at least the ones that the tunnel passes through.
+    /// in the domain or at least the ones that the tunnels pass through.
     pub fn discover(
         device: &'a Device,
         adapter: &'a Adapter,
