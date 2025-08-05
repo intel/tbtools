@@ -32,6 +32,9 @@ Following tools are currently available:
 : Run receiver lane margining on given USB4 port. This requires that the
   kernel is build with `CONFIG_USB4_DEBUGFS_MARGINING=y` set.
 
+`tbmonitor`
+: Command line monitor for events in the Thunderbolt/USB4 domains.
+
 `tbpd`
 : Type-C port power delivery control. Currently only supports ChromeOS
   style through their embedded controller. To use this on Chromebooks
