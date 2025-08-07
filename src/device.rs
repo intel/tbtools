@@ -897,10 +897,10 @@ pub fn authorize_device(device: &mut Device, authorized: u32) -> io::Result<()> 
         if is_authorized(device) {
             return Ok(());
         }
-        if let Some(mut parent) = device.parent() {
-            if !parent.authorized().unwrap_or(false) {
-                authorize_device(&mut parent, authorized)?;
-            }
+        if let Some(mut parent) = device.parent()
+            && !parent.authorized().unwrap_or(false)
+        {
+            authorize_device(&mut parent, authorized)?;
         }
     }
     device.authorize(authorized)
