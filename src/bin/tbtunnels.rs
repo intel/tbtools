@@ -37,10 +37,10 @@ fn discover_tunnels<'a>(device: &'a Device, devices: &'a [Device]) -> io::Result
 
     if let Some(adapters) = device.adapters() {
         for adapter in adapters {
-            if adapter.is_enabled() {
-                if let Some(mut tuns) = Tunnel::discover(device, adapter, devices) {
-                    tunnels.append(&mut tuns);
-                }
+            if adapter.is_enabled()
+                && let Some(mut tuns) = Tunnel::discover(device, adapter, devices)
+            {
+                tunnels.append(&mut tuns);
             }
         }
     }
