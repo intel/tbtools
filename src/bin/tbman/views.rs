@@ -33,83 +33,77 @@ impl AdapterView {
     fn protocol_state(&self, adapter: &Adapter, line: &mut SpannedString<Style>) {
         match adapter.kind() {
             Type::PcieDown | Type::PcieUp => {
-                if let Some(reg) = adapter.register_by_name("ADP_PCIE_CS_0") {
-                    if let Some(field) = reg.field_by_name("LTSSM") {
-                        let v = reg.field_value(field);
-                        match field.value_name(v) {
-                            Some("L0 state") => {
-                                line.append_styled(
-                                    format!("{:^18}", "L0"),
-                                    theme::adapter_active(),
-                                );
-                            }
-                            Some("L1 state") => {
-                                line.append_styled(format!("{:^18}", "L1"), theme::adapter_pm());
-                            }
-                            Some("L2 state") => {
-                                line.append_styled(format!("{:^18}", "L2"), theme::adapter_pm());
-                            }
-                            Some("Disabled state") => {
-                                line.append_styled(
-                                    format!("{:^18}", "Disabled"),
-                                    theme::adapter_disabled(),
-                                );
-                            }
-                            Some("Hot Reset state") => {
-                                line.append_styled(
-                                    format!("{:^18}", "Hot Reset"),
-                                    theme::adapter_disabled(),
-                                );
-                            }
-                            Some(state) => {
-                                line.append_styled(
-                                    format!("{:^18}", state.trim_end_matches(" state")),
-                                    theme::adapter_training(),
-                                );
-                            }
-                            None => (),
+                if let Some(reg) = adapter.register_by_name("ADP_PCIE_CS_0")
+                    && let Some(field) = reg.field_by_name("LTSSM")
+                {
+                    let v = reg.field_value(field);
+                    match field.value_name(v) {
+                        Some("L0 state") => {
+                            line.append_styled(format!("{:^18}", "L0"), theme::adapter_active());
                         }
+                        Some("L1 state") => {
+                            line.append_styled(format!("{:^18}", "L1"), theme::adapter_pm());
+                        }
+                        Some("L2 state") => {
+                            line.append_styled(format!("{:^18}", "L2"), theme::adapter_pm());
+                        }
+                        Some("Disabled state") => {
+                            line.append_styled(
+                                format!("{:^18}", "Disabled"),
+                                theme::adapter_disabled(),
+                            );
+                        }
+                        Some("Hot Reset state") => {
+                            line.append_styled(
+                                format!("{:^18}", "Hot Reset"),
+                                theme::adapter_disabled(),
+                            );
+                        }
+                        Some(state) => {
+                            line.append_styled(
+                                format!("{:^18}", state.trim_end_matches(" state")),
+                                theme::adapter_training(),
+                            );
+                        }
+                        None => (),
                     }
                 }
             }
 
             Type::Usb3Down | Type::Usb3Up => {
-                if let Some(reg) = adapter.register_by_name("ADP_USB3_GX_CS_4") {
-                    if let Some(field) = reg.field_by_name("PLS") {
-                        let v = reg.field_value(field);
-                        match field.value_name(v) {
-                            Some("U0 state") => {
-                                line.append_styled(
-                                    format!("{:^18}", "U0"),
-                                    theme::adapter_active(),
-                                );
-                            }
-                            Some("U2 state") => {
-                                line.append_styled(format!("{:^18}", "U2"), theme::adapter_pm());
-                            }
-                            Some("U3 state") => {
-                                line.append_styled(format!("{:^18}", "U3"), theme::adapter_pm());
-                            }
-                            Some("Disabled state") => {
-                                line.append_styled(
-                                    format!("{:^15}", "Disabled"),
-                                    theme::adapter_disabled(),
-                                );
-                            }
-                            Some("Hot Reset state") => {
-                                line.append_styled(
-                                    format!("{:^18}", "Hot Reset"),
-                                    theme::adapter_disabled(),
-                                );
-                            }
-                            Some(state) => {
-                                line.append_styled(
-                                    format!("{:^18}", state.trim_end_matches(" state")),
-                                    theme::adapter_training(),
-                                );
-                            }
-                            None => (),
+                if let Some(reg) = adapter.register_by_name("ADP_USB3_GX_CS_4")
+                    && let Some(field) = reg.field_by_name("PLS")
+                {
+                    let v = reg.field_value(field);
+                    match field.value_name(v) {
+                        Some("U0 state") => {
+                            line.append_styled(format!("{:^18}", "U0"), theme::adapter_active());
                         }
+                        Some("U2 state") => {
+                            line.append_styled(format!("{:^18}", "U2"), theme::adapter_pm());
+                        }
+                        Some("U3 state") => {
+                            line.append_styled(format!("{:^18}", "U3"), theme::adapter_pm());
+                        }
+                        Some("Disabled state") => {
+                            line.append_styled(
+                                format!("{:^15}", "Disabled"),
+                                theme::adapter_disabled(),
+                            );
+                        }
+                        Some("Hot Reset state") => {
+                            line.append_styled(
+                                format!("{:^18}", "Hot Reset"),
+                                theme::adapter_disabled(),
+                            );
+                        }
+                        Some(state) => {
+                            line.append_styled(
+                                format!("{:^18}", state.trim_end_matches(" state")),
+                                theme::adapter_training(),
+                            );
+                        }
+                        None => (),
                     }
                 }
             }
@@ -329,10 +323,10 @@ impl NumberEditView {
     }
 
     pub fn insert(&mut self, ch: char) -> EventResult {
-        if let Some(width) = self.max_content_width {
-            if self.content.len() >= width {
-                return EventResult::Consumed(Some(Callback::dummy()));
-            }
+        if let Some(width) = self.max_content_width
+            && self.content.len() >= width
+        {
+            return EventResult::Consumed(Some(Callback::dummy()));
         }
 
         let ch = ch.to_ascii_lowercase();

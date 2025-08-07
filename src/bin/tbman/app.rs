@@ -255,13 +255,11 @@ fn authorize_device(siv: &mut Cursive) {
                         ))),
                     ));
                 }
-            } else if !authorized {
-                if let Err(err) = tbtools::authorize_device(device, 1) {
-                    siv.add_layer(ThemedView::new(
-                        theme::dialog(),
-                        Layer::new(Dialog::info(format!("Device authorization failed: {err}"))),
-                    ));
-                }
+            } else if !authorized && let Err(err) = tbtools::authorize_device(device, 1) {
+                siv.add_layer(ThemedView::new(
+                    theme::dialog(),
+                    Layer::new(Dialog::info(format!("Device authorization failed: {err}"))),
+                ));
             }
         }
     }
@@ -831,11 +829,11 @@ fn search_registers(siv: &mut Cursive) {
                         let mut index = None;
 
                         for (i, (_, reg)) in registers.iter_mut().enumerate() {
-                            if let Some(name) = reg.name() {
-                                if name.to_lowercase().contains(&search) {
-                                    index = Some(i);
-                                    break;
-                                }
+                            if let Some(name) = reg.name()
+                                && name.to_lowercase().contains(&search)
+                            {
+                                index = Some(i);
+                                break;
                             }
                         }
 
@@ -969,81 +967,81 @@ fn update_dialog_title(d: &mut Dialog, r: &Register) {
 
 fn edit_register(siv: &mut Cursive, text: &str, base: usize) {
     let registers: &mut SelectView<Register> = &mut siv.find_name(VIEW_REGISTERS).unwrap();
-    if let Some(index) = registers.selected_id() {
-        if let Some((_, reg)) = registers.get_item_mut(index) {
-            let mut r = reg.clone();
+    if let Some(index) = registers.selected_id()
+        && let Some((_, reg)) = registers.get_item_mut(index)
+    {
+        let mut r = reg.clone();
 
-            if let Ok(value) = u32::from_str_radix(text, base as u32) {
-                r.set_value(value);
+        if let Ok(value) = u32::from_str_radix(text, base as u32) {
+            r.set_value(value);
 
-                siv.call_on_name(VIEW_REGISTERS_DIALOG, |d: &mut Dialog| {
-                    update_dialog_title(d, &r);
-                    enable_update_button(d, true);
+            siv.call_on_name(VIEW_REGISTERS_DIALOG, |d: &mut Dialog| {
+                update_dialog_title(d, &r);
+                enable_update_button(d, true);
+            });
+
+            // Now update the other edit field as well.
+            if base == 2 {
+                siv.call_on_name(VIEW_REGISTERS_HEX_EDIT, |e: &mut NumberEditView| {
+                    e.set_content(format!("{value:08x}"));
                 });
-
-                // Now update the other edit field as well.
-                if base == 2 {
-                    siv.call_on_name(VIEW_REGISTERS_HEX_EDIT, |e: &mut NumberEditView| {
-                        e.set_content(format!("{value:08x}"));
-                    });
-                } else {
-                    siv.call_on_name(VIEW_REGISTERS_BIN_EDIT, |e: &mut NumberEditView| {
-                        e.set_content(format!("{value:032b}"));
-                    });
-                }
             } else {
-                // Disable the "Update" button if the content is not valid.
-                siv.call_on_name(VIEW_REGISTERS_DIALOG, |d: &mut Dialog| {
-                    enable_update_button(d, false);
+                siv.call_on_name(VIEW_REGISTERS_BIN_EDIT, |e: &mut NumberEditView| {
+                    e.set_content(format!("{value:032b}"));
                 });
             }
-
-            populate_fields(siv, &r);
+        } else {
+            // Disable the "Update" button if the content is not valid.
+            siv.call_on_name(VIEW_REGISTERS_DIALOG, |d: &mut Dialog| {
+                enable_update_button(d, false);
+            });
         }
+
+        populate_fields(siv, &r);
     }
 }
 
 fn update_register(siv: &mut Cursive) {
     let registers: &mut SelectView<Register> = &mut siv.find_name(VIEW_REGISTERS).unwrap();
-    if let Some(index) = registers.selected_id() {
-        if let Some((entry, reg)) = registers.get_item_mut(index) {
-            // Since VIEW_REGISTERS contains a copy of the actual registers we need to find out the
-            // matching hardware register again here and update it along with the copy.
-            let devices: &mut SelectView<Device> = &mut siv.find_name(DEVICES).unwrap();
-            let index = devices.selected_id().unwrap();
-            let device = devices.get_item_mut(index).unwrap().1;
-            let offset = reg.offset();
-            let space = selected_space(siv);
+    if let Some(index) = registers.selected_id()
+        && let Some((entry, reg)) = registers.get_item_mut(index)
+    {
+        // Since VIEW_REGISTERS contains a copy of the actual registers we need to find out the
+        // matching hardware register again here and update it along with the copy.
+        let devices: &mut SelectView<Device> = &mut siv.find_name(DEVICES).unwrap();
+        let index = devices.selected_id().unwrap();
+        let device = devices.get_item_mut(index).unwrap().1;
+        let offset = reg.offset();
+        let space = selected_space(siv);
 
-            let hw_reg = match space {
-                ConfigSpace::Unknown => panic!(),
-                ConfigSpace::Router => device.register_by_offset_mut(offset),
-                ConfigSpace::Adapter => {
-                    let adapter = selected_adapter(siv, device);
-                    adapter.register_by_offset_mut(offset)
-                }
+        let hw_reg = match space {
+            ConfigSpace::Unknown => panic!(),
+            ConfigSpace::Router => device.register_by_offset_mut(offset),
+            ConfigSpace::Adapter => {
+                let adapter = selected_adapter(siv, device);
+                adapter.register_by_offset_mut(offset)
+            }
 
-                ConfigSpace::Path => {
-                    let adapter = selected_adapter(siv, device);
-                    adapter.path_register_by_offset_mut(offset)
-                }
+            ConfigSpace::Path => {
+                let adapter = selected_adapter(siv, device);
+                adapter.path_register_by_offset_mut(offset)
+            }
 
-                ConfigSpace::Counters => {
-                    let adapter = selected_adapter(siv, device);
-                    adapter.counter_register_by_offset_mut(offset)
-                }
-            };
+            ConfigSpace::Counters => {
+                let adapter = selected_adapter(siv, device);
+                adapter.counter_register_by_offset_mut(offset)
+            }
+        };
 
-            siv.call_on_name(VIEW_REGISTERS_HEX_EDIT, |e: &mut NumberEditView| {
-                if let Some(value) = util::parse_hex::<u32>(&e.get_content()) {
-                    if let Some(hw_reg) = hw_reg {
-                        hw_reg.set_value(value);
-                        reg.set_value(value);
-                        *entry = list_entry(&space, reg);
-                    }
-                }
-            });
-        }
+        siv.call_on_name(VIEW_REGISTERS_HEX_EDIT, |e: &mut NumberEditView| {
+            if let Some(value) = util::parse_hex::<u32>(&e.get_content())
+                && let Some(hw_reg) = hw_reg
+            {
+                hw_reg.set_value(value);
+                reg.set_value(value);
+                *entry = list_entry(&space, reg);
+            }
+        });
     }
 }
 
@@ -1425,43 +1423,37 @@ fn read_tmu(siv: &mut Cursive) {
         let reg = device.register_by_name("TMU_RTR_CS_3").unwrap();
         let rate = reg.field("TSPacketInterval");
 
-        if device.is_device_router() {
-            if let Some(parent) = parent {
-                if let Some(adapter) = device.upstream_adapter() {
-                    if let Some(upstream_adapter) = device.adapter(adapter) {
-                        let reg = parent.register_by_name("TMU_RTR_CS_3").unwrap();
-                        let parent_rate = reg.field("TSPacketInterval");
-                        if enhanced && adapter_tmu_is_enhanced(upstream_adapter) {
-                            l.add_child(build_dialog_detail(
-                                "TMU mode:",
-                                25,
-                                "Enhanced uni-directional, MedRes",
-                            ));
-                        } else if ucap && adapter_tmu_is_unidirectional(upstream_adapter) {
-                            if parent_rate == 1000 {
-                                l.add_child(build_dialog_detail(
-                                    "TMU mode:",
-                                    25,
-                                    "Uni-directional, LowRes",
-                                ));
-                            } else if parent_rate == 16 {
-                                l.add_child(build_dialog_detail(
-                                    "TMU mode:",
-                                    25,
-                                    "Uni-directional, HiFi",
-                                ));
-                            }
-                        } else if rate > 0 {
-                            l.add_child(build_dialog_detail(
-                                "TMU mode:",
-                                25,
-                                "Bi-directional, HiFi",
-                            ));
-                        } else {
-                            l.add_child(build_dialog_detail("TMU mode:", 25, "Off"));
-                        }
-                    }
+        if device.is_device_router()
+            && let Some(parent) = parent
+            && let Some(adapter) = device.upstream_adapter()
+            && let Some(upstream_adapter) = device.adapter(adapter)
+        {
+            let reg = parent.register_by_name("TMU_RTR_CS_3").unwrap();
+            let parent_rate = reg.field("TSPacketInterval");
+            if enhanced && adapter_tmu_is_enhanced(upstream_adapter) {
+                l.add_child(build_dialog_detail(
+                    "TMU mode:",
+                    25,
+                    "Enhanced uni-directional, MedRes",
+                ));
+            } else if ucap && adapter_tmu_is_unidirectional(upstream_adapter) {
+                if parent_rate == 1000 {
+                    l.add_child(build_dialog_detail(
+                        "TMU mode:",
+                        25,
+                        "Uni-directional, LowRes",
+                    ));
+                } else if parent_rate == 16 {
+                    l.add_child(build_dialog_detail(
+                        "TMU mode:",
+                        25,
+                        "Uni-directional, HiFi",
+                    ));
                 }
+            } else if rate > 0 {
+                l.add_child(build_dialog_detail("TMU mode:", 25, "Bi-directional, HiFi"));
+            } else {
+                l.add_child(build_dialog_detail("TMU mode:", 25, "Off"));
             }
         }
 
@@ -1758,10 +1750,10 @@ fn view_packet(siv: &mut Cursive, entry: &Entry) {
 
     if let Some(adapter_num) = entry.adapter_num() {
         let mut adapter_details = format!("{adapter_num}");
-        if let Some(ref device) = device {
-            if let Some(adapter) = device.adapter(adapter_num) {
-                adapter_details.push_str(&format!(" / {}", adapter.kind()));
-            }
+        if let Some(ref device) = device
+            && let Some(adapter) = device.adapter(adapter_num)
+        {
+            adapter_details.push_str(&format!(" / {}", adapter.kind()));
         }
         right.add_child(build_dialog_detail("Adapter:", 14, &adapter_details));
     }
@@ -1804,23 +1796,23 @@ fn view_packet(siv: &mut Cursive, entry: &Entry) {
             line.append(" ");
 
             if packet.data().is_some() && i >= data_start {
-                if let Some(ref device) = device {
-                    if let Some(reg) = fetch_device_register(entry, device, data_address, d) {
-                        if let Some(name) = reg.name() {
-                            line.append(name);
-                        }
-
-                        data.add_child(TextView::new(line));
-
-                        if let Some(bitfields) = reg.fields() {
-                            for bf in bitfields {
-                                data.add_child(build_field_detail(&reg, bf));
-                            }
-                        }
-
-                        data_address += 1;
-                        continue;
+                if let Some(ref device) = device
+                    && let Some(reg) = fetch_device_register(entry, device, data_address, d)
+                {
+                    if let Some(name) = reg.name() {
+                        line.append(name);
                     }
+
+                    data.add_child(TextView::new(line));
+
+                    if let Some(bitfields) = reg.fields() {
+                        for bf in bitfields {
+                            data.add_child(build_field_detail(&reg, bf));
+                        }
+                    }
+
+                    data_address += 1;
+                    continue;
                 }
 
                 data_address += 1;
@@ -2862,17 +2854,15 @@ fn build_details(siv: &mut Cursive, device: &Device) {
 
         // Device router
         if device.is_device_router() {
-            if let Some(rx_speed) = device.rx_speed() {
-                if let Some(rx_lanes) = device.rx_lanes() {
-                    if let Some(tx_speed) = device.tx_speed() {
-                        if let Some(tx_lanes) = device.tx_lanes() {
-                            l.add_child(build_detail(
-                                "Speed (Rx/Tx):",
-                                format!("{}/{} Gb/s", rx_speed * rx_lanes, tx_speed * tx_lanes),
-                            ));
-                        }
-                    }
-                }
+            if let Some(rx_speed) = device.rx_speed()
+                && let Some(rx_lanes) = device.rx_lanes()
+                && let Some(tx_speed) = device.tx_speed()
+                && let Some(tx_lanes) = device.tx_lanes()
+            {
+                l.add_child(build_detail(
+                    "Speed (Rx/Tx):",
+                    format!("{}/{} Gb/s", rx_speed * rx_lanes, tx_speed * tx_lanes),
+                ));
             }
 
             if let Some(authorized) = device.authorized() {
