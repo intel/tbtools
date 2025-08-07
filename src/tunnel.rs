@@ -162,7 +162,7 @@ impl<'a> Path<'a> {
     }
 
     /// Returns all the segments in this path.
-    pub fn hops(&self) -> &[Hop] {
+    pub fn hops(&self) -> &[Hop<'_>] {
         &self.hops
     }
 
@@ -424,7 +424,7 @@ impl<'a> Tunnel<'a> {
     }
 
     /// Returns the individual paths that make up this tunnel.
-    pub fn paths(&self) -> &[Path] {
+    pub fn paths(&self) -> &[Path<'_>] {
         &self.paths
     }
 
