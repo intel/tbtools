@@ -314,11 +314,10 @@ impl<'a> Tunnel<'a> {
                 for hop in min_hop..=max_hop {
                     if let Some(up_path) =
                         Self::discover_path("DMA RX", parent, downstream_adapter, hop, devices)
+                        && up_path.dst_hop() == ring
                     {
-                        if up_path.dst_hop() == ring {
-                            paths.push(up_path);
-                            break 'rx_path;
-                        }
+                        paths.push(up_path);
+                        break 'rx_path;
                     }
                 }
             }
