@@ -229,18 +229,18 @@ fn print_router(args: &Args, mut record: Option<&mut Vec<String>>, sw: &Device) 
             if sw.is_device_router() || sw.is_xdomain() {
                 print!("{indent}  Speed (Rx/Tx): ");
 
-                if let Some(rx_speed) = sw.rx_speed() {
-                    if let Some(rx_lanes) = sw.rx_lanes() {
-                        print!("{}", rx_speed * rx_lanes);
-                    }
+                if let Some(rx_speed) = sw.rx_speed()
+                    && let Some(rx_lanes) = sw.rx_lanes()
+                {
+                    print!("{}", rx_speed * rx_lanes);
                 }
 
                 print!("/");
 
-                if let Some(tx_speed) = sw.tx_speed() {
-                    if let Some(tx_lanes) = sw.tx_lanes() {
-                        print!("{}", tx_speed * tx_lanes);
-                    }
+                if let Some(tx_speed) = sw.tx_speed()
+                    && let Some(tx_lanes) = sw.tx_lanes()
+                {
+                    print!("{}", tx_speed * tx_lanes);
                 }
 
                 println!(" Gb/s");
