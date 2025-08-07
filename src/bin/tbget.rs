@@ -245,8 +245,8 @@ fn read_router(device: &mut Device, args: &Args) -> io::Result<()> {
 fn query_adapter(device: &mut Device, adapter: u8, args: &Args) -> io::Result<()> {
     device.read_adapters()?;
 
-    if let Some(adapter) = device.adapter_mut(adapter) {
-        if let Some(registers) = if args.path {
+    if let Some(adapter) = device.adapter_mut(adapter)
+        && let Some(registers) = if args.path {
             adapter.read_paths()?;
             adapter.path_registers()
         } else if args.counters {
@@ -254,9 +254,9 @@ fn query_adapter(device: &mut Device, adapter: u8, args: &Args) -> io::Result<()
             adapter.counter_registers()
         } else {
             adapter.registers()
-        } {
-            query_register(registers, args)?;
         }
+    {
+        query_register(registers, args)?;
     }
 
     Ok(())
