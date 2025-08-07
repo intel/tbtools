@@ -372,10 +372,10 @@ fn match_name(field: &BitField, name: &str) -> bool {
     if field.name.to_lowercase() == name {
         return true;
     }
-    if let Some(short_name) = &field.short_name {
-        if short_name.to_lowercase() == name {
-            return true;
-        }
+    if let Some(short_name) = &field.short_name
+        && short_name.to_lowercase() == name
+    {
+        return true;
     }
     false
 }
@@ -954,10 +954,11 @@ impl Adapter {
                         let offset = cap_offset + 3 + port * 2;
 
                         // If any of the ports have paths enabled we treat this adapter as enabled.
-                        if let Some(pcs1) = self.register_by_offset(offset) {
-                            if pcs1.flag("PE") && pcs1.flag("V") {
-                                return State::Enabled;
-                            }
+                        if let Some(pcs1) = self.register_by_offset(offset)
+                            && pcs1.flag("PE")
+                            && pcs1.flag("V")
+                        {
+                            return State::Enabled;
                         }
                     }
                     State::Disabled
@@ -1444,12 +1445,11 @@ impl Device {
 
     /// Return `true` if device registers are writable.
     pub fn registers_writable(&self) -> bool {
-        if let Ok(path_buf) = router_path_buf(self) {
-            if let Ok(file) = File::open(path_buf) {
-                if let Ok(metadata) = file.metadata() {
-                    return !metadata.permissions().readonly();
-                }
-            }
+        if let Ok(path_buf) = router_path_buf(self)
+            && let Ok(file) = File::open(path_buf)
+            && let Ok(metadata) = file.metadata()
+        {
+            return !metadata.permissions().readonly();
         }
         false
     }
