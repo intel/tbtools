@@ -180,12 +180,11 @@ pub fn system_boot_time() -> io::Result<TimeVal> {
     let stat = fs::read_to_string("/proc/stat")?;
     let btime: Vec<_> = stat.split('\n').filter(|s| RE.is_match(s)).collect();
 
-    if btime.len() == 1 {
-        if let Some(caps) = RE.captures(btime[0]) {
-            if let Some(seconds) = parse_number::<time::time_t>(&caps[1]) {
-                return Ok(TimeVal::new(seconds, 0));
-            }
-        }
+    if btime.len() == 1
+        && let Some(caps) = RE.captures(btime[0])
+        && let Some(seconds) = parse_number::<time::time_t>(&caps[1])
+    {
+        return Ok(TimeVal::new(seconds, 0));
     }
 
     Err(Error::from(ErrorKind::Unsupported))
