@@ -187,39 +187,39 @@ fn dump_regs(regs: &Vec<Register>, args: &Args) {
 
         dump_value(reg, args);
 
-        if args.verbose > 0 {
-            if let Some(name) = reg.name() {
-                print!(" {name:<15}");
-            }
+        if args.verbose > 0
+            && let Some(name) = reg.name()
+        {
+            print!(" {name:<15}");
         }
 
         println!();
 
-        if args.verbose > 1 {
-            if let Some(fields) = reg.fields() {
-                for field in fields {
-                    let v = reg.field(field.name());
-                    let value = color_field_value(&format!("{v:#x}"));
-                    let value_name = if let Some(value_name) = field.value_name(v) {
-                        format!(" → {}", color_field_value_name(value_name))
-                    } else {
-                        String::from("")
-                    };
-                    let short_name = if let Some(short_name) = field.short_name() {
-                        format!(" ({})", color_field_short_name(short_name))
-                    } else {
-                        String::from("")
-                    };
-                    println!(
-                        "  [{:>02}:{:>02}] {} {}{}{}",
-                        field.range().start(),
-                        field.range().end(),
-                        value,
-                        field.name(),
-                        short_name,
-                        value_name,
-                    );
-                }
+        if args.verbose > 1
+            && let Some(fields) = reg.fields()
+        {
+            for field in fields {
+                let v = reg.field(field.name());
+                let value = color_field_value(&format!("{v:#x}"));
+                let value_name = if let Some(value_name) = field.value_name(v) {
+                    format!(" → {}", color_field_value_name(value_name))
+                } else {
+                    String::from("")
+                };
+                let short_name = if let Some(short_name) = field.short_name() {
+                    format!(" ({})", color_field_short_name(short_name))
+                } else {
+                    String::from("")
+                };
+                println!(
+                    "  [{:>02}:{:>02}] {} {}{}{}",
+                    field.range().start(),
+                    field.range().end(),
+                    value,
+                    field.name(),
+                    short_name,
+                    value_name,
+                );
             }
         }
     }
