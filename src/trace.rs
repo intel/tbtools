@@ -520,12 +520,12 @@ impl<'a> ControlPacket<'a> {
         let metadata = &XDOMAIN_METADATA.get(&Uuid::nil()).unwrap();
 
         for (i, _) in data.iter().enumerate() {
-            if let Some(m) = Self::find_xdomain_metadata(metadata, i as u16, None) {
-                if let Some(field) = fields.get_mut(i) {
-                    // Only set if None.
-                    if field.metadata.is_none() {
-                        field.metadata = Some(m);
-                    }
+            if let Some(m) = Self::find_xdomain_metadata(metadata, i as u16, None)
+                && let Some(field) = fields.get_mut(i)
+            {
+                // Only set if None.
+                if field.metadata.is_none() {
+                    field.metadata = Some(m);
                 }
             }
         }
@@ -540,21 +540,21 @@ impl<'a> ControlPacket<'a> {
         let mut kind: Option<String> = None;
 
         for (i, _) in dwords.iter().enumerate() {
-            if let Some(m) = Self::find_xdomain_metadata(metadata, i as u16, kind.as_deref()) {
-                if let Some(field) = fields.get_mut(i) {
-                    // Only set if None.
-                    if field.metadata.is_none() {
-                        field.metadata = Some(m);
-                    }
+            if let Some(m) = Self::find_xdomain_metadata(metadata, i as u16, kind.as_deref())
+                && let Some(field) = fields.get_mut(i)
+            {
+                // Only set if None.
+                if field.metadata.is_none() {
+                    field.metadata = Some(m);
+                }
 
-                    // Is this the "Packet Type" bitfield.
-                    if kind.is_none() {
-                        if let Some(bitfield) = field.field_by_name("Packet Type") {
-                            kind = bitfield
-                                .value_name(field.field_value(bitfield))
-                                .map(|v| v.to_string());
-                        }
-                    }
+                // Is this the "Packet Type" bitfield.
+                if kind.is_none()
+                    && let Some(bitfield) = field.field_by_name("Packet Type")
+                {
+                    kind = bitfield
+                        .value_name(field.field_value(bitfield))
+                        .map(|v| v.to_string());
                 }
             }
         }
@@ -970,12 +970,11 @@ pub fn add_filter(address: &Address) -> Result<()> {
 
 /// Returns [`true`] if tracing is enabled.
 pub fn enabled() -> bool {
-    if let Ok(path_buf) = trace_events_thunderbolt_path(TRACEFS_EVENTS_ENABLE) {
-        if let Ok(enable) = fs::read_to_string(path_buf) {
-            if enable.trim() == "1" {
-                return true;
-            }
-        }
+    if let Ok(path_buf) = trace_events_thunderbolt_path(TRACEFS_EVENTS_ENABLE)
+        && let Ok(enable) = fs::read_to_string(path_buf)
+        && enable.trim() == "1"
+    {
+        return true;
     }
 
     false
