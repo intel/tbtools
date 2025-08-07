@@ -70,35 +70,35 @@ fn dump_adapter_type(adapter: &Adapter, mut record: Option<&mut Vec<String>>) {
 fn protocol_state(adapter: &Adapter) -> (&str, Style) {
     match adapter.kind() {
         Type::PcieDown | Type::PcieUp => {
-            if let Some(reg) = adapter.register_by_name("ADP_PCIE_CS_0") {
-                if let Some(field) = reg.field_by_name("LTSSM") {
-                    let v = reg.field_value(field);
-                    match field.value_name(v) {
-                        Some("L0 state") => return ("L0", Green.normal()),
-                        Some("L1 state") => return ("L1", Green.bold()),
-                        Some("L2 state") => return ("L2", Green.bold()),
-                        Some("Disabled state") => return ("Disabled", Red.normal()),
-                        Some("Hot Reset state") => return ("Hot Reset", Red.normal()),
-                        Some(state) => return (state.trim_end_matches(" state"), Yellow.normal()),
-                        None => (),
-                    }
+            if let Some(reg) = adapter.register_by_name("ADP_PCIE_CS_0")
+                && let Some(field) = reg.field_by_name("LTSSM")
+            {
+                let v = reg.field_value(field);
+                match field.value_name(v) {
+                    Some("L0 state") => return ("L0", Green.normal()),
+                    Some("L1 state") => return ("L1", Green.bold()),
+                    Some("L2 state") => return ("L2", Green.bold()),
+                    Some("Disabled state") => return ("Disabled", Red.normal()),
+                    Some("Hot Reset state") => return ("Hot Reset", Red.normal()),
+                    Some(state) => return (state.trim_end_matches(" state"), Yellow.normal()),
+                    None => (),
                 }
             }
         }
 
         Type::Usb3Down | Type::Usb3Up => {
-            if let Some(reg) = adapter.register_by_name("ADP_USB3_GX_CS_4") {
-                if let Some(field) = reg.field_by_name("PLS") {
-                    let v = reg.field_value(field);
-                    match field.value_name(v) {
-                        Some("U0 state") => return ("U0", Green.normal()),
-                        Some("U2 state") => return ("U2", Green.bold()),
-                        Some("U3 state") => return ("U3", Green.bold()),
-                        Some("Disabled state") => return ("Disabled", Red.normal()),
-                        Some("Hot Reset state") => return ("Hot Reset", Red.normal()),
-                        Some(state) => return (state.trim_end_matches(" state"), Yellow.normal()),
-                        None => (),
-                    }
+            if let Some(reg) = adapter.register_by_name("ADP_USB3_GX_CS_4")
+                && let Some(field) = reg.field_by_name("PLS")
+            {
+                let v = reg.field_value(field);
+                match field.value_name(v) {
+                    Some("U0 state") => return ("U0", Green.normal()),
+                    Some("U2 state") => return ("U2", Green.bold()),
+                    Some("U3 state") => return ("U3", Green.bold()),
+                    Some("Disabled state") => return ("Disabled", Red.normal()),
+                    Some("Hot Reset state") => return ("Hot Reset", Red.normal()),
+                    Some(state) => return (state.trim_end_matches(" state"), Yellow.normal()),
+                    None => (),
                 }
             }
         }
