@@ -480,22 +480,22 @@ impl<'a> ControlPacket<'a> {
     }
 
     /// Returns all fields in this packet.
-    pub fn fields(&self) -> &Vec<Field> {
+    pub fn fields(&self) -> &Vec<Field<'_>> {
         &self.fields
     }
 
     /// Returns packet field by name.
-    pub fn field_by_name(&self, name: &str) -> Option<&Field> {
+    pub fn field_by_name(&self, name: &str) -> Option<&Field<'_>> {
         self.fields.iter().find(|f| f.name() == Some(name))
     }
 
     /// Returns packet field by double word offset.
-    pub fn field_by_offset(&self, offset: u16) -> Option<&Field> {
+    pub fn field_by_offset(&self, offset: u16) -> Option<&Field<'_>> {
         self.fields.get(offset as usize)
     }
 
     /// Returns field that has bitfield with given name.
-    pub fn field_by_bitfield_name(&self, name: &str) -> Option<&Field> {
+    pub fn field_by_bitfield_name(&self, name: &str) -> Option<&Field<'_>> {
         self.fields.iter().find(|f| f.has_field(name))
     }
 
@@ -761,7 +761,7 @@ impl Entry {
     }
 
     /// Returns parsed control packet from the trace data.
-    pub fn packet(&self) -> Option<ControlPacket> {
+    pub fn packet(&self) -> Option<ControlPacket<'_>> {
         ControlPacket::parse(self.pdf, self.data())
     }
 
