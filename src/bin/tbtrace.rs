@@ -512,10 +512,10 @@ fn dump_header(
 
         if let Some(adapter_num) = packet.adapter_num() {
             print!("Adapter {adapter_num} ");
-            if let Some(device) = device {
-                if let Some(adapter) = device.adapter(adapter_num) {
-                    print!("/ {}", adapter.kind());
-                }
+            if let Some(device) = device
+                && let Some(adapter) = device.adapter(adapter_num)
+            {
+                print!("/ {}", adapter.kind());
             }
         }
 
@@ -733,19 +733,19 @@ fn dump_script_packet<W: Write>(
 fn dump_html_bitfields(bitfields: &dyn BitFields<u32>, verbose: u8) -> Vec<Value> {
     let mut bf = Vec::new();
 
-    if verbose > 1 {
-        if let Some(fields) = bitfields.fields() {
-            for field in fields {
-                let value = bitfields.field(field.name());
-                bf.push(json!({
-                    "start": field.range().start(),
-                    "end": field.range().end(),
-                    "value": value,
-                    "name": field.name(),
-                    "short_name": field.short_name(),
-                    "value_name": field.value_name(value),
-                }));
-            }
+    if verbose > 1
+        && let Some(fields) = bitfields.fields()
+    {
+        for field in fields {
+            let value = bitfields.field(field.name());
+            bf.push(json!({
+                "start": field.range().start(),
+                "end": field.range().end(),
+                "value": value,
+                "name": field.name(),
+                "short_name": field.short_name(),
+                "value_name": field.value_name(value),
+            }));
         }
     }
 
@@ -776,18 +776,17 @@ fn dump_html(
         if packet.data().is_some() && i >= data_start {
             data_address += 1;
 
-            if verbose > 0 {
-                if let Some(register) =
+            if verbose > 0
+                && let Some(register) =
                     extract_register_info(entry, device, data_address - 1, value)
-                {
-                    fields.push(json!({
-                        "address": i,
-                        "name": register.name(),
-                        "value": value,
-                        "bitfields": dump_html_bitfields(&register, verbose),
-                    }));
-                    continue;
-                }
+            {
+                fields.push(json!({
+                    "address": i,
+                    "name": register.name(),
+                    "value": value,
+                    "bitfields": dump_html_bitfields(&register, verbose),
+                }));
+                continue;
             }
         }
 
