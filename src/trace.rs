@@ -414,7 +414,7 @@ impl<'a> ControlPacket<'a> {
         } else if self.is_xdomain() {
             Some(
                 self.field_by_bitfield_name("Properties Block Size")?
-                    .field("Properties Block SizeData Size") as u16,
+                    .field("Properties Block Size") as u16,
             )
         } else {
             None
