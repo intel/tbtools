@@ -30,10 +30,12 @@ struct Args {
 
 fn indent(args: &Args, device: &Device) -> String {
     if args.tree {
+        // Add extra indent so that services appear under the XDomain device.
+        let extra = device.is_service() as u32;
         if args.all {
-            return " ".repeat(((device.depth() + 1) * 4) as usize);
+            return " ".repeat(((device.depth() + 1 + extra) * 4) as usize);
         }
-        return " ".repeat((device.depth() * 4) as usize);
+        return " ".repeat(((device.depth() + extra) * 4) as usize);
     }
     String::from("")
 }
@@ -52,6 +54,7 @@ fn kind(device: &Device) -> String {
         Kind::Router => String::from("Router"),
         Kind::Retimer => String::from("Retimer"),
         Kind::Xdomain => String::from("XDomain"),
+        Kind::Service => String::from("Service"),
         _ => String::from("Unknown"),
     }
 }
@@ -101,6 +104,18 @@ fn color_name(device: &Device) -> String {
                 bold.map_or(domain.clone(), |b| b.paint(domain).to_string()),
                 bold.map_or(route.clone(), |b| b.paint(route).to_string()),
                 bold.map_or(adapter_num.clone(), |b| b.paint(adapter_num).to_string()),
+                bold.map_or(index.clone(), |b| b.paint(index).to_string())
+            )
+        }
+
+        Kind::Service => {
+            let route = format!("{:x}", device.route());
+            let index = device.index().to_string();
+
+            format!(
+                "Domain {} Route {} Index {}",
+                bold.map_or(domain.clone(), |b| b.paint(domain).to_string()),
+                bold.map_or(route.clone(), |b| b.paint(route).to_string()),
                 bold.map_or(index.clone(), |b| b.paint(index).to_string())
             )
         }
@@ -315,6 +330,45 @@ fn print_retimer(args: &Args, mut record: Option<&mut Vec<String>>, rt: &Device)
     }
 }
 
+fn print_service(args: &Args, mut record: Option<&mut Vec<String>>, svc: &Device) {
+    if let Some(ref mut record) = record {
+        record.push(svc.domain_index().to_string());
+        record.push(format!("{:x}", svc.route()));
+        record.push(String::new());
+        record.push(svc.index().to_string());
+        record.push(String::new());
+        record.push(String::new());
+        record.push(String::new());
+        record.push(String::new());
+        record.push(kind(svc));
+        record.push(String::new());
+    } else {
+        let indent = indent(args, svc);
+
+        if args.tree {
+            print!("{indent}");
+        }
+        println!("{}: {}", color_name(svc), svc.service_key().unwrap());
+
+        if args.verbose {
+            println!("{}  Type: {}", indent, color_kind(svc));
+
+            if let Some(protocol_id) = svc.protocol_id() {
+                println!("{}  Protocol ID: {}", indent, protocol_id);
+            }
+            if let Some(protocol_version) = svc.protocol_version() {
+                println!("{}  Protocol version: {}", indent, protocol_version);
+            }
+            if let Some(protocol_revision) = svc.protocol_revision() {
+                println!("{}  Protocol revision: {}", indent, protocol_revision);
+            }
+            if let Some(protocol_settings) = svc.protocol_settings() {
+                println!("{}  Protocol settings: {:08x}", indent, protocol_settings);
+            }
+        }
+    }
+}
+
 fn main() -> io::Result<()> {
     let args = Args::parse();
 
@@ -323,7 +377,7 @@ fn main() -> io::Result<()> {
         .iter()
         .filter(|d| match d.kind() {
             Kind::Router => true,
-            Kind::Retimer | Kind::Domain | Kind::Xdomain => args.all,
+            Kind::Retimer | Kind::Domain | Kind::Xdomain | Kind::Service => args.all,
             _ => false,
         })
         .collect();
@@ -364,6 +418,7 @@ fn main() -> io::Result<()> {
             Kind::Xdomain => print_router(&args, record.as_mut(), device),
             Kind::Router => print_router(&args, record.as_mut(), device),
             Kind::Retimer => print_retimer(&args, record.as_mut(), device),
+            Kind::Service => print_service(&args, record.as_mut(), device),
             _ => (),
         }
 
