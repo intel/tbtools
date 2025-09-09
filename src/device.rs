@@ -26,6 +26,7 @@ lazy_static! {
     static ref DOMAIN_RE: Regex = Regex::new(r"^domain(\d+)").unwrap();
     static ref RETIMER_RE: Regex = Regex::new(r"^(\d+)-(\d+):(\d+).(\d+)").unwrap();
     static ref ROUTER_RE: Regex = Regex::new(r"^(\d+)-(\d+)").unwrap();
+    static ref SERVICE_RE: Regex = Regex::new(r"^(\d+)-(\d+)\.(\d+)").unwrap();
     static ref SPEED_RE: Regex = Regex::new(r"(\d+).0 Gb/s").unwrap();
 }
 
@@ -40,6 +41,8 @@ pub enum Kind {
     Xdomain,
     /// Device is retimer.
     Retimer,
+    /// Device is service.
+    Service,
     /// Device is not known.
     Unknown,
 }
@@ -51,6 +54,7 @@ impl From<&str> for Kind {
             "thunderbolt_device" => Self::Router,
             "thunderbolt_xdomain" => Self::Xdomain,
             "thunderbolt_retimer" => Self::Retimer,
+            "thunderbolt_service" => Self::Service,
             _ => Self::Unknown,
         }
     }
@@ -63,6 +67,7 @@ impl Display for Kind {
             Self::Router => "thunderbolt_device",
             Self::Xdomain => "thunderbolt_xdomain",
             Self::Retimer => "thunderbolt_retimer",
+            Self::Service => "thunderbolt_service",
             Self::Unknown => "unknown",
         };
         write!(f, "{s}")
@@ -143,6 +148,11 @@ pub struct Device {
     tx_lanes: Option<u32>,
     nvm_version: Option<Version>,
     key: Option<String>,
+    service_key: Option<String>,
+    protocol_id: Option<u32>,
+    protocol_version: Option<u32>,
+    protocol_revision: Option<u32>,
+    protocol_settings: Option<u32>,
     syspath: PathBuf,
 
     pub(crate) regs: Option<Vec<Register>>,
@@ -213,14 +223,19 @@ impl Device {
         self.kind == Kind::Router
     }
 
-    /// Returns `true` if the device is host router
+    /// Returns `true` if the device is host router.
     pub fn is_host_router(&self) -> bool {
         self.is_router() && self.route == 0
     }
 
-    /// Returns `true` if the device is device router
+    /// Returns `true` if the device is device router.
     pub fn is_device_router(&self) -> bool {
         self.is_router() && self.route > 0
+    }
+
+    /// Returns `true` if the device is service.
+    pub fn is_service(&self) -> bool {
+        self.kind == Kind::Service
     }
 
     /// Returns the domain this device belongs to
@@ -270,7 +285,7 @@ impl Device {
         self.adapter_num
     }
 
-    /// If this is retimer, returns the retimer index this answers to.
+    /// Returns retimer or service index depending on the type.
     pub fn index(&self) -> u8 {
         self.index
     }
@@ -377,6 +392,31 @@ impl Device {
         self.syspath.clone()
     }
 
+    /// Returns service key.
+    pub fn service_key(&self) -> Option<String> {
+        self.service_key.clone()
+    }
+
+    /// Returns service protocol identifier.
+    pub fn protocol_id(&self) -> Option<u32> {
+        self.protocol_id
+    }
+
+    /// Returns service protocol version.
+    pub fn protocol_version(&self) -> Option<u32> {
+        self.protocol_version
+    }
+
+    /// Returns version of the software controlling the service.
+    pub fn protocol_revision(&self) -> Option<u32> {
+        self.protocol_revision
+    }
+
+    /// Returns service protocol settings.
+    pub fn protocol_settings(&self) -> Option<u32> {
+        self.protocol_settings
+    }
+
     fn parse_speed(value: Option<&OsStr>) -> Option<u32> {
         if let Some(speed) = value {
             let caps = SPEED_RE.captures(speed.to_str()?)?;
@@ -421,6 +461,11 @@ impl Device {
         tx_lanes: Option<u32>,
         nvm_version: Option<Version>,
         key: Option<String>,
+        service_key: Option<String>,
+        protocol_id: Option<u32>,
+        protocol_version: Option<u32>,
+        protocol_revision: Option<u32>,
+        protocol_settings: Option<u32>,
         syspath: PathBuf,
     ) -> Self {
         Device {
@@ -447,6 +492,11 @@ impl Device {
             tx_lanes,
             nvm_version,
             key,
+            service_key,
+            protocol_id,
+            protocol_version,
+            protocol_revision,
+            protocol_settings,
             syspath,
             regs: None,
             adapters: None,
@@ -529,16 +579,17 @@ impl Device {
                 Some(Version { major, minor })
             });
 
-        let key = udev
-            .attribute_value("key")
-            .and_then(|n| n.to_str())
-            .map(String::from);
-
         let kernel_name = String::from(udev.sysname().to_str()?);
         let domain: u32;
         let mut route: u64 = 0;
         let mut adapter_num: u8 = 0;
         let mut index: u8 = 0;
+        let mut key: Option<String> = None;
+        let mut service_key: Option<String> = None;
+        let mut protocol_id: Option<u32> = None;
+        let mut protocol_version: Option<u32> = None;
+        let mut protocol_revision: Option<u32> = None;
+        let mut protocol_settings: Option<u32> = None;
 
         match kind {
             Kind::Domain => {
@@ -554,10 +605,41 @@ impl Device {
                 index = caps[4].parse().unwrap();
             }
 
+            Kind::Service => {
+                let caps = SERVICE_RE.captures(&kernel_name)?;
+                domain = caps[1].parse().unwrap_or(0);
+                route = util::parse_hex::<u64>(&caps[2]).unwrap_or(0);
+                index = caps[3].parse().unwrap();
+                service_key = udev
+                    .attribute_value("key")
+                    .and_then(|n| n.to_str())
+                    .map(String::from);
+                protocol_id = udev
+                    .attribute_value("prtcid")
+                    .and_then(|n| n.to_str())
+                    .map(|n| n.parse::<u32>().ok())?;
+                protocol_version = udev
+                    .attribute_value("prtcvers")
+                    .and_then(|n| n.to_str())
+                    .map(|n| n.parse::<u32>().ok())?;
+                protocol_revision = udev
+                    .attribute_value("prtcrevs")
+                    .and_then(|n| n.to_str())
+                    .map(|n| n.parse::<u32>().ok())?;
+                protocol_settings = udev
+                    .attribute_value("prtcrevs")
+                    .and_then(|n| n.to_str())
+                    .map(util::parse_hex::<u32>)?;
+            }
+
             _ => {
                 let caps = ROUTER_RE.captures(&kernel_name)?;
                 domain = caps[1].parse().unwrap_or(0);
                 route = util::parse_hex::<u64>(&caps[2]).unwrap_or(0);
+                key = udev
+                    .attribute_value("key")
+                    .and_then(|n| n.to_str())
+                    .map(String::from);
             }
         }
 
@@ -587,6 +669,11 @@ impl Device {
             tx_lanes,
             nvm_version,
             key,
+            service_key,
+            protocol_id,
+            protocol_version,
+            protocol_revision,
+            protocol_settings,
             syspath,
         ))
     }
@@ -639,6 +726,8 @@ pub enum Address {
         adapter: u8,
         index: u8,
     },
+    /// Address a Service.
+    Service { domain: u8, route: u64, index: u8 },
 }
 
 /// Configuration spaces.
