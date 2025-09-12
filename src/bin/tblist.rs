@@ -162,7 +162,6 @@ fn print_domain(args: &Args, mut record: Option<&mut Vec<String>>, tb: &Device) 
 
         if args.verbose {
             println!("{}  Type: {}", indent, color_kind(tb));
-
             let security_level = match tb.security_level() {
                 Some(SecurityLevel::None) => "None",
                 Some(SecurityLevel::User) => "User",
@@ -183,6 +182,7 @@ fn print_domain(args: &Args, mut record: Option<&mut Vec<String>>, tb: &Device) 
                 indent,
                 color_bool(tb.iommu_dma_protection().unwrap_or(false))
             );
+            println!("{}  Kernel name: {}", indent, tb.kernel_name());
         }
     }
 }
@@ -288,6 +288,8 @@ fn print_router(args: &Args, mut record: Option<&mut Vec<String>>, sw: &Device) 
                     indent, version.major, version.minor
                 );
             }
+
+            println!("{}  Kernel name: {}", indent, sw.kernel_name());
         }
     }
 }
@@ -319,13 +321,13 @@ fn print_retimer(args: &Args, mut record: Option<&mut Vec<String>>, rt: &Device)
 
         if args.verbose {
             println!("{}  Type: {}", indent, color_kind(rt));
-
             if let Some(version) = rt.nvm_version() {
                 println!(
                     "{}  NVM version: {:x}.{:x}",
                     indent, version.major, version.minor
                 );
             }
+            println!("{}  Kernel name: {}", indent, rt.kernel_name());
         }
     }
 }
@@ -352,7 +354,6 @@ fn print_service(args: &Args, mut record: Option<&mut Vec<String>>, svc: &Device
 
         if args.verbose {
             println!("{}  Type: {}", indent, color_kind(svc));
-
             if let Some(protocol_id) = svc.protocol_id() {
                 println!("{}  Protocol ID: {}", indent, protocol_id);
             }
@@ -365,6 +366,7 @@ fn print_service(args: &Args, mut record: Option<&mut Vec<String>>, svc: &Device
             if let Some(protocol_settings) = svc.protocol_settings() {
                 println!("{}  Protocol settings: {:08x}", indent, protocol_settings);
             }
+            println!("{}  Kernel name: {}", indent, svc.kernel_name());
         }
     }
 }
