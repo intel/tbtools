@@ -69,6 +69,19 @@ fn color_name(device: &Device) -> String {
                 bold.map_or(index.clone(), |b| b.paint(index).to_string())
             )
         }
+
+        Kind::Service => {
+            let route = format!("{:x}", device.route());
+            let index = device.index().to_string();
+
+            format!(
+                "Domain {} Route {} Index {}",
+                bold.map_or(domain.clone(), |b| b.paint(domain).to_string()),
+                bold.map_or(route.clone(), |b| b.paint(route).to_string()),
+                bold.map_or(index.clone(), |b| b.paint(index).to_string())
+            )
+        }
+
         _ => panic!(),
     }
 }
@@ -193,6 +206,7 @@ fn start_monitor(args: &Args) -> io::Result<()> {
         .kind(Kind::Router)?
         .kind(Kind::Xdomain)?
         .kind(Kind::Retimer)?
+        .kind(Kind::Service)?
         .build()?;
 
     loop {
