@@ -293,6 +293,11 @@ fn dump(args: &Args) -> io::Result<()> {
         }
     }
 
+    if tunnels.is_empty() {
+        println!("No tunnels found");
+        return Ok(());
+    }
+
     for (i, tunnel) in tunnels.iter().enumerate() {
         dump_tunnel(tunnel, args)?;
         if args.verbose > 0 && i < tunnels.len() - 1 {
