@@ -6,6 +6,8 @@ tbtools
 - sideband register support
 - DMA test (dma_test.ko) support. Probably some sort of script that runs
   it automatically or so.
+- snapshot. E.g take snapshot of the debugfs files and then add allow
+  specifying that for any of the tools.
 
 tbget/tbdump
 -----
