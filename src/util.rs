@@ -150,7 +150,7 @@ pub fn bytes_to_ascii(bytes: &[u8]) -> String {
 pub fn bytes_to_utf16_ascii(bytes: &[u8]) -> String {
     let mut s = String::new();
 
-    if bytes.len() % 2 != 0 {
+    if !bytes.len().is_multiple_of(2) {
         panic!("bytes not aligned by 16-bits");
     }
 
