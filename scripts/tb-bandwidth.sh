@@ -128,7 +128,7 @@ done
 echo
 printf "[Display Info]:\n"
 # Path to the i915_display_info file
-DISPLAY_INFO_PATH="/sys/kernel/debug/dri/0/i915_display_info"
+DISPLAY_INFO_PATH="/sys/kernel/debug/dri/0000:00:02.0/i915_display_info"
 
 # Check if the file exists
 if [ ! -f "$DISPLAY_INFO_PATH" ]; then
