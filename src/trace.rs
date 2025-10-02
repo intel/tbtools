@@ -17,6 +17,12 @@
 //! use tbtools::trace;
 //!
 //! # fn main() -> io::Result<()> {
+//! // Make sure tracefs is available.
+//! if let Err(err) = trace::mount() {
+//!     eprintln!("failed to mount tracefs: {err}");
+//!     process::exit(1);
+//! }
+//!
 //! if !trace::supported() {
 //!     eprintln!("tracing is not supported");
 //!     process::exit(1);
@@ -52,7 +58,11 @@ use crate::{
     genmask_t, util,
 };
 use lazy_static::lazy_static;
-use nix::sys::time::{self, TimeVal};
+use nix::{
+    errno::Errno,
+    mount,
+    sys::time::{self, TimeVal},
+};
 use regex::Regex;
 use serde::{Serialize, Serializer};
 use serde_json::Value;
@@ -65,7 +75,7 @@ use std::{
 };
 use uuid::Uuid;
 
-const TRACEFS_ROOT: &str = "/sys/kernel/debug/tracing";
+const TRACEFS_ROOT: &str = "/sys/kernel/tracing";
 const TRACEFS_TRACE: &str = "trace";
 const TRACEFS_CURRENT_TRACER: &str = "current_tracer";
 const TRACEFS_TRACE_CLOCK: &str = "trace_clock";
@@ -933,6 +943,24 @@ fn trace_events_thunderbolt_path(attr: &str) -> Result<PathBuf> {
     path_buf.push(attr);
 
     Ok(path_buf)
+}
+
+/// Mounts tracefs if not already mounted. User must be `root`.
+///
+/// Call this before any other function in this module to make sure tracefs is properly mounted.
+pub fn mount() -> Result<()> {
+    match mount::mount(
+        None::<&PathBuf>,
+        &PathBuf::from(TRACEFS_ROOT),
+        Some("tracefs"),
+        mount::MsFlags::empty(),
+        None::<&PathBuf>,
+    ) {
+        // OK if already mounted.
+        Err(Errno::EBUSY) => Ok(()),
+        Err(err) => Err(err.into()),
+        Ok(_) => Ok(()),
+    }
 }
 
 /// Returns [`true`] if tracing of Thunderbolt/USB4 driver is supported.

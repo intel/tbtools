@@ -1578,12 +1578,28 @@ fn update_title(siv: &mut Cursive) {
     });
 }
 
-fn enable_trace(siv: &mut Cursive) {
+fn trace_supported(siv: &mut Cursive) -> bool {
+    if let Err(err) = trace::mount() {
+        siv.add_layer(ThemedView::new(
+            theme::dialog(),
+            Layer::new(Dialog::info(format!("Failed to mount tracefs: {err}"))),
+        ));
+        return false;
+    }
+
     if !trace::supported() {
         siv.add_layer(ThemedView::new(
             theme::dialog(),
             Layer::new(Dialog::info("Kernel driver tracing is not supported")),
         ));
+        return false;
+    }
+
+    true
+}
+
+fn enable_trace(siv: &mut Cursive) {
+    if !trace_supported(siv) {
         return;
     }
 
@@ -1972,11 +1988,7 @@ fn jump_trace(siv: &mut Cursive) {
 }
 
 fn build_trace(siv: &mut Cursive) {
-    if !trace::supported() {
-        siv.add_layer(ThemedView::new(
-            theme::dialog(),
-            Layer::new(Dialog::info("Kernel driver tracing is not supported")),
-        ));
+    if !trace_supported(siv) {
         return;
     }
 

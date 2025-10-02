@@ -1018,6 +1018,11 @@ fn check_access() {
         process::exit(1);
     }
 
+    if let Err(err) = trace::mount() {
+        eprintln!("Error: failed to mount tracefs: {err}");
+        process::exit(1);
+    }
+
     if !trace::supported() {
         eprintln!("Error: no tracing support detected");
         process::exit(1);
