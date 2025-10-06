@@ -277,7 +277,10 @@ fn print_router(args: &Args, mut record: Option<&mut Vec<String>>, sw: &Device) 
                 print!("{indent}  Generation: ");
                 match generation {
                     1..=3 => println!("Thunderbolt {generation}"),
-                    4 => println!("USB4"),
+                    4 => {
+                        let version = sw.usb4_version().unwrap();
+                        println!("USB4 {}.{}", version.major, version.minor)
+                    }
                     _ => println!("Unknown"),
                 }
             }
