@@ -209,7 +209,10 @@ fn print_router(args: &Args, mut record: Option<&mut Vec<String>>, sw: &Device) 
         if args.verbose {
             match sw.generation() {
                 Some(generation @ 1..=3) => record.push(format!("Thunderbolt {generation}")),
-                Some(4) => record.push(String::from("USB4")),
+                Some(4) => {
+                    let version = sw.usb4_version().unwrap();
+                    record.push(format!("USB4 {}.{}", version.major, version.minor));
+                }
                 _ => record.push(String::new()),
             }
         } else {
