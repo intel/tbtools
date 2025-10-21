@@ -186,7 +186,7 @@ fn dump_dp_tunnel(tunnel: &Tunnel, args: &Args) -> io::Result<()> {
                     0
                 }
             };
-            let group = color_number(cs2.field("GR"));
+            let group = color_number(cs2.field("Group_ID"));
             println!("  Group ID: {group}");
             let estimated_bw = color_number(cs2.field("Estimated BW") * granularity);
             println!("  Estimated Bandwidth: {estimated_bw} Mb/s");
