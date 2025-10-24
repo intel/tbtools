@@ -627,7 +627,7 @@ impl Device {
                     .and_then(|n| n.to_str())
                     .map(|n| n.parse::<u32>().ok())?;
                 protocol_settings = udev
-                    .attribute_value("prtcrevs")
+                    .attribute_value("prtcstns")
                     .and_then(|n| n.to_str())
                     .map(util::parse_hex::<u32>)?;
             }
