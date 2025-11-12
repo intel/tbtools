@@ -279,7 +279,8 @@ impl Caps {
 
 /// Determines the margin in case independent margins are supported.
 ///
-/// See also [`Caps::independent_voltage_margins`] and [`Caps::time.independent_margins`].
+/// See also [`Caps::independent_voltage_margins`] and
+/// [`Caps::time.independent_margins`](TimeCaps::independent_margins).
 #[derive(Clone, Debug)]
 pub enum Margin {
     /// Low voltage margin.
