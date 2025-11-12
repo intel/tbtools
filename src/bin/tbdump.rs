@@ -14,7 +14,7 @@ use std::{
 use tbtools::{
     self, Address, Device, Version,
     debugfs::{self, BitFields, Name, Register},
-    drom::{Drom, DromEntry, TmuMode, TmuRate},
+    drom::{Drom, DromEntry, SingleDataPathPreference, TmuMode, TmuRate},
     usb4, util,
 };
 
@@ -461,6 +461,18 @@ fn dump_drom(drom: &Drom, args: &Args) {
                         );
                     }
                 }
+            }
+
+            DromEntry::SingleDataPath(pref) => {
+                println!(
+                    "  Preferred Single Data Path: {}",
+                    match pref {
+                        SingleDataPathPreference::PcieTunneling => String::from("PCIe Tunneling"),
+                        SingleDataPathPreference::Usb3GenTTunneling =>
+                            String::from("USB 3 GenT Tunneling"),
+                        SingleDataPathPreference::Reserved(v) => format!("Reserved {v}"),
+                    }
+                );
             }
 
             DromEntry::Unknown(_) => println!("Unknown Entry"),

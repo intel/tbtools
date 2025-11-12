@@ -25,7 +25,7 @@ use std::{io, thread};
 use tbtools::{
     Device, Kind, Pdf, Version,
     debugfs::{Adapter, BitField, BitFields, Name, PathEntry, Register, Type},
-    drom::{DromEntry, TmuMode, TmuRate},
+    drom::{DromEntry, SingleDataPathPreference, TmuMode, TmuRate},
     monitor::{self, ChangeEvent},
     trace::{self, Entry},
     util, {self, ConfigSpace},
@@ -2407,6 +2407,23 @@ impl DromItem {
                         value: format!("{}", mapping.usb3_adapter_num),
                     });
                 }
+            }
+
+            DromEntry::SingleDataPath(pref) => {
+                name = "Preferred Single Data Path";
+                summary.push_str(name);
+
+                fields.push(DromField {
+                    name: "Preference: ".to_string(),
+                    value: match pref {
+                        SingleDataPathPreference::PcieTunneling => String::from("PCIe Tunneling"),
+                        SingleDataPathPreference::Usb3GenTTunneling => {
+                            String::from("USB 3 GenT Tunneling")
+                        }
+                        SingleDataPathPreference::Reserved(v) => format!("Reserved {v}"),
+                    }
+                    .to_string(),
+                });
             }
 
             DromEntry::Unknown(_) => {

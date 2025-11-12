@@ -57,6 +57,7 @@ const DROM_KIND_SERIAL_NUMBER: u8 = 0xa;
 const DROM_KIND_USB3_PORT_MAPPING: u8 = 0xb;
 const DROM_KIND_UTF16_VENDOR_NAME: u8 = 0xc;
 const DROM_KIND_UTF16_MODEL_NAME: u8 = 0xd;
+const DROM_KIND_SINGLE_DATA_PATH: u8 = 0xe;
 
 const DROM_DP_PV: u8 = 1 << 6;
 const DROM_DP_PA_MASK: u8 = genmask_t!(u8, 5, 0);
@@ -122,6 +123,16 @@ pub struct Usb3PortMap {
     pub usb3_adapter_num: u8,
     /// Set to `true` if USB 3 port is connected to USB 3 adapter.
     pub tunneling: bool,
+}
+
+/// Value containing the preferred single data path to be established.
+#[derive(Clone, Debug, PartialEq)]
+pub enum SingleDataPathPreference {
+    /// PCIe tunneling is preferred.
+    PcieTunneling,
+    /// USB 3 GenT tunneling is preferred.
+    Usb3GenTTunneling,
+    Reserved(u8),
 }
 
 /// All known entry types.
@@ -218,6 +229,8 @@ pub enum DromEntry<'a> {
     Utf16VendorName(String),
     /// UTF-16 model name generic entry.
     Utf16ModelName(String),
+    /// Preferred single data path entry.
+    SingleDataPath(SingleDataPathPreference),
 }
 
 impl<'a> DromEntry<'a> {
@@ -379,6 +392,12 @@ impl<'a> DromEntry<'a> {
                 DROM_KIND_UTF16_MODEL_NAME => {
                     Self::Utf16ModelName(util::bytes_to_utf16_ascii(&bytes[2..]))
                 }
+
+                DROM_KIND_SINGLE_DATA_PATH => match bytes[3] & 0x3 {
+                    0 => Self::SingleDataPath(SingleDataPathPreference::PcieTunneling),
+                    1 => Self::SingleDataPath(SingleDataPathPreference::Usb3GenTTunneling),
+                    v => Self::SingleDataPath(SingleDataPathPreference::Reserved(v)),
+                },
 
                 _ => Self::Generic {
                     length,
