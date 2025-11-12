@@ -14,7 +14,7 @@ use std::{
 use tbtools::{
     self, Address, Device, Version,
     debugfs::{self, BitFields, Name, Register},
-    drom::{Drom, DromEntry, SingleDataPathPreference, TmuMode, TmuRate},
+    drom::{Drom, DromEntry, RankType, SingleDataPathPreference, TmuMode, TmuRate},
     usb4, util,
 };
 
@@ -129,6 +129,20 @@ fn color_goodbad(yesno: bool) -> String {
     } else {
         String::from("✘")
     }
+}
+
+fn color_bool(val: bool) -> String {
+    (match val {
+        true => {
+            if io::stdout().is_terminal() {
+                Green.paint("Yes").to_string()
+            } else {
+                "Yes".to_string()
+            }
+        }
+        false => String::from("No"),
+    })
+    .to_string()
 }
 
 fn color_value(value: &str) -> String {
@@ -473,6 +487,39 @@ fn dump_drom(drom: &Drom, args: &Args) {
                         SingleDataPathPreference::Reserved(v) => format!("Reserved {v}"),
                     }
                 );
+            }
+
+            DromEntry::DptxRanking {
+                nrr,
+                mh,
+                preferred_order,
+                mu,
+                records,
+            } => {
+                println!("  DPTX Ranking:");
+                println!("    NRR: {}", color_value(&format!("{nrr}")));
+                println!("    MST Hub: {}", color_bool(mh));
+                println!(
+                    "    Preferred Order: {}",
+                    color_value(&format!("{preferred_order}"))
+                );
+                if mh {
+                    println!("    MST Upstream: {}", color_value(&format!("{mu}")));
+                }
+                if nrr > 0 {
+                    println!("    Records:");
+                    for record in records {
+                        println!(
+                            "      Rank Type: {}",
+                            match record.rank_type {
+                                RankType::Power => String::from("Power"),
+                                RankType::Performance => String::from("Performance"),
+                                RankType::Reserved(v) => format!("Reserved {v}"),
+                            }
+                        );
+                        println!("      Rank: {}", color_value(&format!("{}", record.rank)));
+                    }
+                }
             }
 
             DromEntry::Unknown(_) => println!("Unknown Entry"),

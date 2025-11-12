@@ -58,6 +58,7 @@ const DROM_KIND_USB3_PORT_MAPPING: u8 = 0xb;
 const DROM_KIND_UTF16_VENDOR_NAME: u8 = 0xc;
 const DROM_KIND_UTF16_MODEL_NAME: u8 = 0xd;
 const DROM_KIND_SINGLE_DATA_PATH: u8 = 0xe;
+const DROM_KIND_DPTX_RANKING: u8 = 0xf;
 
 const DROM_DP_PV: u8 = 1 << 6;
 const DROM_DP_PA_MASK: u8 = genmask_t!(u8, 5, 0);
@@ -133,6 +134,25 @@ pub enum SingleDataPathPreference {
     /// USB 3 GenT tunneling is preferred.
     Usb3GenTTunneling,
     Reserved(u8),
+}
+
+/// Specified the record rank type.
+#[derive(Clone, Debug, PartialEq)]
+pub enum RankType {
+    /// Power rank type.
+    Power,
+    /// Performance rank type.
+    Performance,
+    Reserved(u8),
+}
+
+/// Single ranking record.
+#[derive(Clone, Debug, PartialEq)]
+pub struct DptxRank {
+    /// Type of the record.
+    pub rank_type: RankType,
+    /// Value of the rank (0 is the highest, 7 is the lowest).
+    pub rank: u8,
 }
 
 /// All known entry types.
@@ -231,6 +251,19 @@ pub enum DromEntry<'a> {
     Utf16ModelName(String),
     /// Preferred single data path entry.
     SingleDataPath(SingleDataPathPreference),
+    /// DPTX ranking entry.
+    DptxRanking {
+        /// Number of ranking records (NRR).
+        nrr: u8,
+        /// MST hub (MH).
+        mh: bool,
+        /// Preferred order.
+        preferred_order: u8,
+        /// MST upstream.
+        mu: u8,
+        /// List of ranking records.
+        records: Vec<DptxRank>,
+    },
 }
 
 impl<'a> DromEntry<'a> {
@@ -398,6 +431,34 @@ impl<'a> DromEntry<'a> {
                     1 => Self::SingleDataPath(SingleDataPathPreference::Usb3GenTTunneling),
                     v => Self::SingleDataPath(SingleDataPathPreference::Reserved(v)),
                 },
+
+                DROM_KIND_DPTX_RANKING => {
+                    let mut records = Vec::new();
+                    let nrr = bytes[3] & 0xf;
+                    let end: usize = (5 + nrr).into();
+
+                    bytes[5..=end].iter().for_each(|r| {
+                        let record = DptxRank {
+                            rank_type: match r & 0x1f {
+                                0 => RankType::Power,
+                                1 => RankType::Performance,
+                                v => RankType::Reserved(v),
+                            },
+                            rank: (r >> 5) & 0x7,
+                        };
+                        records.push(record);
+                    });
+
+                    let mh = bytes[3] & (1 << 4) > 0;
+
+                    Self::DptxRanking {
+                        nrr,
+                        mh,
+                        preferred_order: (bytes[3] >> 5) & 0x7,
+                        mu: if mh { bytes[4] & 0x1f } else { 0 },
+                        records,
+                    }
+                }
 
                 _ => Self::Generic {
                     length,

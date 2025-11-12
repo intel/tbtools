@@ -25,7 +25,7 @@ use std::{io, thread};
 use tbtools::{
     Device, Kind, Pdf, Version,
     debugfs::{Adapter, BitField, BitFields, Name, PathEntry, Register, Type},
-    drom::{DromEntry, SingleDataPathPreference, TmuMode, TmuRate},
+    drom::{DromEntry, RankType, SingleDataPathPreference, TmuMode, TmuRate},
     monitor::{self, ChangeEvent},
     trace::{self, Entry},
     util, {self, ConfigSpace},
@@ -2424,6 +2424,46 @@ impl DromItem {
                     }
                     .to_string(),
                 });
+            }
+
+            DromEntry::DptxRanking {
+                nrr,
+                mh,
+                preferred_order,
+                mu,
+                records,
+            } => {
+                name = "DPTX Ranking";
+                summary.push_str(name);
+
+                fields.push(DromField {
+                    name: "NRR".to_string(),
+                    value: format!("{nrr}").to_string(),
+                });
+                fields.push(DromField {
+                    name: "MST Hub".to_string(),
+                    value: yesno(if *mh { 1 } else { 0 }).to_string(),
+                });
+                fields.push(DromField {
+                    name: "Preferred Order".to_string(),
+                    value: format!("{preferred_order}").to_string(),
+                });
+                if *mh {
+                    fields.push(DromField {
+                        name: "MST Upstream".to_string(),
+                        value: format!("{mu}").to_string(),
+                    });
+                }
+                for record in records {
+                    fields.push(DromField {
+                        name: "Rank Type".to_string(),
+                        value: match record.rank_type {
+                            RankType::Power => "Power".to_string(),
+                            RankType::Performance => "Performance".to_string(),
+                            RankType::Reserved(v) => format!("Reserved {v}"),
+                        },
+                    });
+                }
             }
 
             DromEntry::Unknown(_) => {
