@@ -522,6 +522,8 @@ fn dump_drom(drom: &Drom, args: &Args) {
                 }
             }
 
+            DromEntry::EmbeddedLink(adapter) => println!("  Embedded USB4 Link: {adapter}"),
+
             DromEntry::Unknown(_) => println!("Unknown Entry"),
         }
     }

@@ -59,6 +59,7 @@ const DROM_KIND_UTF16_VENDOR_NAME: u8 = 0xc;
 const DROM_KIND_UTF16_MODEL_NAME: u8 = 0xd;
 const DROM_KIND_SINGLE_DATA_PATH: u8 = 0xe;
 const DROM_KIND_DPTX_RANKING: u8 = 0xf;
+const DROM_KIND_EMBEDDED_LINK: u8 = 0x10;
 
 const DROM_DP_PV: u8 = 1 << 6;
 const DROM_DP_PA_MASK: u8 = genmask_t!(u8, 5, 0);
@@ -264,6 +265,8 @@ pub enum DromEntry<'a> {
         /// List of ranking records.
         records: Vec<DptxRank>,
     },
+    /// Embedded USB4 link entry.
+    EmbeddedLink(u8),
 }
 
 impl<'a> DromEntry<'a> {
@@ -459,6 +462,8 @@ impl<'a> DromEntry<'a> {
                         records,
                     }
                 }
+
+                DROM_KIND_EMBEDDED_LINK => Self::EmbeddedLink(bytes[2] & 0x1f),
 
                 _ => Self::Generic {
                     length,

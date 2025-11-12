@@ -2466,6 +2466,16 @@ impl DromItem {
                 }
             }
 
+            DromEntry::EmbeddedLink(adapter) => {
+                name = "Embedded USB4 Link";
+                summary.push_str(name);
+
+                fields.push(DromField {
+                    name: "Adapter Number".to_string(),
+                    value: format!("{adapter}").to_string(),
+                });
+            }
+
             DromEntry::Unknown(_) => {
                 name = "Unknown Entry";
                 summary.push_str(name);
