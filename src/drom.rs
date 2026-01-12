@@ -440,7 +440,7 @@ impl<'a> DromEntry<'a> {
                     let nrr = bytes[3] & 0xf;
                     let end: usize = (5 + nrr).into();
 
-                    bytes[5..=end].iter().for_each(|r| {
+                    bytes[5..end].iter().for_each(|r| {
                         let record = DptxRank {
                             rank_type: match r & 0x1f {
                                 0 => RankType::Power,
