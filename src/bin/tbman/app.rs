@@ -2463,6 +2463,10 @@ impl DromItem {
                             RankType::Reserved(v) => format!("Reserved {v}"),
                         },
                     });
+                    fields.push(DromField {
+                        name: "Rank".to_string(),
+                        value: format!("{}", record.rank),
+                    });
                 }
             }
 
