@@ -523,7 +523,7 @@
       {"start_bit": 16, "end_bit": 19, "name": "Current Link Speed", "values": [
         {"name": "Gen 2", "value": 8},
         {"name": "Gen 3", "value": 4},
-        {"name": "Gen 2", "value": 2}
+        {"name": "Gen 4", "value": 2}
       ]},
       {"start_bit": 20, "end_bit": 25, "name": "Negotiated Link Width", "values": [
         {"name": "Single-Lane Link (x1)", "value": 1},
