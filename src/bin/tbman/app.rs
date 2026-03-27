@@ -2427,6 +2427,7 @@ impl DromItem {
             }
 
             DromEntry::DptxRanking {
+                adapter_num,
                 nrr,
                 mh,
                 preferred_order,
@@ -2436,6 +2437,10 @@ impl DromItem {
                 name = "DPTX Ranking";
                 summary.push_str(name);
 
+                fields.push(DromField {
+                    name: "Adapter".to_string(),
+                    value: format!("{adapter_num}").to_string(),
+                });
                 fields.push(DromField {
                     name: "NRR".to_string(),
                     value: format!("{nrr}").to_string(),

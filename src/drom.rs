@@ -254,6 +254,7 @@ pub enum DromEntry<'a> {
     SingleDataPath(SingleDataPathPreference),
     /// DPTX ranking entry.
     DptxRanking {
+        adapter_num: u8,
         /// Number of ranking records (NRR).
         nrr: u8,
         /// MST hub (MH).
@@ -437,6 +438,7 @@ impl<'a> DromEntry<'a> {
 
                 DROM_KIND_DPTX_RANKING => {
                     let mut records = Vec::new();
+                    let adapter_num = bytes[2] & 0x1f;
                     let nrr = bytes[3] & 0xf;
                     let end: usize = (5 + nrr).into();
 
@@ -455,6 +457,7 @@ impl<'a> DromEntry<'a> {
                     let mh = bytes[3] & (1 << 4) > 0;
 
                     Self::DptxRanking {
+                        adapter_num,
                         nrr,
                         mh,
                         preferred_order: (bytes[3] >> 5) & 0x7,

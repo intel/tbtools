@@ -490,6 +490,7 @@ fn dump_drom(drom: &Drom, args: &Args) {
             }
 
             DromEntry::DptxRanking {
+                adapter_num,
                 nrr,
                 mh,
                 preferred_order,
@@ -497,6 +498,7 @@ fn dump_drom(drom: &Drom, args: &Args) {
                 records,
             } => {
                 println!("  DPTX Ranking:");
+                println!("    Adapter: {}", color_adapter_num(adapter_num));
                 println!("    NRR: {}", color_value(&format!("{nrr}")));
                 println!("    MST Hub: {}", color_bool(mh));
                 println!(
