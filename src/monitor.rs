@@ -9,7 +9,7 @@ use nix::sys::{select, time::TimeVal};
 use std::{
     fmt::{self, Display},
     io::Result,
-    os::fd::AsRawFd,
+    os::fd::AsFd,
     time::Duration,
 };
 
@@ -110,7 +110,7 @@ impl Monitor {
     /// Returns `true` if there was an event, `false` otherwise.
     pub fn poll(&mut self, duration: Option<Duration>) -> Result<bool> {
         let mut readfds = select::FdSet::new();
-        readfds.insert(self.socket.as_raw_fd());
+        readfds.insert(self.socket.as_fd());
 
         let mut tv: Option<TimeVal> = duration.map(|duration| {
             TimeVal::new(
