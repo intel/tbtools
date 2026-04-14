@@ -48,7 +48,7 @@ fn is_secure_supported(device: &Device) -> bool {
 fn gen_key() -> Result<String, fmt::Error> {
     let mut data = [0u8; 32];
 
-    rand::thread_rng().fill_bytes(&mut data);
+    rand::rng().fill_bytes(&mut data);
 
     let mut key = String::new();
     for b in data {
