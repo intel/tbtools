@@ -671,7 +671,7 @@ fn read(path_buf: &PathBuf, offset: Option<u16>, nregs: Option<usize>) -> Result
         .collect();
 
     // Kernel reports them by capability so sort them out here by the actual offset.
-    regs.sort_by(|a, b| a.offset.cmp(&b.offset));
+    regs.sort_by_key(|a| a.offset);
 
     Ok(regs)
 }
