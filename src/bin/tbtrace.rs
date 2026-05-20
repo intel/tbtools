@@ -998,7 +998,7 @@ fn dump(
         let header = HTML_FOOTER.replace("{DOMAINS}", &domain_filters.join("\n"));
         let route_filters = routes
             .iter()
-            .map(|d| format!(r#"{}<label><input type="checkbox" value="{}" checked onchange="updateRouteFilter()">{}</label>"#, " ".repeat(20), d, d))
+            .map(|d| format!(r#"{}<label><input type="checkbox" value="{:x}" checked onchange="updateRouteFilter()">{:x}</label>"#, " ".repeat(20), d, d))
             .collect::<Vec<_>>();
         let header = header.replace("{ROUTES}", &route_filters.join("\n"));
         print!("{header}");
