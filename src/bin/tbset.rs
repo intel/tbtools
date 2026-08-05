@@ -58,13 +58,13 @@ fn write_router(device: &mut Device, values: &Vec<(String, u32)>) -> io::Result<
                         if reg.has_field(name[1]) {
                             reg.set_field(name[1], value.1);
                         } else {
-                            eprintln!("Warning: field name {} not found!", &name[1]);
+                            eprintln!("Warning: field name {} not found!", name[1]);
                         }
                     } else {
                         reg.set_value(value.1);
                     }
                 } else {
-                    eprintln!("Warning: register name {} not found!", &name[0]);
+                    eprintln!("Warning: register name {} not found!", name[0]);
                 }
             }
         }
@@ -118,13 +118,13 @@ fn write_adapter(
                                     if reg.has_field(name[1]) {
                                         reg.set_field(name[1], value.1);
                                     } else {
-                                        eprintln!("Warning: field name {} not found!", &name[1]);
+                                        eprintln!("Warning: field name {} not found!", name[1]);
                                     }
                                 } else {
                                     reg.set_value(value.1);
                                 }
                             } else {
-                                eprintln!("Warning: register name {} not found!", &name[0]);
+                                eprintln!("Warning: register name {} not found!", name[0]);
                             }
                         }
                     }
