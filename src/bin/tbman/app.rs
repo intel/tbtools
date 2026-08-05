@@ -1899,7 +1899,7 @@ fn trace_entry(entry: &Entry) -> SpannedString<Style> {
         entry.timestamp().tv_usec()
     );
     line.append(timestamp);
-    line.append(format!("{:8} ", &entry.function()));
+    line.append(format!("{:8} ", entry.function()));
     let mut pdf = entry.pdf().to_string();
     match entry.pdf() {
         Pdf::ReadRequest | Pdf::WriteRequest | Pdf::ReadResponse | Pdf::WriteResponse => {
