@@ -227,13 +227,13 @@ fn read_router(device: &mut Device, args: &Args) -> io::Result<()> {
                         if reg.has_field(name[1]) {
                             dump_value(reg.field(name[1]), args);
                         } else {
-                            eprintln!("Warning: field name {} not found!", &name[1]);
+                            eprintln!("Warning: field name {} not found!", name[1]);
                         }
                     } else {
                         dump_value(reg.value(), args);
                     }
                 } else {
-                    eprintln!("Warning: register name {} not found!", &name[0]);
+                    eprintln!("Warning: register name {} not found!", name[0]);
                 }
             }
         }
@@ -301,13 +301,13 @@ fn read_adapter(device: &mut Device, adapter: u8, args: &Args) -> io::Result<()>
                                 if reg.has_field(name[1]) {
                                     dump_value(reg.field(name[1]), args);
                                 } else {
-                                    eprintln!("Warning: field name {} not found!", &name[1]);
+                                    eprintln!("Warning: field name {} not found!", name[1]);
                                 }
                             } else {
                                 dump_value(reg.value(), args);
                             }
                         } else {
-                            eprintln!("Warning: register name {} not found!", &name[0]);
+                            eprintln!("Warning: register name {} not found!", name[0]);
                         }
                     }
                 }
