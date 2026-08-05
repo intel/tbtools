@@ -55,12 +55,12 @@ fn main() {
 
     if let Some(mode) = args.mode {
         if let Err(err) = ac.enter_mode(&address, &mode) {
-            eprintln!("Error: failed to enter {} mode: {}", &mode, err);
+            eprintln!("Error: failed to enter {} mode: {}", mode, err);
             process::exit(1);
         }
         println!(
             "Domain {} Route {:x} Adapter {}: entered {}",
-            args.domain, args.route, args.adapter, &mode
+            args.domain, args.route, args.adapter, mode
         );
     } else {
         let mode = match ac.current_mode(&address) {
