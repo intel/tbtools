@@ -3,8 +3,8 @@
 // Copyright (C) 2023, Intel Corporation
 // Author: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-use ansi_term::Colour::{Cyan, Green, Yellow};
-use ansi_term::Style;
+use nu_ansi_term::Color::{Cyan, Green, Yellow};
+use nu_ansi_term::Style;
 use clap::Parser;
 use csv::Writer;
 use std::io::{self, IsTerminal};

@@ -3,7 +3,7 @@
 // Copyright (C) 2023, Intel Corporation
 // Author: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-use ansi_term::Colour::{Cyan, Green, Red, White, Yellow};
+use nu_ansi_term::Color::{Cyan, Green, Red, White, Yellow};
 use clap::Parser;
 use nix::unistd::Uid;
 use std::{

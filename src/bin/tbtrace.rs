@@ -3,7 +3,7 @@
 // Copyright (C) 2024, Intel Corporation
 // Author: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-use ansi_term::Colour::{Cyan, Green, Purple, Red, White, Yellow};
+use nu_ansi_term::Color::{Cyan, Green, Purple, Red, White, Yellow};
 use clap::{self, Parser, Subcommand};
 use csv::Writer;
 use nix::{sys::time::TimeVal, unistd::Uid};

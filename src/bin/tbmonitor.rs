@@ -3,8 +3,8 @@
 // Copyright (C) 2025, Intel Corporation
 // Author: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-use ansi_term::{
-    Colour::{Green, Red, White, Yellow},
+use nu_ansi_term::{
+    Color::{Green, Red, White, Yellow},
     Style,
 };
 use clap::Parser;

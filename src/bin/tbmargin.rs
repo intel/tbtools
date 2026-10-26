@@ -6,7 +6,7 @@
 use std::io::{self, IsTerminal, Result};
 use std::process;
 
-use ansi_term::Colour::{Green, Red};
+use nu_ansi_term::Color::{Green, Red};
 use clap::{self, Parser};
 use nix::unistd::Uid;
 
