@@ -19,6 +19,7 @@
 # ln -s tbtools-completion.bash tbmonitor
 # ln -s tbtools-completion.bash tbpd
 # ln -s tbtools-completion.bash tbset
+# ln -s tbtools-completion.bash tbstream
 # ln -s tbtools-completion.bash tbtrace
 # ln -s tbtools-completion.bash tbtunnels
 #
@@ -134,6 +135,37 @@ _tbtools_complete_registers()
 
     local IFS=$'\n'
     COMPREPLY+=($(compgen -W "$registers" -- "$reg"))
+}
+
+# 1: "group" to list only Streams that have a ConfigFS directory present
+_tbtools_complete_streams()
+{
+    local streams
+
+    streams=$(tbstream list -S 2> /dev/null |
+        sed 1d |
+        awk -F, -v group="$1" '(group == "" || $3 == "true") && !seen[$1]++ { print $1 }' |
+        xargs)
+    COMPREPLY+=($(compgen -W "$streams" -- "$cur"))
+}
+
+# 1: Stream name
+# 2...: stream devices already given on the command line
+_tbtools_complete_stream_devices()
+{
+    local stream sdevs
+
+    [[ ! $1 ]] && return
+    stream=$1
+    shift
+
+    sdevs=$(tbstream list -S 2> /dev/null |
+        sed 1d |
+        awk -F, -v stream="$stream" -v used="$*" '
+            BEGIN { n = split(used, u, " "); for (i = 1; i <= n; i++) skip[u[i]] }
+            $1 == stream && $4 != "" && !($4 in skip) { print $4 }' |
+        xargs)
+    COMPREPLY+=($(compgen -W "$sdevs" -- "$cur"))
 }
 
 _tbadapters()
@@ -383,6 +415,71 @@ _tbset()
     fi
 } &&
     complete -F _tbset tbset
+
+_tbstream()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    local i cmd= stream= npos=0 all=
+    local -a sdevs=()
+
+    for ((i = 1; i < cword; i++)); do
+        [[ ${words[i]} == --all ]] && all=1
+        [[ ${words[i]} == -* ]] && continue
+        if [[ ! $cmd ]]; then
+            cmd=${words[i]}
+        elif ((npos++ == 0)); then
+            stream=${words[i]}
+        else
+            sdevs+=("${words[i]}")
+        fi
+    done
+
+    if [[ $cur == -* ]]; then
+        case $cmd in
+            '')
+                COMPREPLY=($(compgen -W '-h --help -V --version' -- "$cur"))
+                ;;
+            list)
+                COMPREPLY=($(compgen -W '-S --script -h --help' -- "$cur"))
+                ;;
+            auto | add)
+                COMPREPLY=($(compgen -W '-h --help' -- "$cur"))
+                ;;
+            remove)
+                if [[ ! $all ]] && ((npos == 0)); then
+                    COMPREPLY=($(compgen -W '--all -h --help' -- "$cur"))
+                else
+                    COMPREPLY=($(compgen -W '-h --help' -- "$cur"))
+                fi
+                ;;
+        esac
+        return
+    fi
+
+    case $cmd in
+        '')
+            COMPREPLY=($(compgen -W 'list auto add remove help' -- "$cur"))
+            ;;
+        auto | add)
+            ((npos == 0)) && _tbtools_complete_streams
+            ;;
+        remove)
+            [[ $all ]] && return
+            if ((npos == 0)); then
+                _tbtools_complete_streams group
+            else
+                _tbtools_complete_stream_devices "$stream" "${sdevs[@]}"
+            fi
+            ;;
+        help)
+            ((npos == 0)) &&
+                COMPREPLY=($(compgen -W 'list auto add remove' -- "$cur"))
+            ;;
+    esac
+} &&
+    complete -F _tbstream tbstream
 
 _tbtunnels()
 {
