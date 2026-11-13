@@ -26,7 +26,7 @@ lazy_static! {
     static ref DOMAIN_RE: Regex = Regex::new(r"^domain(\d+)").unwrap();
     static ref RETIMER_RE: Regex = Regex::new(r"^(\d+)-(\d+):(\d+).(\d+)").unwrap();
     static ref ROUTER_RE: Regex = Regex::new(r"^(\d+)-(\d+)").unwrap();
-    static ref SERVICE_RE: Regex = Regex::new(r"^(\d+)-(\d+)\.(\d+)").unwrap();
+    pub(crate) static ref SERVICE_RE: Regex = Regex::new(r"^(\d+)-(\d+)\.(\d+)").unwrap();
     static ref SPEED_RE: Regex = Regex::new(r"(\d+).0 Gb/s").unwrap();
 }
 

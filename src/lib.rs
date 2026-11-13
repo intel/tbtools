@@ -19,6 +19,7 @@ pub mod debugfs;
 pub mod drom;
 pub mod margining;
 pub mod monitor;
+pub mod stream;
 pub mod trace;
 pub mod tunnel;
 pub mod typec;
