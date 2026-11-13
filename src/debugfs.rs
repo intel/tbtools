@@ -15,7 +15,6 @@
 use crate::{device::Device, drom::Drom, genmask_t, usb4, util};
 use include_dir::{Dir, include_dir};
 use lazy_static::lazy_static;
-use nix::{errno::Errno, mount};
 use num_traits::Num;
 use serde_json::Value;
 use std::{
@@ -632,18 +631,7 @@ fn router_path_buf(router: &Device) -> Result<PathBuf> {
 
 /// Mounts debugfs if not already mounted. User must be `root`.
 pub fn mount() -> Result<()> {
-    match mount::mount(
-        None::<&PathBuf>,
-        &PathBuf::from("/sys/kernel/debug"),
-        Some("debugfs"),
-        mount::MsFlags::empty(),
-        None::<&PathBuf>,
-    ) {
-        // OK if already mounted.
-        Err(Errno::EBUSY) => Ok(()),
-        Err(err) => Err(err.into()),
-        Ok(_) => Ok(()),
-    }
+    util::mount_fs("debugfs", "/sys/kernel/debug")
 }
 
 fn read(path_buf: &PathBuf, offset: Option<u16>, nregs: Option<usize>) -> Result<Vec<Register>> {

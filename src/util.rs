@@ -8,17 +8,35 @@
 use std::{
     char, fs,
     io::{self, Error, ErrorKind},
+    path::Path,
     str::FromStr,
 };
 
 use lazy_static::lazy_static;
 use nix::{
+    errno::Errno,
+    mount,
     sys::time::{self, TimeVal},
     time::{ClockId, clock_gettime},
 };
 use num_traits::Num;
 use regex::Regex;
 use uuid;
+
+/// Mounts filesystem `fstype` to `target` if not already mounted. User must be `root`.
+pub(crate) fn mount_fs(fstype: &str, target: impl AsRef<Path>) -> io::Result<()> {
+    match mount::mount(
+        None::<&Path>,
+        target.as_ref(),
+        Some(fstype),
+        mount::MsFlags::empty(),
+        None::<&Path>,
+    ) {
+        // OK if already mounted
+        Ok(_) | Err(Errno::EBUSY) => Ok(()),
+        Err(err) => Err(err.into()),
+    }
+}
 
 /// Similar to kernel's `GENMASK()` macro.
 ///

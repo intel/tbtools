@@ -58,11 +58,7 @@ use crate::{
     genmask_t, util,
 };
 use lazy_static::lazy_static;
-use nix::{
-    errno::Errno,
-    mount,
-    sys::time::{self, TimeVal},
-};
+use nix::sys::time::{self, TimeVal};
 use regex::Regex;
 use serde::{Serialize, Serializer};
 use serde_json::Value;
@@ -949,18 +945,7 @@ fn trace_events_thunderbolt_path(attr: &str) -> Result<PathBuf> {
 ///
 /// Call this before any other function in this module to make sure tracefs is properly mounted.
 pub fn mount() -> Result<()> {
-    match mount::mount(
-        None::<&PathBuf>,
-        &PathBuf::from(TRACEFS_ROOT),
-        Some("tracefs"),
-        mount::MsFlags::empty(),
-        None::<&PathBuf>,
-    ) {
-        // OK if already mounted.
-        Err(Errno::EBUSY) => Ok(()),
-        Err(err) => Err(err.into()),
-        Ok(_) => Ok(()),
-    }
+    util::mount_fs("tracefs", TRACEFS_ROOT)
 }
 
 /// Returns [`true`] if tracing of Thunderbolt/USB4 driver is supported.
