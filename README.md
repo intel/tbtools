@@ -228,6 +228,17 @@ Once enabled it will try to complete the device address (`domain`,
 [Makefile](Makefile) has `install-completion` target that installs the
 completion script and creates symlinks for each tool accordingly.
 
+By default, `install-completion` target creates symlinks for buildroot usage.
+If using different system (e.g., Ubuntu), change `PREFIX` environment variable
+when using the script.
+
+For example:
+```
+  make install-completion PREFIX=/usr
+```
+This will install completions for each tool in
+`/usr/share/bash-completion/completions` directory.
+
 ## Debug logs
 
 In addition to these the kernel driver logs useful information when
